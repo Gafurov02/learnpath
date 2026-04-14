@@ -1,0 +1,186 @@
+{
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "tryNow": "Try now",
+    "start": "Start for free",
+    "dashboard": "Dashboard",
+    "logout": "Log out",
+    "login": "Log in"
+  },
+  "hero": {
+    "tag": "AI-powered exam prep",
+    "title": "Ace your exams",
+    "titleEm": "10× faster",
+    "sub": "Your personal AI tutor that explains mistakes, builds a study plan and adapts to your level. IELTS, SAT, GRE and more.",
+    "cta": "Start for free →",
+    "demo": "Watch demo"
+  },
+  "stats": {
+    "students": "students",
+    "exams": "exams covered",
+    "passRate": "first-attempt pass rate",
+    "price": "per month"
+  },
+  "features": {
+    "tag": "Features",
+    "title": "Everything you need\nfor a high score",
+    "sub": "No boring textbooks — just adaptive questions, instant explanations, and clear progress.",
+    "ai": {
+      "title": "AI explains every mistake",
+      "desc": "After each wrong answer, the AI explains why, references the rule, and gives a similar question."
+    },
+    "adaptive": {
+      "title": "Adaptive difficulty",
+      "desc": "The system picks questions matched to your level — always in the growth zone."
+    },
+    "plan": {
+      "title": "Personal study plan",
+      "desc": "Enter your exam date and get a day-by-day schedule. AI knows exactly what to review."
+    },
+    "stats": {
+      "title": "Progress & statistics",
+      "desc": "See your accuracy by topic, study streaks, and predicted exam score."
+    },
+    "exams": {
+      "title": "12 exams covered",
+      "desc": "IELTS, TOEFL, SAT, GMAT, GRE, and more — all in one place."
+    },
+    "offline": {
+      "title": "Works offline",
+      "desc": "Download questions in advance and study without internet — anywhere."
+    }
+  },
+  "quiz": {
+    "tag": "Try it now",
+    "title": "Solve a few questions",
+    "sub": "Pick an exam and answer questions — AI will explain every answer.",
+    "next": "Next question →",
+    "correct": "Correct",
+    "total": "Total",
+    "question": "Question",
+    "of": "of"
+  },
+  "pricing": {
+    "tag": "Pricing",
+    "title": "Fair pricing,\nno surprises",
+    "sub": "Start free. Upgrade when you're ready.",
+    "free": {
+      "name": "Free",
+      "period": "forever",
+      "cta": "Start for free",
+      "features": [
+        "10 questions per day",
+        "2 exams of your choice",
+        "Basic AI explanations"
+      ],
+      "missing": [
+        "Personal study plan",
+        "Progress statistics",
+        "Offline mode"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "badge": "Most popular",
+      "period": "per month · cancel anytime",
+      "cta": "Start Pro for $10/mo",
+      "features": [
+        "Unlimited questions",
+        "All 12 exams",
+        "Detailed AI explanations",
+        "Day-by-day study plan",
+        "Full statistics",
+        "Offline mode"
+      ]
+    },
+    "teams": {
+      "name": "Schools & Courses",
+      "period": "from $5 per student",
+      "cta": "Contact us",
+      "features": [
+        "Everything in Pro",
+        "Teacher dashboard",
+        "Group statistics",
+        "Custom content",
+        "Priority support",
+        "API access"
+      ]
+    }
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "email": "Email",
+    "password": "Password",
+    "continueGoogle": "Continue with Google",
+    "or": "or",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "forgotPassword": "Forgot password?"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "xp": "XP earned",
+    "streak": "day streak",
+    "accuracy": "accuracy",
+    "continueStudy": "Continue studying",
+    "topics": "Topics to review",
+    "plan": "Today's plan",
+    "upgrade": "Upgrade to Pro",
+    "upgradeDesc": "Unlock unlimited questions and all 12 exams.",
+    "questionsLeft": "questions left today"
+  },
+  "footer": {
+    "copy": "© 2025 LearnPath. Built for students worldwide.",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "contact": "Contact"
+  },
+  "app": {
+    "home": "Home",
+    "practice": "Practice",
+    "leaderboard": "Leaderboard",
+    "profile": "Profile",
+    "continueBtn": "Continue →",
+    "roadmap": "Roadmap",
+    "proMember": "Pro Member",
+    "dayStreak": "day streak",
+    "xpTo": "XP to",
+    "proUnlocked": "PRO FEATURES UNLOCKED",
+    "unlimited": "Unlimited",
+    "questions": "Questions",
+    "aiExplanations": "AI Explanations",
+    "detailed": "Detailed",
+    "examsAccess": "Exams Access",
+    "all12": "All 12",
+    "studyPlan": "Study Plan",
+    "personal": "Personal",
+    "upgradePro": "Upgrade to Pro",
+    "upgradeDesc": "Unlock unlimited questions and all 12 exams.",
+    "upgradeBtn": "Upgrade $10/mo →",
+    "chooseExam": "Choose an exam",
+    "topStudents": "Top students by XP this month",
+    "noEntries": "No entries yet. Be the first!",
+    "you": "you",
+    "achievements": "Achievements",
+    "logOut": "Log out",
+    "correct": "Correct",
+    "accuracy": "Accuracy",
+    "streakLabel": "Day streak",
+    "totalXp": "Total XP",
+    "freePlan": "Free plan",
+    "continueLabel": "Continue",
+    "startLabel": "Start",
+    "welcomeBack": "Welcome back",
+    "readyToPractice": "Ready to practice?",
+    "startPracticing": "Start practicing",
+    "viewDashboard": "View dashboard",
+    "nextQuestion": "Next question",
+    "somethingWrong": "Something went wrong.",
+    "tryAgain": "Try again",
+    "generating": "Generating question with AI...",
+    "signInToSave": "Sign in to save your progress",
+    "signUpFree": "Sign up free"
+  }
+}
