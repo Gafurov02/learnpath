@@ -2,28 +2,21 @@ import Stripe from 'stripe';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-// Use service role key for webhook (bypasses RLS)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-function hasProAccess(status: string | null) {
-  return status === 'active' || status === 'trialing';
-}
-
 export async function POST(req: NextRequest) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+  const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   const body = await req.text();
   const sig = req.headers.get('stripe-signature')!;
 
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Invalid signature';
-    console.error('Webhook signature error:', message);
+  } catch (err: any) {
+    console.error('Webhook signature error:', err.message);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
@@ -46,20 +39,15 @@ export async function POST(req: NextRequest) {
       case 'customer.subscription.deleted':
       case 'customer.subscription.updated': {
         const sub = event.data.object as Stripe.Subscription;
-        const isActive = hasProAccess(sub.status);
         await supabaseAdmin
-          .from('subscriptions')
-          .update({
-            status: isActive ? 'active' : 'cancelled',
-            plan: isActive ? 'pro' : 'free',
-          })
-          .eq('stripe_subscription_id', sub.id);
+            .from('subscriptions')
+            .update({ status: sub.status === 'active' ? 'active' : 'cancelled', plan: sub.status === 'active' ? 'pro' : 'free' })
+            .eq('stripe_subscription_id', sub.id);
         break;
       }
     }
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Webhook handler failed';
-    console.error('Webhook handler error:', message);
+  } catch (err: any) {
+    console.error('Webhook handler error:', err.message);
   }
 
   return NextResponse.json({ received: true });

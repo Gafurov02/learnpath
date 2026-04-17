@@ -3,10 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 export async function POST(req: NextRequest) {
   try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
     const cookieStore = await cookies();
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,7 +22,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { locale = 'en' } = await req.json();
-    const origin = req.nextUrl.origin;
+    const origin = req.headers.get('origin') || 'http://localhost:3000';
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -36,9 +35,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Stripe checkout failed';
-    console.error('Stripe checkout error:', message);
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch (err: any) {
+    console.error('Stripe checkout error:', err.message);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
