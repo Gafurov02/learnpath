@@ -60,7 +60,7 @@ export default function QuizPage() {
 
       // Get selected exams
       const { data: sel } = await supabase.from('user_exam_selection').select('exams').eq('user_id', session.user.id).single();
-      if (sel?.exams?.length > 0) {
+      if (sel?.exams && sel.exams.length > 0) {
         setSelectedExams(sel.exams);
         // If current exam not in selection, switch to first selected
         if (!sel.exams.includes(exam)) setExam(sel.exams[0]);
