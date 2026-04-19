@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { hasProAccess } from '@/lib/subscription';
 
 const EXAMS = ['IELTS', 'SAT', 'TOEFL', 'GMAT', 'GRE', 'ЕГЭ'];
 
@@ -21,8 +22,8 @@ export async function POST(req: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
-    const { data: sub } = await admin.from('subscriptions').select('plan').eq('user_id', user.id).single();
-    if (sub?.plan !== 'pro') return NextResponse.json({ error: 'Pro required' }, { status: 403 });
+    const { data: sub } = await admin.from('subscriptions').select('plan, status').eq('user_id', user.id).single();
+    if (!hasProAccess(sub)) return NextResponse.json({ error: 'Pro required' }, { status: 403 });
 
     const { exam = 'IELTS', count = 20 } = await req.json();
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });

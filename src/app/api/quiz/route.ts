@@ -27,95 +27,57 @@ export async function POST(req: NextRequest) {
     );
 
     const { exam, difficulty = 'medium', locale = 'en', topic } = await req.json();
-
     const config = EXAM_CONFIGS[exam];
     if (!config) return NextResponse.json({ error: 'Unknown exam' }, { status: 400 });
 
-    // Check auth & limits for logged-in users
+    // Check auth & limits
     const { data: { user } } = await supabase.auth.getUser();
+    let isPro = false;
 
     if (user) {
       const admin = createAdminClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.SUPABASE_SERVICE_ROLE_KEY!
       );
-
-      // Get subscription plan
-      const { data: sub } = await admin
-          .from('subscriptions')
-          .select('plan')
-          .eq('user_id', user.id)
-          .single();
-
-      const isPro = sub?.plan === 'pro';
+      const { data: sub } = await admin.from('subscriptions').select('plan').eq('user_id', user.id).single();
+      isPro = sub?.plan === 'pro';
 
       if (!isPro) {
-        // Check daily limit
-        const dailyCount = await getDailyCount(supabase, user.id);
-        if (dailyCount >= FREE_LIMITS.questionsPerDay) {
-          return NextResponse.json({
-            error: 'daily_limit_reached',
-            limit: FREE_LIMITS.questionsPerDay,
-            used: dailyCount,
-          }, { status: 403 });
-        }
+        const [dailyCount, selectedExams] = await Promise.all([
+          getDailyCount(supabase, user.id),
+          getSelectedExams(supabase, user.id),
+        ]);
 
-        // Check exam access
-        const selectedExams = await getSelectedExams(supabase, user.id);
+        if (dailyCount >= FREE_LIMITS.questionsPerDay) {
+          return NextResponse.json({ error: 'daily_limit_reached', limit: FREE_LIMITS.questionsPerDay, used: dailyCount }, { status: 403 });
+        }
         if (selectedExams.length > 0 && !selectedExams.includes(exam)) {
-          return NextResponse.json({
-            error: 'exam_not_selected',
-            selectedExams,
-          }, { status: 403 });
+          return NextResponse.json({ error: 'exam_not_selected', selectedExams }, { status: 403 });
         }
       }
     }
 
     const client = new Anthropic({ apiKey });
     const isRussian = exam === 'ЕГЭ' || locale === 'ru';
-    const isPro = user ? (await createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    ).from('subscriptions').select('plan').eq('user_id', user.id).single()).data?.plan === 'pro' : false;
 
-    const explanationLevel = isPro
-        ? `Write a detailed explanation with this exact JSON structure:
-{
-  "short": "One sentence — why the correct answer is right.",
-  "why_correct": "2-3 sentences explaining the rule or concept behind the correct answer.",
-  "why_wrong": "One sentence explaining the most common mistake (why people pick the wrong answer).",
-  "tip": "A practical study tip or memory trick related to this question type."
-}
-Return the explanation field as a JSON string of this object.`
-        : 'Write a brief 1-sentence explanation of why the correct answer is right. Return it as a plain string.';
+    const explanationInstruction = isPro
+        ? `Return explanation as a JSON string: {"short":"1 sentence","why_correct":"2-3 sentences","why_wrong":"1 sentence","tip":"1 sentence"}`
+        : `Return explanation as a plain string of 1 sentence.`;
 
-    const prompt = `You are an expert ${config.subject} tutor.
+    const prompt = `You are an expert ${config.subject} tutor. Generate ONE multiple-choice question for ${exam}. Difficulty: ${difficulty}. ${topic ? `Topic: ${topic}` : `Topics: ${config.description}`}. ${isRussian ? 'Write in Russian.' : 'Write in English.'} ${explanationInstruction}
 
-Generate ONE multiple-choice question for a student preparing for ${exam}.
-Difficulty: ${difficulty}
-${topic ? `Topic focus: ${topic}` : `Topic: ${config.description}`}
-${isRussian ? 'Write the question, options, and explanation in Russian.' : 'Write everything in English.'}
-${explanationLevel}
-
-Return ONLY valid JSON, no markdown:
-{
-  "question": "the question text",
-  "options": ["option A", "option B", "option C", "option D"],
-  "correctIndex": 0,
-  "explanation": "explanation text",
-  "topic": "specific topic name",
-  "difficulty": "${difficulty}"
-}`;
+Return ONLY valid JSON:
+{"question":"...","options":["A","B","C","D"],"correctIndex":0,"explanation":"...","topic":"...","difficulty":"${difficulty}"}`;
 
     const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: isPro ? 800 : 400,
       messages: [{ role: 'user', content: prompt }],
     });
 
     const text = message.content[0].type === 'text' ? message.content[0].text : '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON found in response');
+    if (!jsonMatch) throw new Error('No JSON found');
     const question = JSON.parse(jsonMatch[0]);
 
     return NextResponse.json({ question, exam, isPro });

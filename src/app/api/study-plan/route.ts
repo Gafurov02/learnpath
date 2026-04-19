@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { hasProAccess } from '@/lib/subscription';
 
 export async function GET(req: NextRequest) {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -22,8 +23,8 @@ export async function GET(req: NextRequest) {
     );
 
     // Check Pro
-    const { data: sub } = await admin.from('subscriptions').select('plan').eq('user_id', user.id).single();
-    if (sub?.plan !== 'pro') return NextResponse.json({ error: 'Pro required' }, { status: 403 });
+    const { data: sub } = await admin.from('subscriptions').select('plan, status').eq('user_id', user.id).single();
+    if (!hasProAccess(sub)) return NextResponse.json({ error: 'Pro required' }, { status: 403 });
 
     // Get last 50 attempts
     const { data: attempts } = await admin

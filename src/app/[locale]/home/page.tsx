@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { AppNavbar } from '@/components/layout/AppNavbar';
 import { getLevelByXp, LEVELS, ROADMAP } from '@/lib/levels';
+import { hasProAccess } from '@/lib/subscription';
 import { StudyPlan } from '@/components/home/StudyPlan';
 
 export default function HomePage() {
@@ -27,9 +28,9 @@ export default function HomePage() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.push(`/${locale}/auth/login`); return; }
       setUser(session.user);
-      const { data: sub } = await supabase.from('subscriptions').select('xp, plan').eq('user_id', session.user.id).single();
+      const { data: sub } = await supabase.from('subscriptions').select('xp, plan, status').eq('user_id', session.user.id).single();
       setXp(sub?.xp ?? 0);
-      setIsPro(sub?.plan === 'pro');
+      setIsPro(hasProAccess(sub));
       const { data: attempts } = await supabase.from('quiz_attempts').select('created_at').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(60);
       if (attempts) {
         const dates = [...new Set(attempts.map((a: any) => new Date(a.created_at).toDateString()))];

@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { ManageSubscriptionButton } from '@/components/ui/StripeButtons';
 import { calculateDailyStreak } from '@/lib/progress';
+import { hasProAccess } from '@/lib/subscription';
 
 type AttemptRow = {
   created_at: string;
@@ -20,6 +21,7 @@ type Stats = { total: number; correct: number; accuracy: number; attempts: Attem
 
 type SubscriptionRow = {
   plan: string | null;
+  status: string | null;
   xp: number | null;
 };
 
@@ -57,7 +59,7 @@ export default function DashboardPage() {
         fetch('/api/progress'),
         supabase
           .from('subscriptions')
-          .select('plan, xp')
+          .select('plan, status, xp')
           .eq('user_id', session.user.id)
           .maybeSingle()
       ]);
@@ -88,7 +90,7 @@ export default function DashboardPage() {
 
       const subscription = subscriptionResponse.data as SubscriptionRow | null;
       setXp(subscription?.xp ?? 0);
-      setIsPro(subscription?.plan === 'pro');
+      setIsPro(hasProAccess(subscription));
       setLoading(false);
     }
 
