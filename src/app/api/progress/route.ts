@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
+function isMissingSessionIdColumn(message?: string | null) {
+  return message?.includes('session_id') ?? false;
+}
+
 async function createClient() {
   const cookieStore = await cookies();
   return createServerClient(
@@ -25,15 +29,24 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { exam, topic, correct, difficulty } = await req.json();
+  const { exam, topic, correct, difficulty, sessionId } = await req.json();
 
-  const { error } = await supabase.from('quiz_attempts').insert({
+  const baseAttempt = {
     user_id: user.id,
     exam,
     topic,
     correct,
     difficulty,
+  };
+
+  let { error } = await supabase.from('quiz_attempts').insert({
+    ...baseAttempt,
+    session_id: sessionId ?? null,
   });
+
+  if (error && isMissingSessionIdColumn(error.message)) {
+    ({ error } = await supabase.from('quiz_attempts').insert(baseAttempt));
+  }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

@@ -31,7 +31,9 @@ export default function QuizPage() {
   const [exam, setExam] = useState(initialExam);
   const [difficulty, setDifficulty] = useState('medium');
   const [question, setQuestion] = useState<Question | null>(null);
+  const [nextQuestion, setNextQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(false);
+  const [prefetching, setPrefetching] = useState(false);
   const [answered, setAnswered] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
@@ -71,39 +73,56 @@ export default function QuizPage() {
     });
   }, []);
 
-  const generateQuestion = useCallback(async () => {
-    setLoading(true);
-    setAnswered(false);
-    setSelected(null);
-    setQuestion(null);
-    setLimitError(null);
-
+  async function fetchQuestion(signal?: AbortSignal): Promise<Question | null> {
     try {
       const res = await fetch('/api/quiz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ exam, difficulty, locale, topic: initialTopic || undefined }),
+        signal,
       });
-
       if (res.status === 403) {
         const data = await res.json();
         if (data.error === 'daily_limit_reached') setLimitError('daily');
         else if (data.error === 'exam_not_selected') setLimitError('exam');
-        setLoading(false);
-        return;
+        return null;
       }
-
       const data = await res.json();
       if (data.question) {
-        setQuestion(data.question);
         setIsProQuestion(data.isPro ?? false);
+        return data.question;
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+      return null;
+    } catch {
+      return null;
     }
-  }, [exam, difficulty, locale, initialTopic]);
+  }
+
+  const generateQuestion = useCallback(async () => {
+    setLoading(true);
+    setAnswered(false);
+    setSelected(null);
+    setLimitError(null);
+
+    // Use prefetched question if available
+    if (nextQuestion) {
+      setQuestion(nextQuestion);
+      setNextQuestion(null);
+      setLoading(false);
+      // Prefetch next in background
+      fetchQuestion().then(q => { if (q) setNextQuestion(q); });
+      return;
+    }
+
+    const q = await fetchQuestion();
+    setQuestion(q);
+    setLoading(false);
+
+    // Prefetch next question in background
+    if (q) {
+      fetchQuestion().then(next => { if (next) setNextQuestion(next); });
+    }
+  }, [exam, difficulty, locale, initialTopic, nextQuestion]);
 
   useEffect(() => {
     if (!showExamPicker) generateQuestion();

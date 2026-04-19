@@ -6,6 +6,7 @@ create table if not exists quiz_attempts (
   exam        text not null,
   topic       text,
   correct     boolean not null,
+  session_id  uuid,
   difficulty  text default 'medium',
   created_at  timestamptz default now()
 );
@@ -13,6 +14,7 @@ create table if not exists quiz_attempts (
 -- Index for fast user queries
 create index idx_quiz_attempts_user on quiz_attempts(user_id);
 create index idx_quiz_attempts_exam  on quiz_attempts(user_id, exam);
+create index idx_quiz_attempts_session on quiz_attempts(user_id, session_id);
 
 -- Row Level Security — users see only their own data
 alter table quiz_attempts enable row level security;

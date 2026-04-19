@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { AppNavbar } from '@/components/layout/AppNavbar';
 import { getLevelByXp, LEVELS } from '@/lib/levels';
+import { hasProAccess } from '@/lib/subscription';
 
 type Achievement = { code: string; name: string; description: string; icon: string; earned: boolean; earned_at?: string };
 type Attempt = { exam: string; topic: string; correct: boolean; difficulty: string; created_at: string };
@@ -31,13 +32,13 @@ export default function ProfilePage() {
       const u = session.user;
       setUser(u);
       const [subRes, attemptsRes, achRes, allAchRes] = await Promise.all([
-        supabase.from('subscriptions').select('xp, plan').eq('user_id', u.id).single(),
+        supabase.from('subscriptions').select('xp, plan, status').eq('user_id', u.id).single(),
         supabase.from('quiz_attempts').select('exam, topic, correct, difficulty, created_at').eq('user_id', u.id).order('created_at', { ascending: false }).limit(500),
         supabase.from('user_achievements').select('achievement, earned_at').eq('user_id', u.id),
         supabase.from('achievements').select('*'),
       ]);
       setXp(subRes.data?.xp ?? 0);
-      setIsPro(subRes.data?.plan === 'pro');
+      setIsPro(hasProAccess(subRes.data));
       setAttempts(attemptsRes.data ?? []);
 
       // Streak
