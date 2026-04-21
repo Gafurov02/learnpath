@@ -211,10 +211,10 @@ export default function QuizPage() {
   return (
       <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
         {user ? <AppNavbar /> : <Navbar />}
-        <main style={{ maxWidth: 760, margin: '0 auto', padding: '32px 24px' }}>
+        <main style={{ maxWidth: 760, margin: '0 auto', padding: '16px 16px 80px' }}>
 
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+          {/* Header — hidden on mobile */}
+          <div className="lp-desktop-only" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
             <Link href={user ? `/${locale}/home` : `/${locale}`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none' }}>← {locale === 'ru' ? 'Назад' : 'Back'}</Link>
             <div style={{ display: 'flex', gap: 12, fontSize: 13, color: 'hsl(var(--muted-foreground))', alignItems: 'center' }}>
               <span>✓ <strong style={{ color: '#22C07A' }}>{score.correct}</strong></span>
@@ -223,6 +223,17 @@ export default function QuizPage() {
               {streak >= 3 && <span style={{ color: '#EF9F27' }}>🔥 {streak}</span>}
               <OfflineDownload exam={exam} isPro={isPro} locale={locale} />
             </div>
+          </div>
+
+          {/* Mobile score bar */}
+          <div className="lp-mobile-only" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, padding: '8px 4px' }}>
+            <div style={{ display: 'flex', gap: 14, fontSize: 13 }}>
+              <span>✓ <strong style={{ color: '#22C07A' }}>{score.correct}</strong></span>
+              <span style={{ color: 'hsl(var(--muted-foreground))' }}>{score.total} {locale === 'ru' ? 'всего' : 'total'}</span>
+              <span style={{ color: accuracy >= 70 ? '#22C07A' : 'hsl(var(--muted-foreground))' }}>{accuracy}%</span>
+              {streak >= 3 && <span style={{ color: '#EF9F27' }}>🔥{streak}</span>}
+            </div>
+            <OfflineDownload exam={exam} isPro={isPro} locale={locale} />
           </div>
 
           {/* Free plan info bar */}
