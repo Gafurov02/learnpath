@@ -54,6 +54,16 @@
   }
 }
 
+/* Mobile utilities */
+@media (max-width: 768px) {
+  .lp-desktop-only { display: none !important; }
+  .lp-mobile-only { display: flex !important; }
+}
+@media (min-width: 769px) {
+  .lp-mobile-only { display: none !important; }
+}
+}
+
 @layer utilities {
   .font-serif { font-family: var(--font-serif), Georgia, serif; }
 }
