@@ -62,7 +62,6 @@
 @media (min-width: 769px) {
   .lp-mobile-only { display: none !important; }
 }
-}
 
 @layer utilities {
   .font-serif { font-family: var(--font-serif), Georgia, serif; }
