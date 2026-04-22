@@ -23,6 +23,13 @@ export const metadata: Metadata = {
     title: 'LearnPath — AI Exam Prep',
     description: 'Ace your exams 10× faster with your personal AI tutor.',
     manifest: '/manifest.json',
+    icons: {
+        icon: [
+            { url: '/favicon.svg', type: 'image/svg+xml' },
+            { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
+        ],
+        apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
+    },
     appleWebApp: { capable: true, statusBarStyle: 'default', title: 'LearnPath' },
 };
 
