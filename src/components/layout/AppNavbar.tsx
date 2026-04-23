@@ -6,9 +6,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Sun, Moon, Home, Zap, Trophy, User, School } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase';
 import { getLevelByXp } from '@/lib/levels';
 import { LangSwitcher } from './LangSwitcher';
+import { UserAvatar } from '@/components/ui/UserAvatar';
+import { getUserAvatarUrl, getUserDisplayName } from '@/lib/user-profile';
 
 export function AppNavbar() {
   const locale = useLocale();
@@ -16,7 +19,7 @@ export function AppNavbar() {
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(0);
   const [isPro, setIsPro] = useState(false);
@@ -24,7 +27,8 @@ export function AppNavbar() {
   useEffect(() => {
     setMounted(true);
     const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const loadUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
       setUser(session.user);
       const { data: sub } = await supabase.from('subscriptions').select('xp, plan').eq('user_id', session.user.id).single();
@@ -37,11 +41,21 @@ export function AppNavbar() {
         for (let i = 0; i < dates.length; i++) { const d = new Date(today); d.setDate(d.getDate() - i); if (dates.includes(d.toDateString())) s++; else break; }
         setStreak(s);
       }
+    };
+
+    void loadUser();
+    const { data: authSubscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
     });
+
+    return () => {
+      authSubscription.subscription.unsubscribe();
+    };
   }, []);
 
   const level = getLevelByXp(xp);
-  const initial = user?.user_metadata?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
+  const displayName = getUserDisplayName(user);
+  const avatarUrl = getUserAvatarUrl(user);
 
   const tabs = [
     { href: `/${locale}/home`, label: t('home'), icon: Home },
@@ -81,8 +95,15 @@ export function AppNavbar() {
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 {isPro && <span style={{ background: 'linear-gradient(135deg,#6B5CE7,#9B8DFF)', color: '#fff', borderRadius: 20, padding: '2px 9px', fontSize: 11, fontWeight: 700 }}>⭐ PRO</span>}
-                <Link href={`/${locale}/profile`} style={{ width: 30, height: 30, borderRadius: '50%', background: isPro ? '#6B5CE7' : '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: isPro ? '#fff' : '#6B5CE7', textDecoration: 'none', flexShrink: 0 }}>
-                  {initial}
+                <Link href={`/${locale}/profile`} aria-label={displayName} style={{ textDecoration: 'none', flexShrink: 0 }}>
+                  <UserAvatar
+                    avatarUrl={avatarUrl}
+                    email={user?.email}
+                    name={displayName}
+                    id={user?.id}
+                    size={30}
+                    accent={isPro ? 'pro' : 'default'}
+                  />
                 </Link>
               </div>
             </div>

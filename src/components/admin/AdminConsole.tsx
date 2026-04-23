@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useLiveRefresh } from '@/hooks/useLiveRefresh';
 
 export type AdminOverview = {
   totalUsers: number;
@@ -55,6 +57,7 @@ export type AdminActivityRow = {
 type Props = {
   locale: string;
   currentUserEmail: string;
+  generatedAt: string;
   overview: AdminOverview;
   users: AdminUserRow[];
   schools: AdminSchoolRow[];
@@ -62,6 +65,8 @@ type Props = {
 };
 
 type TabKey = 'overview' | 'users' | 'schools';
+type UserFilterKey = 'all' | 'pro' | 'free' | 'admins' | 'school' | 'inactive';
+type SchoolFilterKey = 'all' | 'active' | 'empty' | 'single_teacher';
 
 function formatDate(locale: string, value: string | null) {
   if (!value) {
@@ -97,42 +102,110 @@ function StatCard({
   );
 }
 
-export function AdminConsole({ locale, currentUserEmail, overview, users, schools, activities }: Props) {
+export function AdminConsole({ locale, currentUserEmail, generatedAt, overview, users, schools, activities }: Props) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [query, setQuery] = useState('');
   const [usersState, setUsersState] = useState(users);
   const [pendingUserId, setPendingUserId] = useState('');
   const [actionError, setActionError] = useState('');
   const [copiedSchoolId, setCopiedSchoolId] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [selectedSchoolId, setSelectedSchoolId] = useState('');
+  const [userFilter, setUserFilter] = useState<UserFilterKey>('all');
+  const [schoolFilter, setSchoolFilter] = useState<SchoolFilterKey>('all');
+  const [isRefreshing, startRefreshTransition] = useTransition();
+
+  useEffect(() => {
+    setUsersState(users);
+  }, [users]);
+
+  useEffect(() => {
+    if (selectedUserId && !usersState.some((user) => user.id === selectedUserId)) {
+      setSelectedUserId('');
+    }
+  }, [selectedUserId, usersState]);
+
+  useEffect(() => {
+    if (selectedSchoolId && !schools.some((school) => school.id === selectedSchoolId)) {
+      setSelectedSchoolId('');
+    }
+  }, [schools, selectedSchoolId]);
+
+  const refreshConsole = () => {
+    startRefreshTransition(() => {
+      router.refresh();
+    });
+  };
+
+  useLiveRefresh({
+    enabled: pendingUserId === '',
+    intervalMs: 20000,
+    onRefresh: refreshConsole,
+  });
 
   const normalizedQuery = query.trim().toLowerCase();
-  const filteredUsers = usersState.filter((user) => {
-    if (normalizedQuery === '') {
-      return true;
-    }
 
-    return (
-      user.email.toLowerCase().includes(normalizedQuery) ||
-      user.fullName.toLowerCase().includes(normalizedQuery) ||
-      user.id.toLowerCase().includes(normalizedQuery)
-    );
-  });
+  const filteredUsers = useMemo(() => (
+    usersState.filter((user) => {
+      const matchesQuery = normalizedQuery === '' || (
+        user.email.toLowerCase().includes(normalizedQuery) ||
+        user.fullName.toLowerCase().includes(normalizedQuery) ||
+        user.id.toLowerCase().includes(normalizedQuery)
+      );
 
-  const filteredSchools = schools.filter((school) => {
-    if (normalizedQuery === '') {
-      return true;
-    }
+      if (!matchesQuery) {
+        return false;
+      }
 
-    return (
-      school.name.toLowerCase().includes(normalizedQuery) ||
-      school.ownerEmail.toLowerCase().includes(normalizedQuery) ||
-      school.inviteCode.toLowerCase().includes(normalizedQuery)
-    );
-  });
+      switch (userFilter) {
+        case 'pro':
+          return user.hasPro;
+        case 'free':
+          return !user.hasPro;
+        case 'admins':
+          return user.isAdmin;
+        case 'school':
+          return user.schoolCount > 0;
+        case 'inactive':
+          return user.lastAttemptAt === null;
+        default:
+          return true;
+      }
+    })
+  ), [normalizedQuery, userFilter, usersState]);
+
+  const filteredSchools = useMemo(() => (
+    schools.filter((school) => {
+      const matchesQuery = normalizedQuery === '' || (
+        school.name.toLowerCase().includes(normalizedQuery) ||
+        school.ownerEmail.toLowerCase().includes(normalizedQuery) ||
+        school.inviteCode.toLowerCase().includes(normalizedQuery)
+      );
+
+      if (!matchesQuery) {
+        return false;
+      }
+
+      switch (schoolFilter) {
+        case 'active':
+          return school.studentCount > 0;
+        case 'empty':
+          return school.memberCount === 0;
+        case 'single_teacher':
+          return school.teacherCount === 1;
+        default:
+          return true;
+      }
+    })
+  ), [normalizedQuery, schoolFilter, schools]);
 
   const recentUsers = [...usersState]
     .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
     .slice(0, 6);
+
+  const selectedUser = usersState.find((user) => user.id === selectedUserId) ?? null;
+  const selectedSchool = schools.find((school) => school.id === selectedSchoolId) ?? null;
 
   async function updateUserAccess(userId: string, access: 'pro' | 'free') {
     setPendingUserId(userId);
@@ -167,6 +240,7 @@ export function AdminConsole({ locale, currentUserEmail, overview, users, school
           }
           : user
       )));
+      refreshConsole();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update access';
       setActionError(message);
@@ -195,6 +269,18 @@ export function AdminConsole({ locale, currentUserEmail, overview, users, school
     boxShadow: activeTab === tab ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
   });
 
+  const filterChipStyle = (active: boolean): React.CSSProperties => ({
+    background: active ? 'rgba(107,92,231,0.12)' : 'transparent',
+    color: active ? '#6B5CE7' : 'hsl(var(--muted-foreground))',
+    border: `1px solid ${active ? 'rgba(107,92,231,0.18)' : 'hsl(var(--border))'}`,
+    borderRadius: 999,
+    padding: '6px 12px',
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+  });
+
   return (
     <main style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 24px 48px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 28 }}>
@@ -205,18 +291,31 @@ export function AdminConsole({ locale, currentUserEmail, overview, users, school
           <h1 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 'clamp(30px, 4vw, 42px)', fontWeight: 400, letterSpacing: '-1px', margin: 0 }}>
             {locale === 'ru' ? 'Операционная панель' : 'Operations Console'}
           </h1>
-          <p style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', marginTop: 10, maxWidth: 720 }}>
+          <p style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', marginTop: 10, marginBottom: 6, maxWidth: 720 }}>
             {locale === 'ru'
               ? 'Следи за пользователями, подписками, школами и общей активностью платформы из одной панели.'
               : 'Monitor users, subscriptions, schools, and platform activity from one operational dashboard.'}
           </p>
+          <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
+            {locale === 'ru' ? 'Последняя синхронизация' : 'Last sync'}: {formatDate(locale, generatedAt)}
+          </div>
         </div>
 
-        <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 14, padding: '14px 16px', minWidth: 240 }}>
-          <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>
-            {locale === 'ru' ? 'Текущий админ' : 'Signed in as'}
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 14, padding: '14px 16px', minWidth: 240 }}>
+            <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>
+              {locale === 'ru' ? 'Текущий админ' : 'Signed in as'}
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{currentUserEmail}</div>
           </div>
-          <div style={{ fontSize: 14, fontWeight: 600 }}>{currentUserEmail}</div>
+          <button
+            type="button"
+            onClick={refreshConsole}
+            disabled={isRefreshing}
+            style={{ background: '#6B5CE7', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            {isRefreshing ? (locale === 'ru' ? 'Обновляю...' : 'Refreshing...') : (locale === 'ru' ? 'Обновить данные' : 'Refresh data')}
+          </button>
         </div>
       </div>
 
@@ -265,7 +364,7 @@ export function AdminConsole({ locale, currentUserEmail, overview, users, school
         </button>
       </div>
 
-      <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 14, padding: '14px 16px', marginBottom: 20 }}>
+      <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 14, padding: '14px 16px', marginBottom: 14 }}>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -273,6 +372,38 @@ export function AdminConsole({ locale, currentUserEmail, overview, users, school
           style={{ width: '100%', border: 'none', outline: 'none', background: 'transparent', color: 'hsl(var(--foreground))', fontSize: 14, fontFamily: 'inherit' }}
         />
       </div>
+
+      {activeTab === 'users' && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+          {[
+            { key: 'all', label: locale === 'ru' ? 'Все' : 'All' },
+            { key: 'pro', label: 'Pro' },
+            { key: 'free', label: 'Free' },
+            { key: 'admins', label: 'Admins' },
+            { key: 'school', label: locale === 'ru' ? 'Со школами' : 'In schools' },
+            { key: 'inactive', label: locale === 'ru' ? 'Без попыток' : 'No attempts' },
+          ].map((filter) => (
+            <button key={filter.key} type="button" onClick={() => setUserFilter(filter.key as UserFilterKey)} style={filterChipStyle(userFilter === filter.key)}>
+              {filter.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {activeTab === 'schools' && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+          {[
+            { key: 'all', label: locale === 'ru' ? 'Все' : 'All' },
+            { key: 'active', label: locale === 'ru' ? 'Есть студенты' : 'With students' },
+            { key: 'empty', label: locale === 'ru' ? 'Пустые' : 'Empty' },
+            { key: 'single_teacher', label: locale === 'ru' ? '1 учитель' : 'Single teacher' },
+          ].map((filter) => (
+            <button key={filter.key} type="button" onClick={() => setSchoolFilter(filter.key as SchoolFilterKey)} style={filterChipStyle(schoolFilter === filter.key)}>
+              {filter.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {actionError && (
         <div style={{ marginBottom: 16, background: 'rgba(232,64,64,0.08)', border: '1px solid rgba(232,64,64,0.25)', borderRadius: 12, padding: '12px 14px', fontSize: 13, color: '#E84040' }}>
@@ -284,12 +415,17 @@ export function AdminConsole({ locale, currentUserEmail, overview, users, school
         <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 16 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <section style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 18, padding: 22 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 14 }}>
-                {locale === 'ru' ? 'Новые пользователи' : 'Recent users'}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 15, fontWeight: 600 }}>
+                  {locale === 'ru' ? 'Новые пользователи' : 'Recent users'}
+                </div>
+                <button type="button" onClick={() => { setActiveTab('users'); setUserFilter('pro'); }} style={filterChipStyle(false)}>
+                  {locale === 'ru' ? 'Открыть Pro-пользователей' : 'Open Pro users'}
+                </button>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {recentUsers.map((user) => (
-                  <div key={user.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 10, borderBottom: '1px solid hsl(var(--border))' }}>
+                  <button key={user.id} type="button" onClick={() => { setSelectedUserId(user.id); setActiveTab('users'); }} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 10, borderBottom: '1px solid hsl(var(--border))', background: 'transparent', borderLeft: 'none', borderRight: 'none', borderTop: 'none', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 600 }}>{user.fullName}</div>
                       <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>{user.email}</div>
@@ -300,7 +436,7 @@ export function AdminConsole({ locale, currentUserEmail, overview, users, school
                       </div>
                       <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>{formatDate(locale, user.createdAt)}</div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </section>
@@ -334,22 +470,27 @@ export function AdminConsole({ locale, currentUserEmail, overview, users, school
                 {locale === 'ru' ? 'Операционная заметка' : 'Ops note'}
               </div>
               <div style={{ fontSize: 22, fontWeight: 600, marginBottom: 10 }}>
-                {locale === 'ru' ? 'Одна панель для подписок, школ и продукта' : 'One console for subscriptions, schools, and product health'}
+                {locale === 'ru' ? 'Панель уже живёт, а не просто показывает снапшот' : 'The console is now live, not just a snapshot'}
               </div>
               <p style={{ fontSize: 13, lineHeight: 1.7, color: 'rgba(255,255,255,0.78)', margin: 0 }}>
                 {locale === 'ru'
-                  ? 'Начинай день с overview, ручных правок доступа и проверки свежей активности. Этого уже достаточно, чтобы держать платформу под контролем.'
-                  : 'Start with overview, manual access control, and live activity checks. That is already enough to run the product with confidence.'}
+                  ? 'Проверяй overview, быстро фильтруй пользователей и школы, а затем открывай нужный объект в один клик. Автообновление держит картину свежей даже без ручного reload.'
+                  : 'Use overview to spot changes, filter users and schools quickly, and jump into the exact object you need. Auto-refresh keeps the operational picture fresh without manual reloads.'}
               </p>
             </section>
 
             <section style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 18, padding: 22 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 14 }}>
-                {locale === 'ru' ? 'Школы под наблюдением' : 'Schools snapshot'}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 15, fontWeight: 600 }}>
+                  {locale === 'ru' ? 'Школы под наблюдением' : 'Schools snapshot'}
+                </div>
+                <button type="button" onClick={() => { setActiveTab('schools'); setSchoolFilter('active'); }} style={filterChipStyle(false)}>
+                  {locale === 'ru' ? 'Открыть активные школы' : 'Open active schools'}
+                </button>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {schools.slice(0, 6).map((school) => (
-                  <div key={school.id} style={{ padding: '12px 14px', borderRadius: 12, background: 'hsl(var(--background))' }}>
+                  <button key={school.id} type="button" onClick={() => { setSelectedSchoolId(school.id); setActiveTab('schools'); }} style={{ padding: '12px 14px', borderRadius: 12, background: 'hsl(var(--background))', border: 'none', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 600 }}>{school.name}</div>
@@ -362,7 +503,7 @@ export function AdminConsole({ locale, currentUserEmail, overview, users, school
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </section>
@@ -372,11 +513,67 @@ export function AdminConsole({ locale, currentUserEmail, overview, users, school
 
       {activeTab === 'users' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {selectedUser && (
+            <section style={{ background: 'linear-gradient(135deg, rgba(107,92,231,0.08), rgba(55,138,221,0.08))', border: '1px solid rgba(107,92,231,0.18)', borderRadius: 20, padding: '20px 22px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: 12, color: '#6B5CE7', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
+                    {locale === 'ru' ? 'Фокус на пользователе' : 'Focused user'}
+                  </div>
+                  <div style={{ fontSize: 24, fontWeight: 600, marginBottom: 6 }}>{selectedUser.fullName}</div>
+                  <div style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', marginBottom: 8 }}>{selectedUser.email}</div>
+                  <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                    <span>id: <code style={{ fontSize: 11 }}>{selectedUser.id}</code></span>
+                    <span>{locale === 'ru' ? 'провайдер' : 'provider'}: {selectedUser.provider ?? 'unknown'}</span>
+                    <span>{locale === 'ru' ? 'последний вход' : 'last sign-in'}: {formatDate(locale, selectedUser.lastSignInAt)}</span>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(88px, 1fr))', gap: 10, minWidth: 320 }}>
+                  {[
+                    { label: 'XP', value: selectedUser.xp.toLocaleString(), color: '#6B5CE7' },
+                    { label: locale === 'ru' ? 'уровень' : 'level', value: selectedUser.level ?? '—', color: '#378ADD' },
+                    { label: locale === 'ru' ? 'школы' : 'schools', value: selectedUser.schoolCount.toString(), color: '#BA7517' },
+                    { label: locale === 'ru' ? 'попытки' : 'attempts', value: selectedUser.recentAttempts.toString(), color: '#22C07A' },
+                  ].map((item) => (
+                    <div key={item.label} style={{ background: 'rgba(255,255,255,0.75)', borderRadius: 12, padding: '12px' }}>
+                      <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', marginBottom: 3 }}>{item.label}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: item.color }}>{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
+                  {locale === 'ru' ? 'подписка' : 'subscription'}: <strong style={{ color: 'hsl(var(--foreground))' }}>{selectedUser.plan ?? 'free'}</strong> · {locale === 'ru' ? 'статус' : 'status'}: <strong style={{ color: 'hsl(var(--foreground))' }}>{selectedUser.status ?? 'free'}</strong> · {locale === 'ru' ? 'последняя активность' : 'last activity'}: <strong style={{ color: 'hsl(var(--foreground))' }}>{formatDate(locale, selectedUser.lastAttemptAt)}</strong>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    disabled={pendingUserId === selectedUser.id || selectedUser.hasPro}
+                    onClick={() => updateUserAccess(selectedUser.id, 'pro')}
+                    style={{ background: selectedUser.hasPro ? 'rgba(34,192,122,0.12)' : '#6B5CE7', color: selectedUser.hasPro ? '#22C07A' : '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 600, cursor: selectedUser.hasPro ? 'default' : 'pointer', fontFamily: 'inherit' }}
+                  >
+                    {pendingUserId === selectedUser.id ? '...' : (locale === 'ru' ? 'Выдать Pro' : 'Grant Pro')}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={pendingUserId === selectedUser.id || !selectedUser.hasPro}
+                    onClick={() => updateUserAccess(selectedUser.id, 'free')}
+                    style={{ background: 'transparent', color: selectedUser.hasPro ? '#E84040' : 'hsl(var(--muted-foreground))', border: '1px solid rgba(232,64,64,0.2)', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 600, cursor: selectedUser.hasPro ? 'pointer' : 'default', fontFamily: 'inherit' }}
+                  >
+                    {pendingUserId === selectedUser.id ? '...' : (locale === 'ru' ? 'Снять Pro' : 'Revoke Pro')}
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+
           {filteredUsers.map((user) => {
             const isPending = pendingUserId === user.id;
+            const isSelected = selectedUserId === user.id;
 
             return (
-              <section key={user.id} style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 18, padding: '18px 20px' }}>
+              <section key={user.id} style={{ background: 'hsl(var(--card))', border: `1px solid ${isSelected ? '#6B5CE7' : 'hsl(var(--border))'}`, borderRadius: 18, padding: '18px 20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
                   <div style={{ flex: 1, minWidth: 260 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
@@ -414,6 +611,9 @@ export function AdminConsole({ locale, currentUserEmail, overview, users, school
                   </div>
 
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button type="button" onClick={() => setSelectedUserId(user.id)} style={filterChipStyle(isSelected)}>
+                      {locale === 'ru' ? 'Фокус' : 'Focus'}
+                    </button>
                     <button
                       type="button"
                       disabled={isPending || user.hasPro}
@@ -446,57 +646,109 @@ export function AdminConsole({ locale, currentUserEmail, overview, users, school
 
       {activeTab === 'schools' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {filteredSchools.map((school) => (
-            <section key={school.id} style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 18, padding: '18px 20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                <div style={{ flex: 1, minWidth: 240 }}>
-                  <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>{school.name}</div>
-                  <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginBottom: 8 }}>{school.ownerEmail}</div>
+          {selectedSchool && (
+            <section style={{ background: 'linear-gradient(135deg, rgba(34,192,122,0.08), rgba(107,92,231,0.08))', border: '1px solid rgba(34,192,122,0.18)', borderRadius: 20, padding: '20px 22px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: 12, color: '#22C07A', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
+                    {locale === 'ru' ? 'Фокус на школе' : 'Focused school'}
+                  </div>
+                  <div style={{ fontSize: 24, fontWeight: 600, marginBottom: 6 }}>{selectedSchool.name}</div>
+                  <div style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', marginBottom: 8 }}>{selectedSchool.ownerEmail}</div>
                   <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-                    <span>{locale === 'ru' ? 'создана' : 'created'}: {formatDate(locale, school.createdAt)}</span>
-                    <span>id: <code style={{ fontSize: 11 }}>{school.id.slice(0, 12)}...</code></span>
+                    <span>{locale === 'ru' ? 'создана' : 'created'}: {formatDate(locale, selectedSchool.createdAt)}</span>
+                    <span>id: <code style={{ fontSize: 11 }}>{selectedSchool.id}</code></span>
                   </div>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(90px, 1fr))', gap: 10, minWidth: 290 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(88px, 1fr))', gap: 10, minWidth: 280 }}>
                   {[
-                    { label: locale === 'ru' ? 'участники' : 'members', value: school.memberCount.toString(), color: '#6B5CE7' },
-                    { label: locale === 'ru' ? 'учителя' : 'teachers', value: school.teacherCount.toString(), color: '#378ADD' },
-                    { label: locale === 'ru' ? 'студенты' : 'students', value: school.studentCount.toString(), color: '#22C07A' },
+                    { label: locale === 'ru' ? 'участники' : 'members', value: selectedSchool.memberCount.toString(), color: '#6B5CE7' },
+                    { label: locale === 'ru' ? 'учителя' : 'teachers', value: selectedSchool.teacherCount.toString(), color: '#378ADD' },
+                    { label: locale === 'ru' ? 'студенты' : 'students', value: selectedSchool.studentCount.toString(), color: '#22C07A' },
                   ].map((item) => (
-                    <div key={item.label} style={{ background: 'hsl(var(--background))', borderRadius: 12, padding: '12px 12px' }}>
+                    <div key={item.label} style={{ background: 'rgba(255,255,255,0.75)', borderRadius: 12, padding: '12px' }}>
                       <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', marginBottom: 3 }}>{item.label}</div>
-                      <div style={{ fontSize: 16, fontWeight: 600, color: item.color }}>{item.value}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: item.color }}>{item.value}</div>
                     </div>
                   ))}
                 </div>
               </div>
-
               <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
-                  invite code: <code style={{ fontSize: 12, color: 'hsl(var(--foreground))' }}>{school.inviteCode}</code>
+                <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
+                  invite code: <code style={{ fontSize: 12, color: 'hsl(var(--foreground))' }}>{selectedSchool.inviteCode}</code>
                 </div>
-
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={() => copyInviteCode(school.id, school.inviteCode)}
-                    style={{ background: 'transparent', border: '1px solid hsl(var(--border))', borderRadius: 10, padding: '9px 14px', fontSize: 13, color: copiedSchoolId === school.id ? '#22C07A' : 'hsl(var(--foreground))', cursor: 'pointer', fontFamily: 'inherit' }}
-                  >
-                    {copiedSchoolId === school.id
+                  <button type="button" onClick={() => copyInviteCode(selectedSchool.id, selectedSchool.inviteCode)} style={{ background: 'transparent', border: '1px solid hsl(var(--border))', borderRadius: 10, padding: '9px 14px', fontSize: 13, color: copiedSchoolId === selectedSchool.id ? '#22C07A' : 'hsl(var(--foreground))', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    {copiedSchoolId === selectedSchool.id
                       ? (locale === 'ru' ? 'Скопировано' : 'Copied')
                       : (locale === 'ru' ? 'Копировать код' : 'Copy code')}
                   </button>
-                  <Link
-                    href={`/${locale}/school/${school.id}`}
-                    style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
-                  >
+                  <Link href={`/${locale}/school/${selectedSchool.id}`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
                     {locale === 'ru' ? 'Открыть школу' : 'Open school'}
                   </Link>
                 </div>
               </div>
             </section>
-          ))}
+          )}
+
+          {filteredSchools.map((school) => {
+            const isSelected = selectedSchoolId === school.id;
+
+            return (
+              <section key={school.id} style={{ background: 'hsl(var(--card))', border: `1px solid ${isSelected ? '#22C07A' : 'hsl(var(--border))'}`, borderRadius: 18, padding: '18px 20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: 240 }}>
+                    <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>{school.name}</div>
+                    <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginBottom: 8 }}>{school.ownerEmail}</div>
+                    <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                      <span>{locale === 'ru' ? 'создана' : 'created'}: {formatDate(locale, school.createdAt)}</span>
+                      <span>id: <code style={{ fontSize: 11 }}>{school.id.slice(0, 12)}...</code></span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(90px, 1fr))', gap: 10, minWidth: 290 }}>
+                    {[
+                      { label: locale === 'ru' ? 'участники' : 'members', value: school.memberCount.toString(), color: '#6B5CE7' },
+                      { label: locale === 'ru' ? 'учителя' : 'teachers', value: school.teacherCount.toString(), color: '#378ADD' },
+                      { label: locale === 'ru' ? 'студенты' : 'students', value: school.studentCount.toString(), color: '#22C07A' },
+                    ].map((item) => (
+                      <div key={item.label} style={{ background: 'hsl(var(--background))', borderRadius: 12, padding: '12px 12px' }}>
+                        <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', marginBottom: 3 }}>{item.label}</div>
+                        <div style={{ fontSize: 16, fontWeight: 600, color: item.color }}>{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
+                    invite code: <code style={{ fontSize: 12, color: 'hsl(var(--foreground))' }}>{school.inviteCode}</code>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button type="button" onClick={() => setSelectedSchoolId(school.id)} style={filterChipStyle(isSelected)}>
+                      {locale === 'ru' ? 'Фокус' : 'Focus'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => copyInviteCode(school.id, school.inviteCode)}
+                      style={{ background: 'transparent', border: '1px solid hsl(var(--border))', borderRadius: 10, padding: '9px 14px', fontSize: 13, color: copiedSchoolId === school.id ? '#22C07A' : 'hsl(var(--foreground))', cursor: 'pointer', fontFamily: 'inherit' }}
+                    >
+                      {copiedSchoolId === school.id
+                        ? (locale === 'ru' ? 'Скопировано' : 'Copied')
+                        : (locale === 'ru' ? 'Копировать код' : 'Copy code')}
+                    </button>
+                    <Link
+                      href={`/${locale}/school/${school.id}`}
+                      style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+                    >
+                      {locale === 'ru' ? 'Открыть школу' : 'Open school'}
+                    </Link>
+                  </div>
+                </div>
+              </section>
+            );
+          })}
 
           {filteredSchools.length === 0 && (
             <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 18, padding: '36px 24px', textAlign: 'center', color: 'hsl(var(--muted-foreground))' }}>

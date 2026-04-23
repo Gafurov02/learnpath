@@ -4,6 +4,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { getDailyCount, getSelectedExams, FREE_LIMITS } from '@/lib/limits';
+import { hasProAccess } from '@/lib/subscription';
 
 const EXAM_CONFIGS: Record<string, { subject: string; description: string }> = {
   IELTS:  { subject: 'IELTS Academic Reading and Grammar', description: 'academic English, vocabulary, reading comprehension, grammar' },
@@ -30,30 +31,33 @@ export async function POST(req: NextRequest) {
     const config = EXAM_CONFIGS[exam];
     if (!config) return NextResponse.json({ error: 'Unknown exam' }, { status: 400 });
 
-    // Check auth & limits
     const { data: { user } } = await supabase.auth.getUser();
-    let isPro = false;
+    if (!user) {
+      return NextResponse.json({ error: 'authentication_required' }, { status: 401 });
+    }
 
-    if (user) {
-      const admin = createAdminClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
-      const { data: sub } = await admin.from('subscriptions').select('plan').eq('user_id', user.id).single();
-      isPro = sub?.plan === 'pro';
+    const admin = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const { data: sub } = await admin
+      .from('subscriptions')
+      .select('plan, status')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    const isPro = hasProAccess(sub);
 
-      if (!isPro) {
-        const [dailyCount, selectedExams] = await Promise.all([
-          getDailyCount(supabase, user.id),
-          getSelectedExams(supabase, user.id),
-        ]);
+    if (!isPro) {
+      const [dailyCount, selectedExams] = await Promise.all([
+        getDailyCount(supabase, user.id),
+        getSelectedExams(supabase, user.id),
+      ]);
 
-        if (dailyCount >= FREE_LIMITS.questionsPerDay) {
-          return NextResponse.json({ error: 'daily_limit_reached', limit: FREE_LIMITS.questionsPerDay, used: dailyCount }, { status: 403 });
-        }
-        if (selectedExams.length > 0 && !selectedExams.includes(exam)) {
-          return NextResponse.json({ error: 'exam_not_selected', selectedExams }, { status: 403 });
-        }
+      if (dailyCount >= FREE_LIMITS.questionsPerDay) {
+        return NextResponse.json({ error: 'daily_limit_reached', limit: FREE_LIMITS.questionsPerDay, used: dailyCount }, { status: 403 });
+      }
+      if (selectedExams.length > 0 && !selectedExams.includes(exam)) {
+        return NextResponse.json({ error: 'exam_not_selected', selectedExams }, { status: 403 });
       }
     }
 
