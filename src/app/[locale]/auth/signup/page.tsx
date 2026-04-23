@@ -10,6 +10,7 @@ export default function SignupPage() {
   const t = useTranslations('auth');
   const locale = useLocale();
   const router = useRouter();
+  const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,6 +19,7 @@ export default function SignupPage() {
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
+    if (nickname.trim() === '') { setError(locale === 'ru' ? 'Введите никнейм' : 'Please enter a nickname'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
     setLoading(true);
     setError('');
@@ -27,6 +29,10 @@ export default function SignupPage() {
       email,
       password,
       options: {
+        data: {
+          full_name: nickname.trim() || email.split('@')[0],
+          nickname: nickname.trim() || email.split('@')[0],
+        },
         emailRedirectTo: `${window.location.origin}/${locale}/home`,
       },
     });
@@ -109,6 +115,15 @@ export default function SignupPage() {
                   </div>
 
                   <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <input
+                        type="text"
+                        autoComplete="nickname"
+                        placeholder={locale === 'ru' ? 'Никнейм' : 'Nickname'}
+                        value={nickname}
+                        onChange={e => setNickname(e.target.value)}
+                        required
+                        style={inputStyle}
+                    />
                     <input
                         type="email" autoComplete="email" placeholder={t('email')} value={email}
                         onChange={e => setEmail(e.target.value)} required style={inputStyle}

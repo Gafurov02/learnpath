@@ -10,6 +10,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { ManageSubscriptionButton } from '@/components/ui/StripeButtons';
 import { calculateDailyStreak } from '@/lib/progress';
 import { hasProAccess } from '@/lib/subscription';
+import { getUserDisplayName } from '@/lib/user-profile';
 
 type AttemptRow = {
   created_at: string;
@@ -134,7 +135,7 @@ export default function DashboardPage() {
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>{t('welcome')}</div>
           <h1 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 400, letterSpacing: '-0.5px' }}>
-            {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Student'} 👋
+            {getUserDisplayName(user)} 👋
           </h1>
         </div>
 

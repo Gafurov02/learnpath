@@ -5,6 +5,7 @@ import { AdminConsole, type AdminActivityRow, type AdminOverview, type AdminScho
 import { isAdminUser } from '@/lib/admin-access';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/server-supabase';
 import { hasProAccess } from '@/lib/subscription';
+import { getUserDisplayName } from '@/lib/user-profile';
 
 type PageProps = {
   params: Promise<{ locale: string }>;
@@ -40,12 +41,7 @@ type AttemptRow = {
 };
 
 function getDisplayName(user: User) {
-  const fullName = user.user_metadata?.full_name;
-  if (typeof fullName === 'string' && fullName.trim() !== '') {
-    return fullName;
-  }
-
-  return user.email?.split('@')[0] ?? 'User';
+  return getUserDisplayName(user);
 }
 
 function getProvider(user: User) {
@@ -231,6 +227,7 @@ export default async function AdminPage({ params }: PageProps) {
       <AdminConsole
         locale={locale}
         currentUserEmail={user.email ?? 'unknown'}
+        generatedAt={new Date().toISOString()}
         overview={overview}
         users={adminUsers}
         schools={adminSchools}

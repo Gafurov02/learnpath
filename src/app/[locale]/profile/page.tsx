@@ -1,21 +1,60 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { AppNavbar } from '@/components/layout/AppNavbar';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { getLevelByXp, LEVELS } from '@/lib/levels';
+import { getUserAvatarUrl, getUserDisplayName } from '@/lib/user-profile';
 
 type Achievement = { code: string; name: string; description: string; icon: string; earned: boolean; earned_at?: string };
 type Attempt = { exam: string; topic: string; correct: boolean; difficulty: string; created_at: string };
+
+async function resizeAvatarFile(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const image = new Image();
+
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        const size = 192;
+        const smallestSide = Math.min(image.width, image.height);
+        const offsetX = (image.width - smallestSide) / 2;
+        const offsetY = (image.height - smallestSide) / 2;
+
+        canvas.width = size;
+        canvas.height = size;
+
+        const context = canvas.getContext('2d');
+        if (!context) {
+          reject(new Error('Canvas is not available'));
+          return;
+        }
+
+        context.drawImage(image, offsetX, offsetY, smallestSide, smallestSide, 0, 0, size, size);
+        resolve(canvas.toDataURL('image/jpeg', 0.86));
+      };
+
+      image.onerror = () => reject(new Error('Could not read the selected image'));
+      image.src = typeof reader.result === 'string' ? reader.result : '';
+    };
+
+    reader.onerror = () => reject(new Error('Could not read the selected file'));
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function ProfilePage() {
   const locale = useLocale();
   const t = useTranslations('app');
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(0);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
@@ -23,6 +62,11 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [isPro, setIsPro] = useState(false);
   const [activeTab, setActiveTab] = useState<'stats' | 'achievements'>('stats');
+  const [nickname, setNickname] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [profileSuccess, setProfileSuccess] = useState('');
 
   useEffect(() => {
     const supabase = createClient();
@@ -30,6 +74,8 @@ export default function ProfilePage() {
       if (!session) { router.push(`/${locale}/auth/login`); return; }
       const u = session.user;
       setUser(u);
+      setNickname(getUserDisplayName(u));
+      setAvatarUrl(getUserAvatarUrl(u));
       const [subRes, attemptsRes, achRes, allAchRes] = await Promise.all([
         supabase.from('subscriptions').select('xp, plan').eq('user_id', u.id).single(),
         supabase.from('quiz_attempts').select('exam, topic, correct, difficulty, created_at').eq('user_id', u.id).order('created_at', { ascending: false }).limit(500),
@@ -62,7 +108,7 @@ export default function ProfilePage() {
   const level = getLevelByXp(xp);
   const nextLevel = LEVELS[LEVELS.findIndex(l => l.name === level.name) + 1];
   const progress = nextLevel ? Math.round(((xp - level.minXp) / (nextLevel.minXp - level.minXp)) * 100) : 100;
-  const name = user?.user_metadata?.full_name || user?.email?.split('@')[0];
+  const name = getUserDisplayName(user);
   const total = attempts.length;
   const correct = attempts.filter(a => a.correct).length;
   const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
@@ -118,6 +164,75 @@ export default function ProfilePage() {
     window.location.href = `/${locale}`;
   }
 
+  async function handleAvatarFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setProfileError(locale === 'ru' ? 'Выбери файл изображения' : 'Please choose an image file');
+      return;
+    }
+
+    setProfileError('');
+    setProfileSuccess('');
+
+    try {
+      const resizedAvatar = await resizeAvatarFile(file);
+      setAvatarUrl(resizedAvatar);
+    } catch (error) {
+      setProfileError(error instanceof Error ? error.message : (locale === 'ru' ? 'Не удалось обработать изображение' : 'Could not process the image'));
+    } finally {
+      event.target.value = '';
+    }
+  }
+
+  async function handleSaveProfile() {
+    const trimmedNickname = nickname.trim();
+    if (trimmedNickname === '') {
+      setProfileError(locale === 'ru' ? 'Никнейм не может быть пустым' : 'Nickname cannot be empty');
+      return;
+    }
+
+    if (!user) {
+      return;
+    }
+
+    setSavingProfile(true);
+    setProfileError('');
+    setProfileSuccess('');
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.updateUser({
+        data: {
+          ...user.user_metadata,
+          full_name: trimmedNickname,
+          nickname: trimmedNickname,
+          avatar_url: avatarUrl || null,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        setUser(data.user);
+        setNickname(getUserDisplayName(data.user));
+        setAvatarUrl(getUserAvatarUrl(data.user));
+      }
+
+      setProfileSuccess(locale === 'ru' ? 'Профиль обновлён' : 'Profile updated');
+      router.refresh();
+    } catch (error) {
+      setProfileError(error instanceof Error ? error.message : (locale === 'ru' ? 'Не удалось обновить профиль' : 'Could not update the profile'));
+    } finally {
+      setSavingProfile(false);
+    }
+  }
+
   const tabStyle = (active: boolean): React.CSSProperties => ({
     flex: 1, padding: '8px 16px', borderRadius: 7, fontSize: 13, fontWeight: 500,
     border: 'none', background: active ? 'hsl(var(--background))' : 'transparent',
@@ -134,9 +249,14 @@ export default function ProfilePage() {
           {/* Profile header */}
           <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 20, padding: '20px', marginBottom: 16 }}>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 16 }}>
-              <div style={{ width: 56, height: 56, borderRadius: '50%', background: isPro ? '#6B5CE7' : '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 600, color: isPro ? '#fff' : '#6B5CE7', flexShrink: 0 }}>
-                {name?.[0]?.toUpperCase()}
-              </div>
+              <UserAvatar
+                avatarUrl={avatarUrl}
+                email={user?.email}
+                name={name}
+                id={user?.id}
+                size={56}
+                accent={isPro ? 'pro' : 'default'}
+              />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 17, fontWeight: 500 }}>{name}</span>
@@ -160,6 +280,85 @@ export default function ProfilePage() {
             <div style={{ display: 'flex', gap: 8 }}>
               {!isPro && <Link href={`/${locale}/pricing`} style={{ flex: 1, background: '#6B5CE7', color: '#fff', borderRadius: 8, padding: '9px 14px', fontSize: 13, fontWeight: 500, textDecoration: 'none', textAlign: 'center' }}>{t('upgradePro')}</Link>}
               <button onClick={handleLogout} style={{ flex: isPro ? 1 : undefined, border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '9px 16px', fontSize: 13, background: 'transparent', color: 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit' }}>{t('logOut')}</button>
+            </div>
+          </div>
+
+          <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 20, padding: '20px', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 18 }}>
+              <div>
+                <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
+                  {locale === 'ru' ? 'Никнейм и аватар' : 'Nickname and avatar'}
+                </h2>
+                <p style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginTop: 6, marginBottom: 0, maxWidth: 520, lineHeight: 1.6 }}>
+                  {locale === 'ru'
+                    ? 'Эти данные будут видны в рейтинге, школе и других местах, где тебя видят преподаватели и другие ученики.'
+                    : 'These details will be used in the leaderboard, school views, and other places where teachers and classmates see you.'}
+                </p>
+              </div>
+              <UserAvatar
+                avatarUrl={avatarUrl}
+                email={user?.email}
+                name={nickname.trim() || name}
+                id={user?.id}
+                size={72}
+                accent={isPro ? 'pro' : 'default'}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 12 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, color: 'hsl(var(--muted-foreground))', marginBottom: 6 }}>
+                  {locale === 'ru' ? 'Никнейм' : 'Nickname'}
+                </label>
+                <input
+                  value={nickname}
+                  onChange={(event) => setNickname(event.target.value)}
+                  placeholder={locale === 'ru' ? 'Как тебя показывать в приложении' : 'How you should appear in the app'}
+                  style={{ width: '100%', padding: '11px 13px', border: '1px solid hsl(var(--border))', borderRadius: 10, fontSize: 14, background: 'hsl(var(--background))', color: 'hsl(var(--foreground))', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div>
+                <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginBottom: 6 }}>
+                  {locale === 'ru' ? 'Аватар' : 'Avatar'}
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <label style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '10px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                    {locale === 'ru' ? 'Загрузить фото' : 'Upload image'}
+                    <input type="file" accept="image/*" onChange={handleAvatarFileChange} style={{ display: 'none' }} />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setAvatarUrl(null)}
+                    style={{ background: 'transparent', color: 'hsl(var(--muted-foreground))', border: '1px solid hsl(var(--border))', borderRadius: 10, padding: '10px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                  >
+                    {locale === 'ru' ? 'Убрать аватар' : 'Remove avatar'}
+                  </button>
+                </div>
+              </div>
+
+              {profileError && (
+                <div style={{ background: 'rgba(232,64,64,0.08)', border: '1px solid rgba(232,64,64,0.25)', borderRadius: 12, padding: '10px 12px', fontSize: 13, color: '#E84040' }}>
+                  {profileError}
+                </div>
+              )}
+
+              {profileSuccess && (
+                <div style={{ background: 'rgba(34,192,122,0.08)', border: '1px solid rgba(34,192,122,0.2)', borderRadius: 12, padding: '10px 12px', fontSize: 13, color: '#22C07A' }}>
+                  {profileSuccess}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={handleSaveProfile}
+                  disabled={savingProfile}
+                  style={{ background: savingProfile ? '#9B8DFF' : '#6B5CE7', color: '#fff', border: 'none', borderRadius: 10, padding: '11px 16px', fontSize: 13, fontWeight: 600, cursor: savingProfile ? 'default' : 'pointer', fontFamily: 'inherit' }}
+                >
+                  {savingProfile ? '...' : (locale === 'ru' ? 'Сохранить профиль' : 'Save profile')}
+                </button>
+              </div>
             </div>
           </div>
 

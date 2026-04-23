@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { AppNavbar } from '@/components/layout/AppNavbar';
 import { getLevelByXp, LEVELS, ROADMAP } from '@/lib/levels';
+import { getUserDisplayName } from '@/lib/user-profile';
 import { StudyPlan } from '@/components/home/StudyPlan';
 
 export default function HomePage() {
@@ -62,7 +63,7 @@ export default function HomePage() {
   const nextLevel = LEVELS[LEVELS.findIndex(l => l.name === level.name) + 1];
   const progress = nextLevel ? Math.round(((xp - level.minXp) / (nextLevel.minXp - level.minXp)) * 100) : 100;
   const roadmap = ROADMAP[selectedExam] ?? [];
-  const name = user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0];
+  const name = getUserDisplayName(user).split(' ')[0];
 
   return (
       <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
