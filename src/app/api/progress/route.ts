@@ -1,79 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
-function isMissingSessionIdColumn(message?: string | null) {
-  return message?.includes('session_id') ?? false;
-}
-
-async function createClient() {
-  const cookieStore = await cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        },
-      },
-    }
-  );
+function getWeekStart(): string {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d);
+  monday.setDate(diff);
+  return monday.toISOString().split('T')[0];
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
+  );
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { exam, topic, correct, difficulty, sessionId } = await req.json();
+  const { exam, topic, correct, difficulty } = await req.json();
+  const admin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-  const baseAttempt = {
-    user_id: user.id,
-    exam,
-    topic,
-    correct,
-    difficulty,
-  };
-
-  let { error } = await supabase.from('quiz_attempts').insert({
-    ...baseAttempt,
-    session_id: sessionId ?? null,
+  // Save quiz attempt
+  await admin.from('quiz_attempts').insert({
+    user_id: user.id, exam, topic,
+    correct: correct ?? false,
+    difficulty: difficulty ?? 'medium',
   });
 
-  if (error && isMissingSessionIdColumn(error.message)) {
-    ({ error } = await supabase.from('quiz_attempts').insert(baseAttempt));
+  // Update weekly scores for all schools user is in
+  const { data: memberships } = await admin
+      .from('school_members')
+      .select('school_id')
+      .eq('user_id', user.id);
+
+  if (memberships && memberships.length > 0) {
+    const week_start = getWeekStart();
+    const xp = correct ? 10 : 2;
+
+    for (const m of memberships) {
+      const { data: existing } = await admin
+          .from('weekly_scores')
+          .select('id, xp_gained, questions, correct')
+          .eq('school_id', m.school_id)
+          .eq('user_id', user.id)
+          .eq('week_start', week_start)
+          .single();
+
+      if (existing) {
+        await admin.from('weekly_scores').update({
+          xp_gained: existing.xp_gained + xp,
+          questions: existing.questions + 1,
+          correct: existing.correct + (correct ? 1 : 0),
+          updated_at: new Date().toISOString(),
+        }).eq('id', existing.id);
+      } else {
+        await admin.from('weekly_scores').insert({
+          school_id: m.school_id, user_id: user.id, week_start,
+          xp_gained: xp, questions: 1,
+          correct: correct ? 1 : 0, streak_days: 0,
+        });
+      }
+    }
   }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
-}
-
-export async function GET(req: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  const { searchParams } = new URL(req.url);
-  const exam = searchParams.get('exam');
-
-  let query = supabase
-    .from('quiz_attempts')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
-
-  if (exam) query = query.eq('exam', exam);
-
-  const { data, error } = await query.limit(200);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  const total = data?.length ?? 0;
-  const correct = data?.filter(r => r.correct).length ?? 0;
-  const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
-
-  return NextResponse.json({ total, correct, accuracy, attempts: data });
 }

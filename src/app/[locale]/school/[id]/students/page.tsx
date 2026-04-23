@@ -115,7 +115,7 @@ export default function StudentsPage({ params }: { params: Promise<{ id: string 
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {members.map((member) => {
+            {members.map((member, index) => {
               const level = getLevelByXp(member.xp);
               const accuracy = member.total > 0 ? Math.round((member.correct / member.total) * 100) : 0;
 
