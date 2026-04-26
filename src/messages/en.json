@@ -76,8 +76,7 @@
       ],
       "missing": [
         "Personal study plan",
-        "Progress statistics",
-        "Offline mode"
+        "Progress statistics"
       ]
     },
     "pro": {
@@ -91,7 +90,7 @@
         "Detailed AI explanations",
         "Day-by-day study plan",
         "Full statistics",
-        "Offline mode"
+        "AI Tutor chat"
       ]
     },
     "teams": {
