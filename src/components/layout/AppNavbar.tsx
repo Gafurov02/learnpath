@@ -4,14 +4,11 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Sun, Moon, Home, Zap, Trophy, User, School } from 'lucide-react';
+import { Sun, Moon, Home, Zap, Trophy, User, School, MessageCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase';
 import { getLevelByXp } from '@/lib/levels';
 import { LangSwitcher } from './LangSwitcher';
-import { UserAvatar } from '@/components/ui/UserAvatar';
-import { getUserAvatarUrl, getUserDisplayName } from '@/lib/user-profile';
 
 export function AppNavbar() {
   const locale = useLocale();
@@ -19,7 +16,7 @@ export function AppNavbar() {
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(0);
   const [isPro, setIsPro] = useState(false);
@@ -27,8 +24,7 @@ export function AppNavbar() {
   useEffect(() => {
     setMounted(true);
     const supabase = createClient();
-    const loadUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return;
       setUser(session.user);
       const { data: sub } = await supabase.from('subscriptions').select('xp, plan').eq('user_id', session.user.id).single();
@@ -41,28 +37,18 @@ export function AppNavbar() {
         for (let i = 0; i < dates.length; i++) { const d = new Date(today); d.setDate(d.getDate() - i); if (dates.includes(d.toDateString())) s++; else break; }
         setStreak(s);
       }
-    };
-
-    void loadUser();
-    const { data: authSubscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
     });
-
-    return () => {
-      authSubscription.subscription.unsubscribe();
-    };
   }, []);
 
   const level = getLevelByXp(xp);
-  const displayName = getUserDisplayName(user);
-  const avatarUrl = getUserAvatarUrl(user);
+  const initial = user?.user_metadata?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
 
   const tabs = [
     { href: `/${locale}/home`, label: t('home'), icon: Home },
     { href: `/${locale}/quiz`, label: t('practice'), icon: Zap },
+    { href: `/${locale}/chat`, label: locale === 'ru' ? 'Тьютор' : 'Tutor', icon: MessageCircle },
     { href: `/${locale}/leaderboard`, label: t('leaderboard'), icon: Trophy },
     { href: `/${locale}/profile`, label: t('profile'), icon: User },
-    { href: `/${locale}/school`, label: locale === 'ru' ? 'Школа' : 'School', icon: School },
   ];
 
   const isActive = (href: string) => pathname.startsWith(href.split('?')[0]);
@@ -82,6 +68,9 @@ export function AppNavbar() {
                     {tab.label}
                   </Link>
               ))}
+              <Link href={`/${locale}/school`} style={{ padding: '6px 13px', borderRadius: 8, fontSize: 13, fontWeight: 500, textDecoration: 'none', background: isActive(`/${locale}/school`) ? '#6B5CE7' : 'transparent', color: isActive(`/${locale}/school`) ? '#fff' : 'hsl(var(--muted-foreground))', transition: 'all 0.15s' }}>
+                {locale === 'ru' ? 'Школа' : 'School'}
+              </Link>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -95,15 +84,8 @@ export function AppNavbar() {
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 {isPro && <span style={{ background: 'linear-gradient(135deg,#6B5CE7,#9B8DFF)', color: '#fff', borderRadius: 20, padding: '2px 9px', fontSize: 11, fontWeight: 700 }}>⭐ PRO</span>}
-                <Link href={`/${locale}/profile`} aria-label={displayName} style={{ textDecoration: 'none', flexShrink: 0 }}>
-                  <UserAvatar
-                    avatarUrl={avatarUrl}
-                    email={user?.email}
-                    name={displayName}
-                    id={user?.id}
-                    size={30}
-                    accent={isPro ? 'pro' : 'default'}
-                  />
+                <Link href={`/${locale}/profile`} style={{ width: 30, height: 30, borderRadius: '50%', background: isPro ? '#6B5CE7' : '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: isPro ? '#fff' : '#6B5CE7', textDecoration: 'none', flexShrink: 0 }}>
+                  {initial}
                 </Link>
               </div>
             </div>
