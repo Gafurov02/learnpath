@@ -138,7 +138,7 @@ function PricingSection({ locale }: { locale: string }) {
                             <li key={f} style={{ display: 'flex', gap: 8, fontSize: 13, color: 'hsl(var(--foreground))' }}><span style={{ color: '#22C07A', fontWeight: 700, flexShrink: 0 }}>✓</span>{f}</li>
                         ))}
                     </ul>
-                    <a href="mailto:hello@learnpath.app" style={{ display: 'block', textAlign: 'center', border: '1.5px solid hsl(var(--border))', borderRadius: 10, padding: '11px', fontSize: 14, fontWeight: 500, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
+                    <a href="mailto:boburbek@gafurov.cc" style={{ display: 'block', textAlign: 'center', border: '1.5px solid hsl(var(--border))', borderRadius: 10, padding: '11px', fontSize: 14, fontWeight: 500, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
                         {t('teams.cta')}
                     </a>
                 </div>
@@ -159,7 +159,7 @@ function Footer({ locale }: { locale: string }) {
                 <div style={{ display: 'flex', gap: 20 }}>
                     <Link href={`/${locale}/terms`} style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', textDecoration: 'none' }}>{t('terms')}</Link>
                     <Link href={`/${locale}/privacy`} style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', textDecoration: 'none' }}>{t('privacy')}</Link>
-                    <a href="mailto:hello@learnpath.app" style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', textDecoration: 'none' }}>{t('contact')}</a>
+                    <a href="mailto:boburbek@gafurov.cc" style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', textDecoration: 'none' }}>{t('contact')}</a>
                 </div>
             </div>
         </footer>
