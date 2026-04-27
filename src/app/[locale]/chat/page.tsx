@@ -172,7 +172,6 @@ function handleKeyDown(e: React.KeyboardEvent) {
 if (checking) return (
     <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ width: 28, height: 28, border: '3px solid hsl(var(--border))', borderTopColor: '#6B5CE7', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
 );
 
@@ -300,12 +299,6 @@ return (
                 </button>
             </div>
         </div>
-
-        <style>{`
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-        @keyframes spin { to{transform:rotate(360deg)} }
-      `}</style>
     </div>
 );
 }
