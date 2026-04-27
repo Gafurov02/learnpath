@@ -65,13 +65,38 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
     async function handleFile(file: File) {
         setFileName(file.name);
         const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+        const isQsze = file.name.endsWith('.qsze');
         if (isExcel) {
             const buf = await file.arrayBuffer();
             const result = await parseExcel(buf);
             setParsed(result);
         } else {
+            // qsze is JSON format, CSV otherwise
             const text = await file.text();
-            setParsed(parseCSV(text));
+            if (isQsze) {
+                try {
+                    const json = JSON.parse(text);
+                    const questions = Array.isArray(json) ? json : json.questions ?? [];
+                    const result: ParsedQuestion[] = questions.map((q: any, i: number) => {
+                        const opts = q.options || q.answers || [q.a, q.b, q.c, q.d];
+                        const ci = typeof q.correct_index === 'number' ? q.correct_index : (typeof q.correct === 'number' ? q.correct : 0);
+                        const valid = !!(q.question && opts?.length >= 2);
+                        return {
+                            question: q.question || '', option_a: opts?.[0] || '', option_b: opts?.[1] || '',
+                            option_c: opts?.[2] || '', option_d: opts?.[3] || '', correct_index: ci,
+                            explanation: q.explanation || q.explain || '',
+                            topic: q.topic || q.category || 'General',
+                            difficulty: q.difficulty || 'medium', exam: q.exam || 'IELTS',
+                            valid, error: valid ? undefined : `Row ${i + 2}: missing required fields`,
+                        };
+                    });
+                    setParsed(result);
+                } catch {
+                    setParsed(parseCSV(text));
+                }
+            } else {
+                setParsed(parseCSV(text));
+            }
         }
     }
 
@@ -141,8 +166,8 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
                     <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 6 }}>
                         {fileName || (locale === 'ru' ? 'Перетащи файл или нажми для выбора' : 'Drop file or click to browse')}
                     </div>
-                    <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>CSV, XLS, XLSX</div>
-                    <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+                    <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>CSV, XLS, XLSX, QSZE</div>
+                    <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls,.qsze" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
                 </div>
 
                 {/* Preview */}

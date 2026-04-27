@@ -9,21 +9,31 @@ import { AppNavbar } from '@/components/layout/AppNavbar';
 
 const EXAMS = ['IELTS', 'SAT', 'TOEFL', 'GMAT', 'GRE', 'ЕГЭ'];
 
-const SUGGESTIONS = {
-    en: [
-        "Explain the difference between 'affect' and 'effect'",
-        "How do I solve quadratic equations?",
-        "What are common IELTS reading traps?",
-        "Explain passive voice with examples",
-        "How to improve my vocabulary quickly?",
-    ],
-    ru: [
-        "Объясни разницу между 'affect' и 'effect'",
-        "Как решать квадратные уравнения?",
-        "Какие ловушки в IELTS Reading?",
-        "Объясни страдательный залог с примерами",
-        "Как быстро улучшить словарный запас?",
-    ],
+const SUGGESTIONS: Record<string, Record<string, string[]>> = {
+    IELTS: {
+        en: ["What are common IELTS Reading traps?", "Explain academic vocabulary strategies", "How to structure an IELTS essay?", "What is skimming and scanning?", "Explain passive voice with examples"],
+        ru: ["Какие ловушки в IELTS Reading?", "Стратегии академической лексики", "Как структурировать эссе IELTS?", "Что такое skimming и scanning?", "Объясни страдательный залог с примерами"],
+    },
+    SAT: {
+        en: ["How do I solve quadratic equations?", "Explain the SAT essay structure", "What are common SAT math traps?", "How to improve reading speed?", "Explain linear equations with examples"],
+        ru: ["Как решать квадратные уравнения?", "Структура эссе SAT", "Частые ловушки в математике SAT", "Как улучшить скорость чтения?", "Объясни линейные уравнения с примерами"],
+    },
+    TOEFL: {
+        en: ["How to take notes for TOEFL Listening?", "Explain integrated writing task", "What score do I need for top universities?", "TOEFL vs IELTS — which is easier?", "How to improve speaking fluency?"],
+        ru: ["Как делать заметки для TOEFL Listening?", "Объясни integrated writing task", "Какой балл нужен для топ-университетов?", "TOEFL vs IELTS — что проще?", "Как улучшить беглость речи?"],
+    },
+    GMAT: {
+        en: ["Explain critical reasoning strategies", "How to approach data sufficiency?", "Common sentence correction mistakes", "GMAT vs GRE — which should I take?", "How to improve verbal score?"],
+        ru: ["Стратегии critical reasoning", "Как подходить к data sufficiency?", "Частые ошибки в sentence correction", "GMAT или GRE — что выбрать?", "Как улучшить verbal результат?"],
+    },
+    GRE: {
+        en: ["How to memorize GRE vocabulary?", "Explain quantitative comparison questions", "Text completion vs sentence equivalence", "How to improve analytical writing?", "Common GRE math formulas"],
+        ru: ["Как запомнить лексику GRE?", "Объясни quantitative comparison", "Text completion vs sentence equivalence", "Как улучшить analytical writing?", "Формулы математики GRE"],
+    },
+    ЕГЭ: {
+        en: ["Explain Russian spelling rules", "Common punctuation mistakes in ЕГЭ", "How to write ЕГЭ essay?", "Grammar rules — НН vs Н", "Explain participle clauses"],
+        ru: ["Правила правописания в ЕГЭ", "Частые ошибки пунктуации", "Как писать сочинение ЕГЭ?", "Правило НН и Н в прилагательных", "Объясни причастные обороты"],
+    },
 };
 
 type Message = { role: 'user' | 'assistant'; content: string };
@@ -175,7 +185,7 @@ export default function ChatPage() {
     if (checking) return spinner;
     if (!isPro) return upsell;
 
-    const suggestions = SUGGESTIONS[locale];
+    const suggestions = (SUGGESTIONS[exam] || SUGGESTIONS['IELTS'])[locale] || SUGGESTIONS['IELTS']['en'];
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))', display: 'flex', flexDirection: 'column' }}>
@@ -255,7 +265,7 @@ export default function ChatPage() {
                 <div ref={bottomRef} />
             </div>
 
-            <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'hsl(var(--background))', borderTop: '1px solid hsl(var(--border))', padding: '12px 16px' }}>
+            <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'hsl(var(--background))', borderTop: '1px solid hsl(var(--border))', padding: '10px 16px', paddingBottom: 'calc(10px + env(safe-area-inset-bottom))' }} className="chat-input-bar">
                 <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', gap: 10, alignItems: 'flex-end' }}>
           <textarea
               value={input}
@@ -263,13 +273,14 @@ export default function ChatPage() {
               onKeyDown={handleKeyDown}
               placeholder={locale === 'ru' ? 'Задай вопрос тьютору...' : 'Ask your tutor anything...'}
               rows={1}
-              style={{ flex: 1, padding: '11px 14px', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 14, background: 'hsl(var(--card))', color: 'hsl(var(--foreground))', fontFamily: 'inherit', outline: 'none', resize: 'none', lineHeight: 1.5 }}
+              style={{ flex: 1, padding: '10px 14px', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 14, background: 'hsl(var(--card))', color: 'hsl(var(--foreground))', fontFamily: 'inherit', outline: 'none', resize: 'none', lineHeight: 1.5 }}
               onInput={e => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; }}
           />
-                    <button onClick={() => send()} disabled={!input.trim() || loading} style={{ width: 42, height: 42, borderRadius: 12, background: input.trim() && !loading ? '#6B5CE7' : 'hsl(var(--muted))', border: 'none', cursor: input.trim() && !loading ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18, color: input.trim() && !loading ? '#fff' : 'hsl(var(--muted-foreground))' }}>
+                    <button onClick={() => send()} disabled={!input.trim() || loading} style={{ width: 40, height: 40, borderRadius: 12, background: input.trim() && !loading ? '#6B5CE7' : 'hsl(var(--muted))', border: 'none', cursor: input.trim() && !loading ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18, color: input.trim() && !loading ? '#fff' : 'hsl(var(--muted-foreground))' }}>
                         ↑
                     </button>
                 </div>
+                <style>{`.chat-input-bar { z-index: 40 !important; } @media(max-width:768px){ .chat-input-bar { bottom: 65px !important; } }`}</style>
             </div>
         </div>
     );
