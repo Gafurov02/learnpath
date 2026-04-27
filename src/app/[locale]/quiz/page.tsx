@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { User } from '@supabase/supabase-js';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -10,8 +9,6 @@ import { AppNavbar } from '@/components/layout/AppNavbar';
 import { createClient } from '@/lib/supabase';
 import { FREE_LIMITS, ALL_EXAMS } from '@/lib/limits';
 import { ExplanationBlock } from '@/components/quiz/ExplanationBlock';
-import { OfflineDownload } from '@/components/ui/OfflineDownload';
-import { hasProAccess } from '@/lib/subscription';
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 
@@ -33,81 +30,49 @@ export default function QuizPage() {
   const [exam, setExam] = useState(initialExam);
   const [difficulty, setDifficulty] = useState('medium');
   const [question, setQuestion] = useState<Question | null>(null);
+  const [nextQuestion, setNextQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(false);
+  const [prefetching, setPrefetching] = useState(false);
   const [answered, setAnswered] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [streak, setStreak] = useState(0);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [isPro, setIsPro] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
   const [selectedExams, setSelectedExams] = useState<string[]>([]);
   const [limitError, setLimitError] = useState<'daily' | 'exam' | null>(null);
   const [showExamPicker, setShowExamPicker] = useState(false);
   const [isProQuestion, setIsProQuestion] = useState(false);
-  const [authReady, setAuthReady] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const nextQuestionRef = useRef<Question | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
-    let isMounted = true;
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      setUser(session.user);
 
-    const loadSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!isMounted) return;
+      const { data: sub } = await supabase.from('subscriptions').select('plan').eq('user_id', session.user.id).single();
+      setIsPro(sub?.plan === 'pro');
 
-        if (!session) {
-          setUser(null);
-          setSessionId(null);
-          return;
-        }
+      // Get daily count
+      const today = new Date(); today.setHours(0,0,0,0);
+      const { count } = await supabase.from('quiz_attempts').select('*', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', today.toISOString());
+      setDailyCount(count ?? 0);
 
-        setUser(session.user);
-        setSessionId(globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`);
-
-        const [{ data: sub }, { count }, { data: sel }] = await Promise.all([
-          supabase.from('subscriptions').select('plan, status').eq('user_id', session.user.id).maybeSingle(),
-          supabase
-            .from('quiz_attempts')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', session.user.id)
-            .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
-          supabase.from('user_exam_selection').select('exams').eq('user_id', session.user.id).maybeSingle(),
-        ]);
-
-        if (!isMounted) return;
-
-        setIsPro(hasProAccess(sub));
-        setDailyCount(count ?? 0);
-
-        if (sel?.exams && sel.exams.length > 0) {
-          setSelectedExams(sel.exams);
-          setExam((currentExam) => (sel.exams.includes(currentExam) ? currentExam : sel.exams[0]));
-          setShowExamPicker(false);
-        } else {
-          setShowExamPicker(!hasProAccess(sub));
-        }
-      } finally {
-        if (isMounted) {
-          setAuthReady(true);
-        }
+      // Get selected exams
+      const { data: sel } = await supabase.from('user_exam_selection').select('exams').eq('user_id', session.user.id).single();
+      if (sel?.exams && sel.exams.length > 0) {
+        setSelectedExams(sel.exams);
+        // If current exam not in selection, switch to first selected
+        if (!sel.exams.includes(exam)) setExam(sel.exams[0]);
+      } else {
+        // No selection yet — show picker
+        setShowExamPicker(true);
       }
-    };
-
-    void loadSession();
-
-    return () => {
-      isMounted = false;
-    };
+    });
   }, []);
 
-  const fetchQuestion = useCallback(async (signal?: AbortSignal): Promise<Question | null> => {
-    if (!user) {
-      return null;
-    }
-
+  async function fetchQuestion(signal?: AbortSignal): Promise<Question | null> {
     try {
       const res = await fetch('/api/quiz', {
         method: 'POST',
@@ -115,14 +80,6 @@ export default function QuizPage() {
         body: JSON.stringify({ exam, difficulty, locale, topic: initialTopic || undefined }),
         signal,
       });
-      if (res.status === 401) {
-        nextQuestionRef.current = null;
-        setQuestion(null);
-        setSessionId(null);
-        setUser(null);
-        setAuthReady(true);
-        return null;
-      }
       if (res.status === 403) {
         const data = await res.json();
         if (data.error === 'daily_limit_reached') setLimitError('daily');
@@ -138,26 +95,21 @@ export default function QuizPage() {
     } catch {
       return null;
     }
-  }, [difficulty, exam, initialTopic, locale, user]);
+  }
 
   const generateQuestion = useCallback(async () => {
-    if (!user) return;
-
     setLoading(true);
     setAnswered(false);
     setSelected(null);
     setLimitError(null);
 
     // Use prefetched question if available
-    if (nextQuestionRef.current) {
-      setQuestion(nextQuestionRef.current);
-      nextQuestionRef.current = null;
+    if (nextQuestion) {
+      setQuestion(nextQuestion);
+      setNextQuestion(null);
       setLoading(false);
-
       // Prefetch next in background
-      void fetchQuestion().then((q) => {
-        nextQuestionRef.current = q;
-      });
+      fetchQuestion().then(q => { if (q) setNextQuestion(q); });
       return;
     }
 
@@ -167,27 +119,13 @@ export default function QuizPage() {
 
     // Prefetch next question in background
     if (q) {
-      void fetchQuestion().then((next) => {
-        nextQuestionRef.current = next;
-      });
+      fetchQuestion().then(next => { if (next) setNextQuestion(next); });
     }
-  }, [fetchQuestion, user]);
+  }, [exam, difficulty, locale, initialTopic, nextQuestion]);
 
   useEffect(() => {
-    nextQuestionRef.current = null;
-
-    if (user) {
-      setSessionId(globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`);
-    }
-  }, [difficulty, exam, initialTopic, locale, user]);
-
-  useEffect(() => {
-    if (!authReady || !user || showExamPicker) {
-      return;
-    }
-
-    void generateQuestion();
-  }, [authReady, generateQuestion, showExamPicker, user]);
+    if (!showExamPicker) generateQuestion();
+  }, [exam, difficulty, showExamPicker]);
 
   async function handleAnswer(i: number) {
     if (answered || !question) return;
@@ -202,10 +140,12 @@ export default function QuizPage() {
       await fetch('/api/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exam, topic: question.topic, correct, difficulty, sessionId }),
+        body: JSON.stringify({ exam, topic: initialTopic || question.topic, correct, difficulty }),
       });
       await fetch('/api/xp', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ xpGained: correct ? 10 : 2, correct: score.correct + (correct ? 1 : 0), totalAnswered: score.total + 1, streak, sessionCorrect: score.correct + (correct ? 1 : 0), sessionTotal: score.total + 1 }),
       });
     }
   }
@@ -223,49 +163,6 @@ export default function QuizPage() {
   const accuracy = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
   const questionsLeft = isPro ? null : FREE_LIMITS.questionsPerDay - dailyCount;
   const availableExams = isPro ? ALL_EXAMS : (selectedExams.length > 0 ? selectedExams : ALL_EXAMS);
-
-  if (!authReady) {
-    return (
-        <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
-          <Navbar />
-          <main style={{ maxWidth: 560, margin: '0 auto', padding: '80px 24px', textAlign: 'center' }}>
-            <div style={{ width: 40, height: 40, margin: '0 auto 16px', border: '3px solid hsl(var(--border))', borderTopColor: '#6B5CE7', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-            <p style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))' }}>
-              {locale === 'ru' ? 'Проверяю доступ к практике...' : 'Checking your practice access...'}
-            </p>
-          </main>
-        </div>
-    );
-  }
-
-  if (!user) {
-    return (
-        <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
-          <Navbar />
-          <main style={{ maxWidth: 560, margin: '0 auto', padding: '60px 24px' }}>
-            <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 20, padding: '36px 28px', textAlign: 'center' }}>
-              <div style={{ fontSize: 36, marginBottom: 12 }}>🔐</div>
-              <h1 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 32, fontWeight: 400, letterSpacing: '-1px', marginBottom: 10 }}>
-                {locale === 'ru' ? 'Войди, чтобы открыть AI-практику' : 'Sign in to unlock AI practice'}
-              </h1>
-              <p style={{ fontSize: 14, lineHeight: 1.7, color: 'hsl(var(--muted-foreground))', marginBottom: 24 }}>
-                {locale === 'ru'
-                  ? 'Квиз теперь работает только для авторизованных пользователей: так мы нормально считаем лимиты, прогресс и достижения.'
-                  : 'Quiz practice now works for signed-in users only, so we can enforce limits and save your progress correctly.'}
-              </p>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
-                <Link href={`/${locale}/auth/login`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '12px 22px', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
-                  {locale === 'ru' ? 'Войти' : 'Sign in'}
-                </Link>
-                <Link href={`/${locale}/auth/signup`} style={{ border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))', borderRadius: 10, padding: '12px 22px', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
-                  {locale === 'ru' ? 'Создать аккаунт' : 'Create account'}
-                </Link>
-              </div>
-            </div>
-          </main>
-        </div>
-    );
-  }
 
   // Exam picker for free users
   if (showExamPicker && !isPro) {
@@ -323,7 +220,6 @@ export default function QuizPage() {
               <span>{locale === 'ru' ? 'Всего' : 'Total'}: <strong>{score.total}</strong></span>
               <span>{locale === 'ru' ? 'Точность' : 'Accuracy'}: <strong>{accuracy}%</strong></span>
               {streak >= 3 && <span style={{ color: '#EF9F27' }}>🔥 {streak}</span>}
-              <OfflineDownload exam={exam} isPro={isPro} locale={locale} />
             </div>
           </div>
 
@@ -335,7 +231,6 @@ export default function QuizPage() {
               <span style={{ color: accuracy >= 70 ? '#22C07A' : 'hsl(var(--muted-foreground))' }}>{accuracy}%</span>
               {streak >= 3 && <span style={{ color: '#EF9F27' }}>🔥{streak}</span>}
             </div>
-            <OfflineDownload exam={exam} isPro={isPro} locale={locale} />
           </div>
 
           {/* Free plan info bar */}

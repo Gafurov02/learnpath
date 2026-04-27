@@ -106,14 +106,9 @@ export function StudyPlan({ locale }: { locale: string }) {
                                     {isDone ? (
                                         <div style={{ background: '#22C07A', color: '#fff', borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 500, textAlign: 'center' }}>✓ {locale === 'ru' ? 'Готово' : 'Done'}</div>
                                     ) : (
-                                        <>
-                                            <Link href={`/${locale}/quiz?exam=${task.exam}&topic=${encodeURIComponent(task.topic)}`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 500, textDecoration: 'none', textAlign: 'center', whiteSpace: 'nowrap' }}>
-                                                {locale === 'ru' ? 'Начать' : 'Start'} →
-                                            </Link>
-                                            <button onClick={() => setCompleted(prev => new Set([...prev, task.id]))} style={{ background: 'transparent', border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '5px 14px', fontSize: 11, color: 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit' }}>
-                                                {locale === 'ru' ? 'Отметить' : 'Mark done'}
-                                            </button>
-                                        </>
+                                        <Link href={`/${locale}/quiz?exam=${task.exam}&topic=${encodeURIComponent(task.topic)}`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 500, textDecoration: 'none', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                                            {locale === 'ru' ? 'Начать' : 'Start'} →
+                                        </Link>
                                     )}
                                 </div>
                             </div>
