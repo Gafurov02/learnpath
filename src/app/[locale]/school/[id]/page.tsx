@@ -134,6 +134,12 @@ export default function SchoolDashboardPage({ params }: { params: Promise<{ id: 
                   <Link href={`/${locale}/school/${schoolId}/import`} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
                     📂 {locale === 'ru' ? 'Импорт' : 'Import'}
                   </Link>
+                  <Link href={`/${locale}/school/${schoolId}/api`} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
+                    🔑 API
+                  </Link>
+                  <Link href={`/${locale}/school/${schoolId}/support`} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
+                    🎯 {locale === 'ru' ? 'Поддержка' : 'Support'}
+                  </Link>
                 </div>
             )}
           </div>
