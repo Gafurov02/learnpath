@@ -81,8 +81,9 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
     async function parseQsze(file: File) {
         try {
             const buf = await file.arrayBuffer();
-            const uint8 = new Uint8Array(buf);
-            const ds = new DecompressionStream('deflate');
+            // Skip 2-byte zlib header (0x78 0x9C), use raw deflate
+            const uint8 = new Uint8Array(buf, 2);
+            const ds = new DecompressionStream('deflate-raw');
             const writer = ds.writable.getWriter();
             writer.write(uint8);
             writer.close();
@@ -131,9 +132,9 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
                     valid: !!(qText && opts.length >= 2),
                 });
             }
-            setParsed(result);
+            setParsed(result.length > 0 ? result : [{ question: 'Не удалось распознать вопросы', option_a: '', option_b: '', option_c: '', option_d: '', correct_index: 0, explanation: '', topic: '', difficulty: 'medium', exam: '', valid: false, error: 'No questions found' }]);
         } catch (_e) {
-            setParsed([{ question: 'Ошибка парсинга файла', option_a: '', option_b: '', option_c: '', option_d: '', correct_index: 0, explanation: '', topic: '', difficulty: 'medium', exam: '', valid: false, error: 'Failed to parse .qsze file' }]);
+            setParsed([{ question: `Ошибка: ${_e}`, option_a: '', option_b: '', option_c: '', option_d: '', correct_index: 0, explanation: '', topic: '', difficulty: 'medium', exam: '', valid: false, error: 'Failed to parse .qsze file' }]);
         }
     }
 
