@@ -81,8 +81,9 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
     async function parseQsze(file: File) {
         try {
             const buf = await file.arrayBuffer();
-            // Skip 2-byte zlib header (0x78 0x9C), use raw deflate
-            const uint8 = new Uint8Array(buf, 2);
+            // zlib format: 2-byte header + deflate data + 4-byte Adler-32 checksum
+            // Strip header and checksum, use raw deflate
+            const uint8 = new Uint8Array(buf, 2, buf.byteLength - 6);
             const ds = new DecompressionStream('deflate-raw');
             const writer = ds.writable.getWriter();
             writer.write(uint8);
