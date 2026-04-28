@@ -110,28 +110,37 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
             };
 
             let p = 4;
-            const titleLen = readInt(p); p += 4 + titleLen + 4 + 4 + 8;
-            const qCount = readInt(p); p += 4 + 8;
+            const titleLen = readInt(p); p += 4 + titleLen;
+            // Skip variable header (unknown bytes after title until questions start)
+            // Structure: padding(4) + unknown(4) + timestamp(8) + unknown(4) + unknown(4) + qCount(4) + padding(3)
+            p += 31;
 
             const result: ParsedQuestion[] = [];
-            for (let qi = 0; qi < qCount; qi++) {
-                if (qi > 0 && readInt(p) === 0) p += 4;
-                const [qText, p2] = readStr(p); p = p2 + 8;
-                const optCount = readInt(p); p += 4;
-                const correctIdx = readInt(p); p += 4;
-                const opts: string[] = [];
-                for (let oi = 0; oi < optCount; oi++) {
-                    const [optText, p3] = readStr(p); p = p3 + 8;
-                    opts.push(optText);
-                }
-                result.push({
-                    question: qText, option_a: opts[0] || '', option_b: opts[1] || '',
-                    option_c: opts[2] || '', option_d: opts[3] || '',
-                    correct_index: correctIdx,
-                    explanation: `Правильный ответ: ${opts[correctIdx] || ''}`,
-                    topic: 'General', difficulty: 'medium', exam: 'ЕГЭ',
-                    valid: !!(qText && opts.length >= 2),
-                });
+            for (let qi = 0; qi < 2000; qi++) {
+                if (p + 8 >= decompressed.length) break;
+                try {
+                    if (qi > 0 && readInt(p) === 0) p += 4;
+                    const qLen = readInt(p);
+                    if (qLen === 0 || qLen > 10000) break;
+                    const [qText, p2] = readStr(p); p = p2 + 8;
+                    const optCount = readInt(p);
+                    if (optCount < 2 || optCount > 10) break;
+                    p += 4;
+                    const correctIdx = readInt(p); p += 4;
+                    const opts: string[] = [];
+                    for (let oi = 0; oi < optCount; oi++) {
+                        const [optText, p3] = readStr(p); p = p3 + 8;
+                        opts.push(optText);
+                    }
+                    result.push({
+                        question: qText, option_a: opts[0] || '', option_b: opts[1] || '',
+                        option_c: opts[2] || '', option_d: opts[3] || '',
+                        correct_index: correctIdx,
+                        explanation: `Правильный ответ: ${opts[correctIdx] || ''}`,
+                        topic: 'General', difficulty: 'medium', exam: 'ЕГЭ',
+                        valid: !!(qText && opts.length >= 2),
+                    });
+                } catch { break; }
             }
             setParsed(result.length > 0 ? result : [{ question: 'Не удалось распознать вопросы', option_a: '', option_b: '', option_c: '', option_d: '', correct_index: 0, explanation: '', topic: '', difficulty: 'medium', exam: '', valid: false, error: 'No questions found' }]);
         } catch (_e) {
