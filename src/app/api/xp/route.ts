@@ -4,16 +4,13 @@ import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { getLevelByXp, getXpForAction } from '@/lib/levels';
 import { calculateDailyStreak, calculateLongestCorrectStreak, hasPerfectSession } from '@/lib/progress';
+import { awardUserAchievements } from '@/lib/achievements';
 
 type AttemptRow = {
   correct: boolean;
   exam: string;
   created_at: string;
   session_id: string | null;
-};
-
-type AchievementRow = {
-  achievement: string;
 };
 
 function isMissingSessionIdColumn(message?: string | null) {
@@ -38,7 +35,6 @@ export async function POST() {
   const [
     attemptsWithSession,
     { data: subscription, error: subscriptionError },
-    { data: existingAchievements, error: achievementsError },
   ] = await Promise.all([
     admin
         .from('quiz_attempts')
@@ -50,10 +46,6 @@ export async function POST() {
         .select('user_id')
         .eq('user_id', user.id)
         .maybeSingle(),
-    admin
-        .from('user_achievements')
-        .select('achievement')
-        .eq('user_id', user.id),
   ]);
 
   let attempts = attemptsWithSession.data;
@@ -72,7 +64,6 @@ export async function POST() {
 
   if (attemptsError) return NextResponse.json({ error: attemptsError.message }, { status: 500 });
   if (subscriptionError) return NextResponse.json({ error: subscriptionError.message }, { status: 500 });
-  if (achievementsError) return NextResponse.json({ error: achievementsError.message }, { status: 500 });
 
   const safeAttempts = (attempts ?? []) as AttemptRow[];
   const totalAnswered = safeAttempts.length;
@@ -83,6 +74,10 @@ export async function POST() {
   const examsUsed = new Set(safeAttempts.map((attempt) => attempt.exam)).size;
   const newXp = (totalCorrect * getXpForAction('correct')) + (totalIncorrect * getXpForAction('incorrect'));
   const newLevel = getLevelByXp(newXp).name.toLowerCase();
+  const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+  const weeklyXp = safeAttempts
+    .filter((attempt) => new Date(attempt.created_at).getTime() >= weekAgo)
+    .reduce((sum, attempt) => sum + getXpForAction(attempt.correct ? 'correct' : 'incorrect'), 0);
 
   const subscriptionPayload = {
     user_id: user.id,
@@ -99,8 +94,6 @@ export async function POST() {
     return NextResponse.json({ error: subscriptionWriteError.message }, { status: 500 });
   }
 
-  const newAchievements: string[] = [];
-  const earned = new Set((existingAchievements as AchievementRow[] | null)?.map((row) => row.achievement) ?? []);
   const hasPerfectRun = hasPerfectSession(safeAttempts);
 
   const checks: [string, boolean][] = [
@@ -115,23 +108,22 @@ export async function POST() {
     ['xp_500',          newXp >= 500],
     ['xp_1500',         newXp >= 1500],
     ['xp_3000',         newXp >= 3000],
+    ['streak_rocket',   weeklyXp >= 500],
   ];
 
-  for (const [code, condition] of checks) {
-    if (condition && !earned.has(code)) {
-      newAchievements.push(code);
-    }
-  }
+  let newAchievements: string[];
 
-  if (newAchievements.length > 0) {
-    const { error: insertAchievementsError } = await admin.from('user_achievements').upsert(
-      newAchievements.map((achievement) => ({ user_id: user.id, achievement })),
-      { onConflict: 'user_id,achievement', ignoreDuplicates: true }
+  try {
+    newAchievements = await awardUserAchievements(
+      admin,
+      user.id,
+      checks.filter(([, condition]) => condition).map(([code]) => code)
     );
-
-    if (insertAchievementsError) {
-      return NextResponse.json({ error: insertAchievementsError.message }, { status: 500 });
-    }
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to award achievements' },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ newXp, newLevel, newAchievements });
