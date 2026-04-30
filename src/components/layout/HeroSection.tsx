@@ -2,7 +2,7 @@
 
 import { useTranslations, useLocale } from 'next-intl';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
@@ -10,7 +10,6 @@ export function HeroSection() {
   const t = useTranslations('hero');
   const locale = useLocale();
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
@@ -18,19 +17,11 @@ export function HeroSection() {
       if (session) {
         // Redirect logged-in users to /home
         router.replace(`/${locale}/home`);
-      } else {
-        setChecking(false);
       }
     });
   }, [locale, router]);
 
   // Show nothing while checking session
-  if (checking) return (
-    <section style={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 28, height: 28, border: '2px solid hsl(var(--border))', borderTopColor: '#6B5CE7', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </section>
-  );
 
   return (
     <section style={{ maxWidth: 900, margin: '0 auto', padding: '90px 24px 70px', textAlign: 'center' }}>

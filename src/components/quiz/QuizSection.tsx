@@ -64,7 +64,7 @@ export function QuizSection() {
       <section id="quiz" style={{ background: 'hsl(var(--muted))', padding: '96px 0' }}>
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '0 24px' }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: '#6B5CE7', textTransform: 'uppercase', marginBottom: 12 }}>TRY IT NOW</div>
+            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', color: '#6B5CE7', textTransform: 'uppercase', marginBottom: 16 }}>TRY IT NOW</div>
             <h2 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 'clamp(28px,5vw,42px)', fontWeight: 400, marginBottom: 12, color: 'hsl(var(--foreground))' }}>
               {locale === 'ru' ? 'Реши несколько вопросов' : 'Solve a few questions'}
             </h2>

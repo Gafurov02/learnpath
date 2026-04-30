@@ -81,70 +81,20 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
     async function parseQsze(file: File) {
         try {
             const buf = await file.arrayBuffer();
-            // zlib format: 2-byte header + deflate data + 4-byte Adler-32 checksum
-            // Strip header and checksum, use raw deflate
-            const uint8 = new Uint8Array(buf, 2, buf.byteLength - 6);
-            const ds = new DecompressionStream('deflate-raw');
-            const writer = ds.writable.getWriter();
-            writer.write(uint8);
-            writer.close();
-            const reader2 = ds.readable.getReader();
-            const chunks: Uint8Array[] = [];
-            while (true) {
-                const { done, value } = await reader2.read();
-                if (done) break;
-                chunks.push(value);
+            const res = await fetch('/api/parse-qsze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/octet-stream' },
+                body: buf,
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Server parse error');
+            if (data.questions?.length > 0) {
+                setParsed(data.questions);
+            } else {
+                setParsed([{ question: 'Вопросов не найдено в файле', option_a: '', option_b: '', option_c: '', option_d: '', correct_index: 0, explanation: '', topic: '', difficulty: 'medium', exam: '', valid: false, error: 'No questions found' }]);
             }
-            const totalLen = chunks.reduce((s, c) => s + c.length, 0);
-            const decompressed = new Uint8Array(totalLen);
-            let off = 0;
-            for (const c of chunks) { decompressed.set(c, off); off += c.length; }
-
-            const dv = new DataView(decompressed.buffer);
-            const dec = new TextDecoder('utf-8');
-
-            const readInt = (pos: number) => dv.getUint32(pos, true);
-            const readStr = (pos: number): [string, number] => {
-                const len = readInt(pos); pos += 4;
-                return [dec.decode(decompressed.slice(pos, pos + len)), pos + len];
-            };
-
-            let p = 4;
-            const titleLen = readInt(p); p += 4 + titleLen;
-            // Skip variable header (unknown bytes after title until questions start)
-            // Structure: padding(4) + unknown(4) + timestamp(8) + unknown(4) + unknown(4) + qCount(4) + padding(3)
-            p += 31;
-
-            const result: ParsedQuestion[] = [];
-            for (let qi = 0; qi < 2000; qi++) {
-                if (p + 8 >= decompressed.length) break;
-                try {
-                    if (qi > 0 && readInt(p) === 0) p += 4;
-                    const qLen = readInt(p);
-                    if (qLen === 0 || qLen > 10000) break;
-                    const [qText, p2] = readStr(p); p = p2 + 8;
-                    const optCount = readInt(p);
-                    if (optCount < 2 || optCount > 10) break;
-                    p += 4;
-                    const correctIdx = readInt(p); p += 4;
-                    const opts: string[] = [];
-                    for (let oi = 0; oi < optCount; oi++) {
-                        const [optText, p3] = readStr(p); p = p3 + 8;
-                        opts.push(optText);
-                    }
-                    result.push({
-                        question: qText, option_a: opts[0] || '', option_b: opts[1] || '',
-                        option_c: opts[2] || '', option_d: opts[3] || '',
-                        correct_index: correctIdx,
-                        explanation: `Правильный ответ: ${opts[correctIdx] || ''}`,
-                        topic: 'General', difficulty: 'medium', exam: 'ЕГЭ',
-                        valid: !!(qText && opts.length >= 2),
-                    });
-                } catch { break; }
-            }
-            setParsed(result.length > 0 ? result : [{ question: 'Не удалось распознать вопросы', option_a: '', option_b: '', option_c: '', option_d: '', correct_index: 0, explanation: '', topic: '', difficulty: 'medium', exam: '', valid: false, error: 'No questions found' }]);
-        } catch (_e) {
-            setParsed([{ question: `Ошибка: ${_e}`, option_a: '', option_b: '', option_c: '', option_d: '', correct_index: 0, explanation: '', topic: '', difficulty: 'medium', exam: '', valid: false, error: 'Failed to parse .qsze file' }]);
+        } catch (_e: any) {
+            setParsed([{ question: `Ошибка: ${_e.message}`, option_a: '', option_b: '', option_c: '', option_d: '', correct_index: 0, explanation: '', topic: '', difficulty: 'medium', exam: '', valid: false, error: _e.message }]);
         }
     }
 

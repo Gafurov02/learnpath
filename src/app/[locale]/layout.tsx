@@ -1,23 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import { notFound } from 'next/navigation';
 import { getMessages } from 'next-intl/server';
-import { Instrument_Serif, DM_Sans } from 'next/font/google';
 import { Providers } from '@/components/layout/Providers';
 import { ServiceWorkerRegister } from '@/components/layout/ServiceWorkerRegister';
 import '../globals.css';
-
-const instrumentSerif = Instrument_Serif({
-    subsets: ['latin', 'latin-ext'],
-    weight: ['400'],
-    style: ['normal', 'italic'],
-    variable: '--font-serif',
-});
-
-const dmSans = DM_Sans({
-    subsets: ['latin', 'latin-ext'],
-    weight: ['300', '400', '500', '600'],
-    variable: '--font-sans',
-});
 
 export const metadata: Metadata = {
     title: 'LearnPath — AI Exam Prep',
@@ -53,7 +39,7 @@ export default async function LocaleLayout({
 
     return (
         <html lang={locale} suppressHydrationWarning data-scroll-behavior="smooth">
-        <body className={`${dmSans.variable} ${instrumentSerif.variable}`} style={{ fontFamily: 'var(--font-sans), system-ui, sans-serif', margin: 0 }}>
+        <body style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', margin: 0 }}>
         <Providers messages={messages as Record<string, unknown>} locale={locale}>
             <ServiceWorkerRegister />
             {children}
