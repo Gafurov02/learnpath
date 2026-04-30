@@ -64,7 +64,7 @@ function FeaturesSection() {
     ] as const;
     return (
         <section id="features" style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(48px,8vw,80px) 20px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: '#6B5CE7', textTransform: 'uppercase', marginBottom: 12 }}>{t('tag')}</div>
+            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', color: '#6B5CE7', textTransform: 'uppercase', marginBottom: 16 }}>{t('tag')}</div>
             <h2 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 'clamp(26px,4vw,44px)', letterSpacing: '-1px', lineHeight: 1.15, marginBottom: 12, fontWeight: 400, color: 'hsl(var(--foreground))' }}>
                 {t('title')}
             </h2>

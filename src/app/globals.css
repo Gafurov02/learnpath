@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Font variables — system fonts fallback (no Google Fonts dependency) */
+:root {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Georgia", "Times New Roman", serif;
+}
+
 @layer base {
   :root {
     --background: 40 20% 98%;
