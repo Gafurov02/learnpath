@@ -4,11 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import type { User } from '@supabase/supabase-js';
 import { Navbar } from '@/components/layout/Navbar';
 import { AppNavbar } from '@/components/layout/AppNavbar';
 import { createClient } from '@/lib/supabase';
 import { FREE_LIMITS, ALL_EXAMS } from '@/lib/limits';
 import { ExplanationBlock } from '@/components/quiz/ExplanationBlock';
+import { hasProAccess } from '@/lib/subscription';
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 
@@ -37,7 +39,7 @@ export default function QuizPage() {
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [streak, setStreak] = useState(0);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isPro, setIsPro] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
   const [selectedExams, setSelectedExams] = useState<string[]>([]);
@@ -51,8 +53,8 @@ export default function QuizPage() {
       if (!session) return;
       setUser(session.user);
 
-      const { data: sub } = await supabase.from('subscriptions').select('plan').eq('user_id', session.user.id).single();
-      setIsPro(sub?.plan === 'pro');
+      const { data: sub } = await supabase.from('subscriptions').select('plan, status').eq('user_id', session.user.id).single();
+      setIsPro(hasProAccess(sub));
 
       // Get daily count
       const today = new Date(); today.setHours(0,0,0,0);

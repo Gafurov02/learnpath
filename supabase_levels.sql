@@ -26,7 +26,10 @@ insert into achievements (code, name, description, icon, xp_reward) values
   ('xp_500',          'Rising Star',   'Earn 500 XP',                         '⭐', 50),
   ('xp_1500',         'Advanced',      'Reach Advanced level',                '💜', 100),
   ('xp_3000',         'Master',        'Reach Master level',                  '👑', 300),
-  ('streak_rocket',   'Rocket',        'Earn 500 XP in one week',             '🚀', 100)
+  ('streak_rocket',   'Rocket',        'Earn 500 XP in one week',             '🚀', 100),
+  ('question_importer', 'Question Importer', 'Import your first question batch', '📦', 25),
+  ('question_bank_50',  'Question Curator',  'Build a school bank with 50 questions', '🗂️', 75),
+  ('question_bank_200', 'Exam Architect',    'Build a school bank with 200 questions', '🏗️', 200)
 on conflict (code) do nothing;
 
 -- Достижения пользователей

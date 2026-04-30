@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { AppNavbar } from '@/components/layout/AppNavbar';
+import { hasProAccess } from '@/lib/subscription';
 
 const EXAMS = ['IELTS', 'SAT', 'TOEFL', 'GMAT', 'GRE', 'ЕГЭ'];
 
@@ -109,8 +110,8 @@ export default function ChatPage() {
         const supabase = createClient();
         supabase.auth.getSession().then(async ({ data: { session } }) => {
             if (!session) { router.push(`/${locale}/auth/login`); return; }
-            const { data: sub } = await supabase.from('subscriptions').select('plan').eq('user_id', session.user.id).single();
-            setIsPro(sub?.plan === 'pro');
+            const { data: sub } = await supabase.from('subscriptions').select('plan, status').eq('user_id', session.user.id).single();
+            setIsPro(hasProAccess(sub));
             setChecking(false);
         });
     }, []);

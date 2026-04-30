@@ -41,7 +41,7 @@ export default function StudentsPage({ params }: { params: Promise<{ id: string 
     }
 
     try {
-      const response = await fetch(`/api/schools/${schoolId}/members`, { cache: 'no-store' });
+      const response = await fetch(`/api/school/${schoolId}/members`, { cache: 'no-store' });
 
       if (response.status === 401) {
         router.push(`/${locale}/auth/login`);
@@ -115,7 +115,7 @@ export default function StudentsPage({ params }: { params: Promise<{ id: string 
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {members.map((member, index) => {
+            {members.map((member) => {
               const level = getLevelByXp(member.xp);
               const accuracy = member.total > 0 ? Math.round((member.correct / member.total) * 100) : 0;
 

@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { getDailyCount, getSelectedExams, FREE_LIMITS } from '@/lib/limits';
 import { hasProAccess } from '@/lib/subscription';
@@ -14,6 +15,90 @@ const EXAM_CONFIGS: Record<string, { subject: string; description: string }> = {
   GRE:    { subject: 'GRE Verbal and Quantitative', description: 'vocabulary in context, reading comprehension, math' },
   ЕГЭ:   { subject: 'ЕГЭ по русскому языку', description: 'орфография, пунктуация, грамматика, лексика' },
 };
+
+type SchoolMembershipRow = {
+  school_id: string;
+};
+
+type CustomQuestionRow = {
+  question: string;
+  options: unknown;
+  correct_index: number;
+  explanation: string | null;
+  topic: string | null;
+  difficulty: string | null;
+};
+
+function normalizeCustomQuestion(row: CustomQuestionRow) {
+  const options = Array.isArray(row.options)
+    ? row.options.filter((option): option is string => typeof option === 'string' && option.trim().length > 0)
+    : [];
+
+  if (options.length < 2 || row.correct_index < 0 || row.correct_index >= options.length) {
+    return null;
+  }
+
+  return {
+    question: row.question,
+    options,
+    correctIndex: row.correct_index,
+    explanation: row.explanation || `Правильный ответ: ${options[row.correct_index]}`,
+    topic: row.topic || 'General',
+    difficulty: row.difficulty || 'medium',
+  };
+}
+
+async function getSchoolQuestion(
+  admin: SupabaseClient,
+  userId: string,
+  exam: string,
+  difficulty: string,
+  topic?: string
+) {
+  const { data: memberships, error: membershipsError } = await admin
+    .from('school_members')
+    .select('school_id')
+    .eq('user_id', userId);
+
+  if (membershipsError) {
+    throw new Error(membershipsError.message);
+  }
+
+  const schoolIds = [...new Set(((memberships ?? []) as SchoolMembershipRow[]).map((membership) => membership.school_id))];
+
+  if (schoolIds.length === 0) {
+    return null;
+  }
+
+  let query = admin
+    .from('custom_questions')
+    .select('question, options, correct_index, explanation, topic, difficulty')
+    .in('school_id', schoolIds)
+    .eq('active', true)
+    .eq('exam', exam)
+    .eq('difficulty', difficulty)
+    .limit(50);
+
+  if (topic) {
+    query = query.ilike('topic', topic);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const questions = ((data ?? []) as CustomQuestionRow[])
+    .map(normalizeCustomQuestion)
+    .filter((question): question is NonNullable<ReturnType<typeof normalizeCustomQuestion>> => question !== null);
+
+  if (questions.length === 0) {
+    return null;
+  }
+
+  return questions[Math.floor(Math.random() * questions.length)];
+}
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -61,6 +146,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const schoolQuestion = await getSchoolQuestion(admin, user.id, exam, difficulty, topic);
+    if (schoolQuestion) {
+      return NextResponse.json({ question: schoolQuestion, exam, isPro, source: 'school' });
+    }
+
     const client = new Anthropic({ apiKey });
     const isRussian = exam === 'ЕГЭ' || locale === 'ru';
 
@@ -85,8 +175,9 @@ Return ONLY valid JSON:
     const question = JSON.parse(jsonMatch[0]);
 
     return NextResponse.json({ question, exam, isPro });
-  } catch (err: any) {
-    console.error('Quiz API error:', err?.message || err);
-    return NextResponse.json({ error: err?.message || 'Failed to generate question' }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to generate question';
+    console.error('Quiz API error:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

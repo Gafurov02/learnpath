@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { hasProAccess } from '@/lib/subscription';
 
 export async function POST(req: NextRequest) {
     const cookieStore = await cookies();
@@ -20,8 +21,8 @@ export async function POST(req: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
-    const { data: sub } = await admin.from('subscriptions').select('plan').eq('user_id', user.id).single();
-    if (sub?.plan !== 'pro') return new Response('Pro required', { status: 403 });
+    const { data: sub } = await admin.from('subscriptions').select('plan, status').eq('user_id', user.id).single();
+    if (!hasProAccess(sub)) return new Response('Pro required', { status: 403 });
 
     const { messages, exam, locale } = await req.json();
 
