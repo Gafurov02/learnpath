@@ -4,18 +4,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase';
 import { AppNavbar } from '@/components/layout/AppNavbar';
 
 type ParsedQuestion = {
-    question: string; options: string[];
+    question: string; option_a: string; option_b: string; option_c: string; option_d: string;
     correct_index: number; explanation: string; topic: string; difficulty: string; exam: string;
     valid: boolean; error?: string;
-};
-
-type ImportSummary = {
-    imported: number;
-    skipped: number;
-    newAchievements: string[];
 };
 
 export default function ImportPage({ params }: { params: Promise<{ id: string }> }) {
@@ -25,133 +20,61 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
     const [parsed, setParsed] = useState<ParsedQuestion[]>([]);
     const [importing, setImporting] = useState(false);
     const [done, setDone] = useState(0);
-    const [format, setFormat] = useState('');
-    const [importError, setImportError] = useState('');
-    const [summary, setSummary] = useState<ImportSummary | null>(null);
     const [dragOver, setDragOver] = useState(false);
     const [fileName, setFileName] = useState('');
     const fileRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => { params.then(p => setSchoolId(p.id)); }, [params]);
 
-    function parseCsvLine(line: string) {
-        const cells: string[] = [];
-        let current = '';
-        let quoted = false;
-
-        for (let index = 0; index < line.length; index += 1) {
-            const char = line[index];
-            const next = line[index + 1];
-
-            if (char === '"' && quoted && next === '"') {
-                current += '"';
-                index += 1;
-                continue;
-            }
-
-            if (char === '"') {
-                quoted = !quoted;
-                continue;
-            }
-
-            if (char === ',' && !quoted) {
-                cells.push(current.trim());
-                current = '';
-                continue;
-            }
-
-            current += char;
-        }
-
-        cells.push(current.trim());
-        return cells;
-    }
-
-    function parseCorrectIndex(value: string, options: string[]) {
-        const trimmed = value.trim();
-        const numeric = Number(trimmed);
-
-        if (Number.isInteger(numeric) && numeric >= 0 && numeric < options.length) {
-            return numeric;
-        }
-
-        const letter = trimmed.toUpperCase();
-        if (/^[A-Z]$/.test(letter)) {
-            const index = letter.charCodeAt(0) - 65;
-            return index >= 0 && index < options.length ? index : -1;
-        }
-
-        return options.findIndex(option => option.toLowerCase() === trimmed.toLowerCase());
-    }
-
     function parseCSV(text: string): ParsedQuestion[] {
-        const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(l => l.trim());
-
-        if (lines.length < 2) {
-            return [{
-                question: '',
-                options: [],
-                correct_index: 0,
-                explanation: '',
-                topic: 'General',
-                difficulty: 'medium',
-                exam: 'IELTS',
-                valid: false,
-                error: locale === 'ru' ? 'CSV должен содержать заголовок и хотя бы одну строку' : 'CSV must contain a header and at least one row',
-            }];
-        }
-
-        const headers = parseCsvLine(lines[0]).map(h => h.toLowerCase().trim());
+        const lines = text.split('\n').filter(l => l.trim());
+        const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/"/g, ''));
         return lines.slice(1).map((line, i) => {
-            const cols = parseCsvLine(line);
-            const get = (key: string) => cols[headers.indexOf(key)]?.trim() ?? '';
-            const options = [get('option_a'), get('option_b'), get('option_c'), get('option_d')].filter(Boolean);
-            const correctIndex = parseCorrectIndex(get('correct_index') || get('answer') || get('correct_answer'), options);
-            const valid = !!(get('question') && options.length >= 2 && correctIndex >= 0);
-
+            const cols = line.match(/(".*?"|[^,]+)(?=,|$)/g)?.map(c => c.trim().replace(/^"|"$/g, '')) ?? [];
+            const get = (key: string) => cols[headers.indexOf(key)] ?? '';
+            const ci = parseInt(get('correct_index'));
+            const valid = !!(get('question') && get('option_a') && get('option_b') && !isNaN(ci) && ci >= 0 && ci <= 3);
             return {
-                question: get('question'),
-                options,
-                correct_index: correctIndex >= 0 ? correctIndex : 0,
-                explanation: get('explanation'),
-                topic: get('topic') || 'General',
-                difficulty: get('difficulty') || 'medium',
-                exam: get('exam') || 'IELTS',
-                valid,
-                error: valid ? undefined : `Row ${i + 2}: missing question, answers, or correct answer`,
+                question: get('question'), option_a: get('option_a'), option_b: get('option_b'),
+                option_c: get('option_c'), option_d: get('option_d'), correct_index: ci,
+                explanation: get('explanation'), topic: get('topic') || 'General',
+                difficulty: get('difficulty') || 'medium', exam: get('exam') || 'IELTS',
+                valid, error: valid ? undefined : `Row ${i + 2}: missing required fields`,
+            };
+        });
+    }
+
+    async function parseExcel(buffer: ArrayBuffer): Promise<ParsedQuestion[]> {
+        const { read, utils } = await import('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.mjs' as any);
+        const wb = read(buffer);
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows: any[] = utils.sheet_to_json(ws);
+        return rows.map((row, i) => {
+            const ci = parseInt(row.correct_index);
+            const valid = !!(row.question && row.option_a && row.option_b && !isNaN(ci));
+            return {
+                question: row.question || '', option_a: row.option_a || '', option_b: row.option_b || '',
+                option_c: row.option_c || '', option_d: row.option_d || '', correct_index: ci,
+                explanation: row.explanation || '', topic: row.topic || 'General',
+                difficulty: row.difficulty || 'medium', exam: row.exam || 'IELTS',
+                valid, error: valid ? undefined : `Row ${i + 2}: missing required fields`,
             };
         });
     }
 
     async function handleFile(file: File) {
         setFileName(file.name);
-        setDone(0);
-        setFormat('');
-        setSummary(null);
-        setImportError('');
-
-        const lowerName = file.name.toLowerCase();
-        const isBinaryQuestionFile = lowerName.endsWith('.qsze') || lowerName.endsWith('.qsz') || lowerName.endsWith('.qst') || lowerName.endsWith('.json');
-        const isExcel = lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls');
-
-        if (isBinaryQuestionFile) {
+        const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+        const isQsze = file.name.endsWith('.qsze');
+        if (isExcel) {
+            const buf = await file.arrayBuffer();
+            const result = await parseExcel(buf);
+            setParsed(result);
+        } else if (isQsze) {
             await parseQsze(file);
-        } else if (isExcel) {
-            setParsed([{
-                question: locale === 'ru' ? 'Excel импорт временно отключён' : 'Excel import is temporarily disabled',
-                options: [],
-                correct_index: 0,
-                explanation: '',
-                topic: '',
-                difficulty: 'medium',
-                exam: '',
-                valid: false,
-                error: locale === 'ru' ? 'Сохрани таблицу как CSV и загрузи снова' : 'Save the sheet as CSV and upload it again',
-            }]);
         } else {
             const text = await file.text();
             setParsed(parseCSV(text));
-            setFormat('CSV');
         }
     }
 
@@ -165,48 +88,40 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Server parse error');
-            if (data.questions?.length > 0) {
-                setParsed(data.questions);
-                setFormat(data.format ?? 'QSZE');
+            if (Array.isArray(data.questions) && data.questions.length > 0) {
+                setParsed(data.questions.map((q: any) => ({
+                    ...q,
+                    valid: !!(q.question && q.option_a && q.option_b),
+                    correct_index: typeof q.correct_index === 'number' ? q.correct_index : 0,
+                })));
             } else {
-                setParsed([{ question: 'Вопросов не найдено в файле', options: [], correct_index: 0, explanation: '', topic: '', difficulty: 'medium', exam: '', valid: false, error: 'No questions found' }]);
+                setParsed([{ question: 'Вопросов не найдено в файле', option_a: '', option_b: '', option_c: '', option_d: '', correct_index: 0, explanation: '', topic: '', difficulty: 'medium', exam: '', valid: false, error: 'No questions found' }]);
             }
-        } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : 'Server parse error';
-            setParsed([{ question: `Ошибка: ${message}`, options: [], correct_index: 0, explanation: '', topic: '', difficulty: 'medium', exam: '', valid: false, error: message }]);
+        } catch (_e: any) {
+            setParsed([{ question: `Ошибка: ${_e?.message || _e}`, option_a: '', option_b: '', option_c: '', option_d: '', correct_index: 0, explanation: '', topic: '', difficulty: 'medium', exam: '', valid: false, error: String(_e?.message || _e) }]);
         }
     }
 
     async function handleImport() {
-        if (!schoolId) return;
-
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
         setImporting(true);
-        setImportError('');
-        setSummary(null);
         const valid = parsed.filter(q => q.valid);
-
-        try {
-            const response = await fetch(`/api/school/${schoolId}/questions/import`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ questions: valid }),
+        let count = 0;
+        for (const q of valid) {
+            await supabase.from('custom_questions').insert({
+                school_id: schoolId, created_by: user.id,
+                exam: q.exam, topic: q.topic, question: q.question,
+                options: [q.option_a, q.option_b, q.option_c, q.option_d],
+                correct_index: q.correct_index, explanation: q.explanation,
+                difficulty: q.difficulty, active: true,
             });
-
-            const payload = await response.json();
-            if (!response.ok) throw new Error(payload.error || 'Import failed');
-
-            setDone(payload.imported ?? valid.length);
-            setSummary({
-                imported: payload.imported ?? valid.length,
-                skipped: payload.skipped ?? 0,
-                newAchievements: payload.newAchievements ?? [],
-            });
-            setTimeout(() => router.push(`/${locale}/school/${schoolId}/questions`), 1200);
-        } catch (error: unknown) {
-            setImportError(error instanceof Error ? error.message : 'Import failed');
-        } finally {
-            setImporting(false);
+            count++;
+            setDone(count);
         }
+        setImporting(false);
+        setTimeout(() => router.push(`/${locale}/school/${schoolId}/questions`), 1000);
     }
 
     const valid = parsed.filter(q => q.valid);
@@ -223,14 +138,14 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
                     {locale === 'ru' ? 'Импорт вопросов' : 'Import questions'}
                 </h1>
                 <p style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', marginBottom: 24 }}>
-                    {locale === 'ru' ? 'Загрузи CSV, JSON, QST, QSZ или QSZE файл с вопросами' : 'Upload a CSV, JSON, QST, QSZ, or QSZE file with questions'}
+                    {locale === 'ru' ? 'Загрузи CSV или Excel файл с вопросами' : 'Upload a CSV or Excel file with questions'}
                 </p>
 
                 {/* Download template */}
                 <div style={{ background: 'rgba(107,92,231,0.06)', border: '1px solid rgba(107,92,231,0.2)', borderRadius: 12, padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
                     <div>
                         <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 3 }}>
-                            {locale === 'ru' ? '📄 Скачай шаблон CSV' : '📄 Download CSV template'}
+                            {locale === 'ru' ? '📄 Скачай шаблон' : '📄 Download template'}
                         </div>
                         <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
                             {locale === 'ru' ? 'Колонки: question, option_a-d, correct_index, explanation, topic, difficulty, exam' : 'Columns: question, option_a-d, correct_index, explanation, topic, difficulty, exam'}
@@ -253,19 +168,14 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
                     <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 6 }}>
                         {fileName || (locale === 'ru' ? 'Перетащи файл или нажми для выбора' : 'Drop file or click to browse')}
                     </div>
-                    <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>CSV, JSON, QST, QSZ, QSZE</div>
-                    <input ref={fileRef} type="file" accept=".csv,.json,.qst,.qsz,.qsze,.xlsx,.xls" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+                    <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>CSV, XLS, XLSX, QSZE</div>
+                    <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls,.qsze" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
                 </div>
 
                 {/* Preview */}
                 {parsed.length > 0 && (
                     <>
                         <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-                            {format && (
-                                <div style={{ background: 'hsl(var(--muted))', border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 16px', fontSize: 13, color: 'hsl(var(--muted-foreground))', fontWeight: 500 }}>
-                                    {locale === 'ru' ? 'Формат' : 'Format'}: {format}
-                                </div>
-                            )}
                             <div style={{ background: 'rgba(34,192,122,0.1)', border: '1px solid rgba(34,192,122,0.3)', borderRadius: 8, padding: '8px 16px', fontSize: 13, color: '#22C07A', fontWeight: 500 }}>
                                 ✓ {valid.length} {locale === 'ru' ? 'валидных' : 'valid'}
                             </div>
@@ -285,8 +195,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
                                             {q.valid && (
                                                 <div style={{ display: 'flex', gap: 10, fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>
                                                     <span>{q.exam}</span><span>{q.topic}</span><span>{q.difficulty}</span>
-                                                    <span style={{ color: '#22C07A' }}>✓ {q.options[q.correct_index]}</span>
-                                                    <span>{q.options.length} {locale === 'ru' ? 'вариантов' : 'options'}</span>
+                                                    <span style={{ color: '#22C07A' }}>✓ {[q.option_a,q.option_b,q.option_c,q.option_d][q.correct_index ?? 0] || '?'}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -297,30 +206,15 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
                         </div>
 
                         {valid.length > 0 && (
-                            <>
-                                {importError && (
-                                    <div style={{ background: 'rgba(232,64,64,0.08)', border: '1px solid rgba(232,64,64,0.25)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#E84040', marginBottom: 12 }}>
-                                        {importError}
-                                    </div>
-                                )}
-                                {summary && (
-                                    <div style={{ background: 'rgba(34,192,122,0.1)', border: '1px solid rgba(34,192,122,0.28)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#168A58', marginBottom: 12 }}>
-                                        {locale === 'ru'
-                                            ? `Импортировано: ${summary.imported}. Пропущено: ${summary.skipped}.`
-                                            : `Imported: ${summary.imported}. Skipped: ${summary.skipped}.`}
-                                        {summary.newAchievements.length > 0 && ` ${locale === 'ru' ? 'Новые достижения:' : 'New achievements:'} ${summary.newAchievements.join(', ')}`}
-                                    </div>
-                                )}
-                                <button
-                                    onClick={handleImport}
-                                    disabled={importing || !!summary}
-                                    style={{ width: '100%', background: importing || summary ? '#9B8DFF' : '#6B5CE7', color: '#fff', border: 'none', borderRadius: 10, padding: '14px', fontSize: 15, fontWeight: 500, cursor: importing || summary ? 'default' : 'pointer', fontFamily: 'inherit' }}
-                                >
-                                    {importing
-                                        ? `${locale === 'ru' ? 'Импортирую' : 'Importing'} ${done}/${valid.length}...`
-                                        : `${locale === 'ru' ? 'Импортировать' : 'Import'} ${valid.length} ${locale === 'ru' ? 'вопросов' : 'questions'}`}
-                                </button>
-                            </>
+                            <button
+                                onClick={handleImport}
+                                disabled={importing}
+                                style={{ width: '100%', background: importing ? '#9B8DFF' : '#6B5CE7', color: '#fff', border: 'none', borderRadius: 10, padding: '14px', fontSize: 15, fontWeight: 500, cursor: importing ? 'default' : 'pointer', fontFamily: 'inherit' }}
+                            >
+                                {importing
+                                    ? `${locale === 'ru' ? 'Импортирую' : 'Importing'} ${done}/${valid.length}...`
+                                    : `${locale === 'ru' ? 'Импортировать' : 'Import'} ${valid.length} ${locale === 'ru' ? 'вопросов' : 'questions'}`}
+                            </button>
                         )}
                     </>
                 )}
