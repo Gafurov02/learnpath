@@ -48,6 +48,7 @@ export function AppNavbar() {
     { href: `/${locale}/quiz`, label: t('practice'), icon: Zap },
     { href: `/${locale}/chat`, label: locale === 'ru' ? 'Тьютор' : 'Tutor', icon: MessageCircle },
     { href: `/${locale}/leaderboard`, label: t('leaderboard'), icon: Trophy },
+    { href: `/${locale}/school`, label: locale === 'ru' ? 'Школа' : 'School', icon: School },
     { href: `/${locale}/profile`, label: t('profile'), icon: User },
   ];
 
@@ -118,9 +119,9 @@ export function AppNavbar() {
             const active = isActive(tab.href);
             const Icon = tab.icon;
             return (
-                <Link key={tab.href} href={tab.href} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '8px 4px', textDecoration: 'none', color: active ? '#6B5CE7' : 'hsl(var(--muted-foreground))', gap: 3 }}>
-                  <Icon style={{ width: 20, height: 20, strokeWidth: active ? 2.5 : 1.8 }} />
-                  <span style={{ fontSize: 10, fontWeight: active ? 600 : 400, letterSpacing: '-0.01em' }}>{tab.label}</span>
+                <Link key={tab.href} href={tab.href} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6px 2px', textDecoration: 'none', color: active ? '#6B5CE7' : 'hsl(var(--muted-foreground))', gap: 2 }}>
+                  <Icon style={{ width: 18, height: 18, strokeWidth: active ? 2.5 : 1.8 }} />
+                  <span style={{ fontSize: 9, fontWeight: active ? 600 : 400, letterSpacing: '-0.01em' }}>{tab.label}</span>
                 </Link>
             );
           })}
