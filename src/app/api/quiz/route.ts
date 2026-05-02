@@ -2,10 +2,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { getDailyCount, getSelectedExams, FREE_LIMITS } from '@/lib/limits';
-import { hasProAccess } from '@/lib/subscription';
 
 const EXAM_CONFIGS: Record<string, { subject: string; description: string }> = {
   IELTS:  { subject: 'IELTS Academic Reading and Grammar', description: 'academic English, vocabulary, reading comprehension, grammar' },
@@ -15,90 +13,6 @@ const EXAM_CONFIGS: Record<string, { subject: string; description: string }> = {
   GRE:    { subject: 'GRE Verbal and Quantitative', description: 'vocabulary in context, reading comprehension, math' },
   ЕГЭ:   { subject: 'ЕГЭ по русскому языку', description: 'орфография, пунктуация, грамматика, лексика' },
 };
-
-type SchoolMembershipRow = {
-  school_id: string;
-};
-
-type CustomQuestionRow = {
-  question: string;
-  options: unknown;
-  correct_index: number;
-  explanation: string | null;
-  topic: string | null;
-  difficulty: string | null;
-};
-
-function normalizeCustomQuestion(row: CustomQuestionRow) {
-  const options = Array.isArray(row.options)
-    ? row.options.filter((option): option is string => typeof option === 'string' && option.trim().length > 0)
-    : [];
-
-  if (options.length < 2 || row.correct_index < 0 || row.correct_index >= options.length) {
-    return null;
-  }
-
-  return {
-    question: row.question,
-    options,
-    correctIndex: row.correct_index,
-    explanation: row.explanation || `Правильный ответ: ${options[row.correct_index]}`,
-    topic: row.topic || 'General',
-    difficulty: row.difficulty || 'medium',
-  };
-}
-
-async function getSchoolQuestion(
-  admin: SupabaseClient,
-  userId: string,
-  exam: string,
-  difficulty: string,
-  topic?: string
-) {
-  const { data: memberships, error: membershipsError } = await admin
-    .from('school_members')
-    .select('school_id')
-    .eq('user_id', userId);
-
-  if (membershipsError) {
-    throw new Error(membershipsError.message);
-  }
-
-  const schoolIds = [...new Set(((memberships ?? []) as SchoolMembershipRow[]).map((membership) => membership.school_id))];
-
-  if (schoolIds.length === 0) {
-    return null;
-  }
-
-  let query = admin
-    .from('custom_questions')
-    .select('question, options, correct_index, explanation, topic, difficulty')
-    .in('school_id', schoolIds)
-    .eq('active', true)
-    .eq('exam', exam)
-    .eq('difficulty', difficulty)
-    .limit(50);
-
-  if (topic) {
-    query = query.ilike('topic', topic);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const questions = ((data ?? []) as CustomQuestionRow[])
-    .map(normalizeCustomQuestion)
-    .filter((question): question is NonNullable<ReturnType<typeof normalizeCustomQuestion>> => question !== null);
-
-  if (questions.length === 0) {
-    return null;
-  }
-
-  return questions[Math.floor(Math.random() * questions.length)];
-}
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -116,39 +30,62 @@ export async function POST(req: NextRequest) {
     const config = EXAM_CONFIGS[exam];
     if (!config) return NextResponse.json({ error: 'Unknown exam' }, { status: 400 });
 
+    // Check auth & limits
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'authentication_required' }, { status: 401 });
-    }
+    let isPro = false;
 
-    const admin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-    const { data: sub } = await admin
-      .from('subscriptions')
-      .select('plan, status')
-      .eq('user_id', user.id)
-      .maybeSingle();
-    const isPro = hasProAccess(sub);
+    if (user) {
+      const admin = createAdminClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      const { data: sub } = await admin.from('subscriptions').select('plan').eq('user_id', user.id).single();
+      isPro = sub?.plan === 'pro';
 
-    if (!isPro) {
-      const [dailyCount, selectedExams] = await Promise.all([
-        getDailyCount(supabase, user.id),
-        getSelectedExams(supabase, user.id),
-      ]);
-
-      if (dailyCount >= FREE_LIMITS.questionsPerDay) {
-        return NextResponse.json({ error: 'daily_limit_reached', limit: FREE_LIMITS.questionsPerDay, used: dailyCount }, { status: 403 });
+      if (!isPro) {
+        const [dailyCount, selectedExams] = await Promise.all([
+          getDailyCount(supabase, user.id),
+          getSelectedExams(supabase, user.id),
+        ]);
+        if (dailyCount >= FREE_LIMITS.questionsPerDay) {
+          return NextResponse.json({ error: 'daily_limit_reached', limit: FREE_LIMITS.questionsPerDay, used: dailyCount }, { status: 403 });
+        }
+        if (selectedExams.length > 0 && !selectedExams.includes(exam)) {
+          return NextResponse.json({ error: 'exam_not_selected', selectedExams }, { status: 403 });
+        }
       }
-      if (selectedExams.length > 0 && !selectedExams.includes(exam)) {
-        return NextResponse.json({ error: 'exam_not_selected', selectedExams }, { status: 403 });
-      }
-    }
 
-    const schoolQuestion = await getSchoolQuestion(admin, user.id, exam, difficulty, topic);
-    if (schoolQuestion) {
-      return NextResponse.json({ question: schoolQuestion, exam, isPro, source: 'school' });
+      // Check if user is in a school with custom questions
+      const { data: membership } = await admin
+          .from('school_members')
+          .select('school_id')
+          .eq('user_id', user.id)
+          .limit(1)
+          .single();
+
+      if (membership?.school_id) {
+        // Get random custom question from school
+        const { data: customQs } = await admin
+            .from('custom_questions')
+            .select('*')
+            .eq('school_id', membership.school_id)
+            .eq('active', true)
+            .eq('exam', exam);
+
+        if (customQs && customQs.length > 0) {
+          // Pick random question
+          const q = customQs[Math.floor(Math.random() * customQs.length)];
+          const question = {
+            question: q.question,
+            options: q.options,
+            correctIndex: q.correct_index,
+            explanation: q.explanation || '',
+            topic: q.topic,
+            difficulty: q.difficulty,
+          };
+          return NextResponse.json({ question, exam, isPro, source: 'custom' });
+        }
+      }
     }
 
     const client = new Anthropic({ apiKey });
@@ -175,9 +112,8 @@ Return ONLY valid JSON:
     const question = JSON.parse(jsonMatch[0]);
 
     return NextResponse.json({ question, exam, isPro });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to generate question';
-    console.error('Quiz API error:', message);
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch (err: any) {
+    console.error('Quiz API error:', err?.message || err);
+    return NextResponse.json({ error: err?.message || 'Failed to generate question' }, { status: 500 });
   }
 }
