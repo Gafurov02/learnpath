@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 import { getLevelByXp, getXpForAction } from '@/lib/levels';
 import { calculateDailyStreak, calculateLongestCorrectStreak, hasPerfectSession } from '@/lib/progress';
 import { awardUserAchievements } from '@/lib/achievements';
+import { getServerEnv } from '@/lib/env/server';
+import { createServerSupabaseClient } from '@/lib/server-supabase';
 
 type AttemptRow = {
   correct: boolean;
@@ -18,16 +18,12 @@ function isMissingSessionIdColumn(message?: string | null) {
 }
 
 export async function POST() {
+  const env = getServerEnv();
   const admin = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      env.NEXT_PUBLIC_SUPABASE_URL,
+      env.SUPABASE_SERVICE_ROLE_KEY
   );
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
-  );
+  const supabase = await createServerSupabaseClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

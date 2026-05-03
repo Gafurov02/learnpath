@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlist non-secret fixtures/examples"
+paths = [
+  '''\\.env\\.example$''',
+]
+

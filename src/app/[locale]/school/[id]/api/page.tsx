@@ -22,6 +22,12 @@ export default function ApiAccessPage({ params }: { params: Promise<{ id: string
 
     useEffect(() => { params.then(p => setSchoolId(p.id)); }, [params]);
 
+    async function loadKeys() {
+        const res = await fetch(`/api/school/api-keys?school_id=${schoolId}`);
+        const data = await res.json();
+        setKeys(data.keys ?? []);
+    }
+
     useEffect(() => {
         if (!schoolId) return;
         const supabase = createClient();
@@ -31,12 +37,6 @@ export default function ApiAccessPage({ params }: { params: Promise<{ id: string
             setLoading(false);
         });
     }, [schoolId]);
-
-    async function loadKeys() {
-        const res = await fetch(`/api/school/api-keys?school_id=${schoolId}`);
-        const data = await res.json();
-        setKeys(data.keys ?? []);
-    }
 
     async function createKey() {
         setCreating(true);

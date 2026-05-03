@@ -1,22 +1,14 @@
 import Stripe from 'stripe';
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { getServerEnv } from '@/lib/env/server';
+import { createServerSupabaseClient } from '@/lib/server-supabase';
+import { createServiceRoleClient } from '@/lib/server-supabase';
 
 export async function POST(req: NextRequest) {
   try {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          cookies: {
-            getAll() { return cookieStore.getAll(); },
-            setAll() {},
-          },
-        }
-    );
+    const env = getServerEnv();
+    const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+    const supabase = await createServerSupabaseClient();
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -24,13 +16,24 @@ export async function POST(req: NextRequest) {
     const { locale = 'en' } = await req.json();
     const origin = req.headers.get('origin') || 'http://localhost:3000';
 
-    const customers = await stripe.customers.list({ email: user.email!, limit: 1 });
-    if (!customers.data.length) {
+    const admin = createServiceRoleClient();
+    const { data: sub, error: subError } = await admin
+      .from('subscriptions')
+      .select('stripe_customer_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (subError) {
+      return NextResponse.json({ error: subError.message }, { status: 500 });
+    }
+
+    const customerId = sub?.stripe_customer_id;
+    if (!customerId) {
       return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
     }
 
     const session = await stripe.billingPortal.sessions.create({
-      customer: customers.data[0].id,
+      customer: customerId,
       return_url: `${origin}/${locale}/dashboard`,
     });
 

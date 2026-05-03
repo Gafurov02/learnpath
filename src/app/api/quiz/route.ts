@@ -1,9 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 import { getDailyCount, getSelectedExams, FREE_LIMITS } from '@/lib/limits';
+import { getServerEnv } from '@/lib/env/server';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/server-supabase';
 
 const EXAM_CONFIGS: Record<string, { subject: string; description: string }> = {
   IELTS:  { subject: 'IELTS Academic Reading and Grammar', description: 'academic English, vocabulary, reading comprehension, grammar' },
@@ -15,16 +14,9 @@ const EXAM_CONFIGS: Record<string, { subject: string; description: string }> = {
 };
 
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: 'ANTHROPIC_API_KEY is not set' }, { status: 500 });
-
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
-    );
+    const env = getServerEnv();
+    const supabase = await createServerSupabaseClient();
 
     const { exam, difficulty = 'medium', locale = 'en', topic } = await req.json();
     const config = EXAM_CONFIGS[exam];
@@ -35,10 +27,7 @@ export async function POST(req: NextRequest) {
     let isPro = false;
 
     if (user) {
-      const admin = createAdminClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
+      const admin = createServiceRoleClient();
       const { data: sub } = await admin.from('subscriptions').select('plan').eq('user_id', user.id).single();
       isPro = sub?.plan === 'pro';
 
@@ -88,7 +77,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const client = new Anthropic({ apiKey });
+    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
     const isRussian = exam === 'ЕГЭ' || locale === 'ru';
 
     const explanationInstruction = isPro

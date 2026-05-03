@@ -1,4 +1,5 @@
 import type { User } from '@supabase/supabase-js';
+import { getServerEnv } from '@/lib/env/server';
 
 type AdminLikeUser = Pick<User, 'email' | 'app_metadata' | 'user_metadata'>;
 
@@ -7,7 +8,7 @@ function normalizeEmail(value: string | null | undefined) {
 }
 
 function parseAdminEmails() {
-  return (process.env.ADMIN_EMAILS ?? '')
+  return (getServerEnv().ADMIN_EMAILS ?? '')
     .split(',')
     .map((email) => normalizeEmail(email))
     .filter(Boolean);

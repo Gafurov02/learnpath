@@ -1,26 +1,18 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 import { hasProAccess } from '@/lib/subscription';
+import { getServerEnv } from '@/lib/env/server';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/server-supabase';
 
 export async function GET(req: NextRequest) {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
-    );
+    const env = getServerEnv();
+    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+    const supabase = await createServerSupabaseClient();
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const admin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const admin = createServiceRoleClient();
 
     // Check Pro
     const { data: sub } = await admin.from('subscriptions').select('plan, status').eq('user_id', user.id).single();

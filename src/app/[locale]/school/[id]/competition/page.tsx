@@ -42,20 +42,6 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
 
     useEffect(() => { params.then(p => setSchoolId(p.id)); }, [params]);
 
-    useEffect(() => {
-        if (!schoolId) return;
-        const supabase = createClient();
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
-            if (!session) { router.push(`/${locale}/auth/login`); return; }
-            setUserId(session.user.id);
-
-            const { data: s } = await supabase.from('schools').select('id, name, owner_id').eq('id', schoolId).single();
-            setSchool(s);
-
-            await loadLeaderboard(activeWeek);
-        });
-    }, [schoolId]);
-
     async function loadLeaderboard(week: string) {
         setLoading(true);
         const res = await fetch(`/api/school/competition?school_id=${schoolId}&week=${week}`);
@@ -74,6 +60,20 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
         }
         setLoading(false);
     }
+
+    useEffect(() => {
+        if (!schoolId) return;
+        const supabase = createClient();
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
+            if (!session) { router.push(`/${locale}/auth/login`); return; }
+            setUserId(session.user.id);
+
+            const { data: s } = await supabase.from('schools').select('id, name, owner_id').eq('id', schoolId).single();
+            setSchool(s);
+
+            await loadLeaderboard(activeWeek);
+        });
+    }, [schoolId]);
 
     // Get unique weeks from history
     const weeks = [...new Set(history.map(h => h.week_start))].sort((a, b) => b.localeCompare(a)).slice(0, 5);

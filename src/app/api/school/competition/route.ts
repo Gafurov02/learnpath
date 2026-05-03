@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
+import { getServerEnv } from '@/lib/env/server';
+import { createServerSupabaseClient } from '@/lib/server-supabase';
 
 function getWeekStart(): string {
     const d = new Date();
@@ -13,12 +13,8 @@ function getWeekStart(): string {
 
 // Update score after quiz attempt
 export async function POST(req: NextRequest) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
-    );
+    const env = getServerEnv();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -26,8 +22,8 @@ export async function POST(req: NextRequest) {
     const week_start = getWeekStart();
 
     const admin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
+        env.NEXT_PUBLIC_SUPABASE_URL,
+        env.SUPABASE_SERVICE_ROLE_KEY
     );
 
     // Upsert weekly score
@@ -67,10 +63,33 @@ export async function GET(req: NextRequest) {
 
     if (!school_id) return NextResponse.json({ error: 'school_id required' }, { status: 400 });
 
-    const admin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const env = getServerEnv();
+    const admin = createAdminClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+
+    const { data: school, error: schoolError } = await admin
+        .from('schools')
+        .select('owner_id')
+        .eq('id', school_id)
+        .maybeSingle();
+
+    if (schoolError) return NextResponse.json({ error: schoolError.message }, { status: 500 });
+    if (!school) return NextResponse.json({ error: 'school_not_found' }, { status: 404 });
+
+    if (school.owner_id !== user.id) {
+        const { data: membership, error: membershipError } = await admin
+            .from('school_members')
+            .select('role')
+            .eq('school_id', school_id)
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        if (membershipError) return NextResponse.json({ error: membershipError.message }, { status: 500 });
+        if (!membership) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+    }
 
     const { data } = await admin
         .from('weekly_scores')

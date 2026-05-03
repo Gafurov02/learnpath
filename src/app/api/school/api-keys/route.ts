@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 import { createHash, randomBytes } from 'crypto';
+import { getServerEnv } from '@/lib/env/server';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/server-supabase';
 
 async function canManageSchool(admin: SupabaseClient, schoolId: string | null, userId: string) {
     if (!schoolId) {
@@ -45,22 +44,15 @@ async function canManageSchool(admin: SupabaseClient, schoolId: string | null, u
 }
 
 export async function GET(req: NextRequest) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
-    );
+    getServerEnv();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
     const school_id = searchParams.get('school_id');
 
-    const admin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const admin = createServiceRoleClient();
 
     const access = await canManageSchool(admin, school_id, user.id);
     if (!access.ok) {
@@ -77,12 +69,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
-    );
+    getServerEnv();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -93,10 +81,7 @@ export async function POST(req: NextRequest) {
     const keyHash = createHash('sha256').update(rawKey).digest('hex');
     const keyPreview = `...${rawKey.slice(-4)}`;
 
-    const admin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const admin = createServiceRoleClient();
 
     const access = await canManageSchool(admin, school_id, user.id);
     if (!access.ok) {
@@ -114,20 +99,13 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
-    );
+    getServerEnv();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id } = await req.json();
-    const admin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const admin = createServiceRoleClient();
     await admin.from('api_keys').delete().eq('id', id).eq('user_id', user.id);
     return NextResponse.json({ ok: true });
 }
