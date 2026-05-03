@@ -36,7 +36,7 @@ function StatsSection() {
         { num: '50K+', label: t('students') },
         { num: '12', label: t('exams') },
         { num: '94%', label: t('passRate') },
-        { num: '$10', label: t('price') },
+        { num: '$0.99', label: t('price') },
     ];
     return (
         <div style={{ borderTop: '1px solid hsl(var(--border))', borderBottom: '1px solid hsl(var(--border))' }}>
@@ -64,7 +64,7 @@ function FeaturesSection() {
     ] as const;
     return (
         <section id="features" style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(48px,8vw,80px) 20px' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', color: '#6B5CE7', textTransform: 'uppercase', marginBottom: 16 }}>{t('tag')}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: '#6B5CE7', textTransform: 'uppercase', marginBottom: 12 }}>{t('tag')}</div>
             <h2 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 'clamp(26px,4vw,44px)', letterSpacing: '-1px', lineHeight: 1.15, marginBottom: 12, fontWeight: 400, color: 'hsl(var(--foreground))' }}>
                 {t('title')}
             </h2>
@@ -117,7 +117,7 @@ function PricingSection({ locale }: { locale: string }) {
                         {t('pro.badge')}
                     </div>
                     <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 8, color: 'hsl(var(--foreground))' }}>{t('pro.name')}</div>
-                    <div style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 48, letterSpacing: '-2px', marginBottom: 4, color: 'hsl(var(--foreground))' }}>$10</div>
+                    <div style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 48, letterSpacing: '-2px', marginBottom: 4, color: 'hsl(var(--foreground))' }}>$0.99</div>
                     <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginBottom: 24 }}>{t('pro.period')}</div>
                     <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 9 }}>
                         {(t.raw('pro.features') as string[]).map((f: string) => (
