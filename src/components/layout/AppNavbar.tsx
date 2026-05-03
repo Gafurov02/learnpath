@@ -69,9 +69,6 @@ export function AppNavbar() {
                     {tab.label}
                   </Link>
               ))}
-              <Link href={`/${locale}/school`} style={{ padding: '6px 13px', borderRadius: 8, fontSize: 13, fontWeight: 500, textDecoration: 'none', background: isActive(`/${locale}/school`) ? '#6B5CE7' : 'transparent', color: isActive(`/${locale}/school`) ? '#fff' : 'hsl(var(--muted-foreground))', transition: 'all 0.15s' }}>
-                {locale === 'ru' ? 'Школа' : 'School'}
-              </Link>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
