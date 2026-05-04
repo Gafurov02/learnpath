@@ -4,11 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import type { User } from '@supabase/supabase-js';
 import { Navbar } from '@/components/layout/Navbar';
 import { AppNavbar } from '@/components/layout/AppNavbar';
 import { createClient } from '@/lib/supabase';
 import { FREE_LIMITS, ALL_EXAMS } from '@/lib/limits';
 import { ExplanationBlock } from '@/components/quiz/ExplanationBlock';
+import { hasProAccess } from '@/lib/subscription';
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 
@@ -37,7 +39,7 @@ export default function QuizPage() {
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [streak, setStreak] = useState(0);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isPro, setIsPro] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
   const [selectedExams, setSelectedExams] = useState<string[]>([]);
@@ -51,8 +53,8 @@ export default function QuizPage() {
       if (!session) return;
       setUser(session.user);
 
-      const { data: sub } = await supabase.from('subscriptions').select('plan').eq('user_id', session.user.id).single();
-      setIsPro(sub?.plan === 'pro');
+      const { data: sub } = await supabase.from('subscriptions').select('plan, status').eq('user_id', session.user.id).single();
+      setIsPro(hasProAccess(sub));
 
       // Get daily count
       const today = new Date(); today.setHours(0,0,0,0);
@@ -244,24 +246,6 @@ export default function QuizPage() {
                 <Link href={`/${locale}/pricing`} style={{ fontSize: 12, color: '#6B5CE7', textDecoration: 'none', fontWeight: 500 }}>
                   {locale === 'ru' ? 'Безлимит в Pro →' : 'Unlimited with Pro →'}
                 </Link>
-              </div>
-          )}
-
-          {/* Mode switcher: AI vs School */}
-          {hasSchoolQuestions && (
-              <div style={{ display: 'flex', gap: 4, marginBottom: 14, background: 'hsl(var(--muted))', borderRadius: 10, padding: 4 }}>
-                <button
-                    onClick={() => setQuizMode('ai')}
-                    style={{ flex: 1, padding: '7px 12px', borderRadius: 7, fontSize: 13, fontWeight: 500, border: 'none', background: quizMode === 'ai' ? 'hsl(var(--background))' : 'transparent', color: quizMode === 'ai' ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit', boxShadow: quizMode === 'ai' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}
-                >
-                  🤖 {locale === 'ru' ? 'AI вопросы' : 'AI questions'}
-                </button>
-                <button
-                    onClick={() => setQuizMode('school')}
-                    style={{ flex: 1, padding: '7px 12px', borderRadius: 7, fontSize: 13, fontWeight: 500, border: 'none', background: quizMode === 'school' ? 'hsl(var(--background))' : 'transparent', color: quizMode === 'school' ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit', boxShadow: quizMode === 'school' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}
-                >
-                  🏫 {locale === 'ru' ? 'Вопросы школы' : 'School questions'}
-                </button>
               </div>
           )}
 
