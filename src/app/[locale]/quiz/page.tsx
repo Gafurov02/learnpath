@@ -46,6 +46,8 @@ export default function QuizPage() {
   const [limitError, setLimitError] = useState<'daily' | 'exam' | null>(null);
   const [showExamPicker, setShowExamPicker] = useState(false);
   const [isProQuestion, setIsProQuestion] = useState(false);
+  const [quizMode, setQuizMode] = useState<'ai' | 'school'>('ai');
+  const [hasSchool, setHasSchool] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -55,6 +57,9 @@ export default function QuizPage() {
 
       const { data: sub } = await supabase.from('subscriptions').select('plan, status').eq('user_id', session.user.id).single();
       setIsPro(hasProAccess(sub));
+
+      const { data: membership } = await supabase.from('school_members').select('school_id').eq('user_id', session.user.id).limit(1).single();
+      if (membership?.school_id) setHasSchool(true);
 
       // Get daily count
       const today = new Date(); today.setHours(0,0,0,0);
@@ -79,7 +84,7 @@ export default function QuizPage() {
       const res = await fetch('/api/quiz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exam, difficulty, locale, topic: initialTopic || undefined }),
+        body: JSON.stringify({ exam, difficulty, locale, topic: initialTopic || undefined, mode: quizMode }),
         signal,
       });
       if (res.status === 403) {
@@ -260,6 +265,17 @@ export default function QuizPage() {
                 </button>
             )}
           </div>
+
+          {hasSchool && (
+              <div style={{ display: 'flex', gap: 4, background: 'hsl(var(--muted))', borderRadius: 8, padding: 3, marginBottom: 12 }}>
+                <button onClick={() => { setQuizMode('ai'); setNextQuestion(null); }} style={{ flex: 1, padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 500, border: 'none', background: quizMode === 'ai' ? 'hsl(var(--background))' : 'transparent', color: quizMode === 'ai' ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit' }}>
+                  🤖 {locale === 'ru' ? 'AI вопросы' : 'AI questions'}
+                </button>
+                <button onClick={() => { setQuizMode('school'); setNextQuestion(null); }} style={{ flex: 1, padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 500, border: 'none', background: quizMode === 'school' ? 'hsl(var(--background))' : 'transparent', color: quizMode === 'school' ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit' }}>
+                  🏫 {locale === 'ru' ? 'Вопросы школы' : 'School questions'}
+                </button>
+              </div>
+          )}
 
           {/* Difficulty */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
