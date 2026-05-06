@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase';
 import { AppNavbar } from '@/components/layout/AppNavbar';
 import { getLevelByXp, LEVELS, ROADMAP } from '@/lib/levels';
 import { StudyPlan } from '@/components/home/StudyPlan';
-import { hasProAccess } from '@/lib/subscription';
+import { getSubscriptionTier, hasProAccess, type SubscriptionTier } from '@/lib/subscription';
 
 export default function HomePage() {
   const locale = useLocale();
@@ -18,6 +18,7 @@ export default function HomePage() {
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(0);
   const [isPro, setIsPro] = useState(false);
+  const [tier, setTier] = useState<SubscriptionTier>('free');
   const [loading, setLoading] = useState(true);
   const [selectedExam, setSelectedExam] = useState('IELTS');
   const [topicProgress, setTopicProgress] = useState<Record<string, number>>({});
@@ -31,6 +32,7 @@ export default function HomePage() {
       const { data: sub } = await supabase.from('subscriptions').select('xp, plan, status').eq('user_id', session.user.id).single();
       setXp(sub?.xp ?? 0);
       setIsPro(hasProAccess(sub));
+      setTier(getSubscriptionTier(sub));
       const { data: attempts } = await supabase.from('quiz_attempts').select('created_at').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(60);
       if (attempts) {
         const dates = [...new Set(attempts.map((a: any) => new Date(a.created_at).toDateString()))];
@@ -64,6 +66,7 @@ export default function HomePage() {
   const progress = nextLevel ? Math.round(((xp - level.minXp) / (nextLevel.minXp - level.minXp)) * 100) : 100;
   const roadmap = ROADMAP[selectedExam] ?? [];
   const name = user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0];
+  const isMax = tier === 'max';
 
   return (
       <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
@@ -75,7 +78,7 @@ export default function HomePage() {
               <div style={{ background: 'linear-gradient(135deg, #6B5CE7 0%, #9B8DFF 100%)', borderRadius: 20, padding: '24px 28px', marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
                   <div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 6 }}>⭐ {t('proMember')}</div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 6 }}>⭐ {isMax ? 'MAX' : t('proMember')}</div>
                     <div style={{ fontSize: 22, fontWeight: 500, color: '#fff', marginBottom: 10 }}>{level.icon} {level.name} · {xp} XP</div>
                     <div style={{ height: 7, background: 'rgba(255,255,255,0.25)', borderRadius: 4, width: 240, maxWidth: '100%' }}>
                       <div style={{ height: 7, background: '#fff', borderRadius: 4, width: `${progress}%`, transition: 'width 0.8s ease' }} />
@@ -90,10 +93,10 @@ export default function HomePage() {
                 </div>
                 <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 10 }}>
                   {[
-                    { label: t('questions'), val: t('unlimited') },
+                    { label: t('questions'), val: isMax ? t('unlimited') : (locale === 'ru' ? '50 / 3 дня' : '50 / 3 days') },
                     { label: t('aiExplanations'), val: t('detailed') },
                     { label: t('examsAccess'), val: t('all12') },
-                    { label: t('studyPlan'), val: t('personal') },
+                    { label: t('studyPlan'), val: isMax ? t('personal') : (locale === 'ru' ? 'Max' : 'Max only') },
                   ].map(f => (
                       <div key={f.label} style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: '10px 14px' }}>
                         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginBottom: 3 }}>{f.label}</div>
@@ -118,13 +121,19 @@ export default function HomePage() {
           )}
 
           {/* Upgrade banner */}
-          {!isPro && (
+          {!isMax && (
               <div style={{ background: 'rgba(107,92,231,0.06)', border: '1px solid rgba(107,92,231,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 3 }}>{t('upgradePro')}</div>
-                  <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>{t('upgradeDesc')}</div>
+                  <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 3 }}>{isPro ? (locale === 'ru' ? 'Открой Max' : 'Unlock Max') : t('upgradePro')}</div>
+                  <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
+                    {isPro
+                      ? (locale === 'ru' ? 'AI тьютор, персональный план по дням и безлимитные вопросы.' : 'AI tutor, day-by-day study plan, and unlimited questions.')
+                      : t('upgradeDesc')}
+                  </div>
                 </div>
-                <Link href={`/${locale}/pricing`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>{t('upgradeBtn')}</Link>
+                <Link href={`/${locale}/pricing`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>
+                  {isPro ? (locale === 'ru' ? 'Перейти на Max' : 'Upgrade to Max') : t('upgradeBtn')}
+                </Link>
               </div>
           )}
 
@@ -141,23 +150,23 @@ export default function HomePage() {
                 style={{ flex: 1, padding: '8px 16px', borderRadius: 7, fontSize: 13, fontWeight: 500, border: 'none', background: activeTab === 'plan' ? 'hsl(var(--background))' : 'transparent', color: activeTab === 'plan' ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit', boxShadow: activeTab === 'plan' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
             >
               📅 {locale === 'ru' ? 'План на день' : 'Daily Plan'}
-              {isPro && <span style={{ fontSize: 10, background: 'linear-gradient(135deg,#6B5CE7,#9B8DFF)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontWeight: 700 }}>PRO</span>}
+              {isMax && <span style={{ fontSize: 10, background: 'linear-gradient(135deg,#6B5CE7,#9B8DFF)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontWeight: 700 }}>MAX</span>}
             </button>
           </div>
 
           {/* Study Plan tab */}
           {activeTab === 'plan' && (
-              isPro ? (
+              isMax ? (
                   <StudyPlan locale={locale} />
               ) : (
                   <div style={{ textAlign: 'center', padding: '60px 24px', background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16 }}>
                     <div style={{ fontSize: 40, marginBottom: 16 }}>📅</div>
-                    <h3 style={{ fontSize: 18, fontWeight: 500, marginBottom: 8 }}>{locale === 'ru' ? 'Ежедневный план — Pro фича' : 'Daily Plan is a Pro feature'}</h3>
+                    <h3 style={{ fontSize: 18, fontWeight: 500, marginBottom: 8 }}>{locale === 'ru' ? 'Ежедневный план — Max фича' : 'Daily Plan is a Max feature'}</h3>
                     <p style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', marginBottom: 24, lineHeight: 1.6 }}>
                       {locale === 'ru' ? 'AI анализирует слабые темы и составляет персональный план каждый день.' : 'AI analyzes your weak topics and builds a personalized plan every day.'}
                     </p>
                     <Link href={`/${locale}/pricing`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '11px 28px', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
-                      {locale === 'ru' ? 'Перейти на Pro →' : 'Upgrade to Pro →'}
+                      {locale === 'ru' ? 'Перейти на Max →' : 'Upgrade to Max →'}
                     </Link>
                   </div>
               )

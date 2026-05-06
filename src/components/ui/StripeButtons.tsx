@@ -5,7 +5,7 @@ import { useLocale } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
-export function SubscribeButton({ label = 'Start Pro for $10/mo' }: { label?: string }) {
+export function SubscribeButton({ label = 'Start Pro for $10/mo', tier = 'pro' }: { label?: string; tier?: 'pro' | 'max' }) {
   const locale = useLocale();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ export function SubscribeButton({ label = 'Start Pro for $10/mo' }: { label?: st
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ locale }),
+        body: JSON.stringify({ locale, tier }),
       });
       const { url, error } = await res.json();
       if (error) throw new Error(error);

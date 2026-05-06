@@ -44,7 +44,7 @@ export function Navbar() {
           <div className="lp-hide-mobile" style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
             <Link href={`/${locale}/#features`} style={linkStyle}>{t('features')}</Link>
             <Link href={`/${locale}/#quiz`} style={linkStyle}>{t('tryNow')}</Link>
-            <Link href={`/${locale}/pricing`} style={linkStyle}>{t('pricing')}</Link>
+            <Link href={`/${locale}/#pricing`} style={linkStyle}>{t('pricing')}</Link>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -77,7 +77,7 @@ export function Navbar() {
             <div style={{ borderTop: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--background))', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <Link href={`/${locale}/#features`} style={linkStyle} onClick={() => setMobileOpen(false)}>{t('features')}</Link>
               <Link href={`/${locale}/#quiz`} style={linkStyle} onClick={() => setMobileOpen(false)}>{t('tryNow')}</Link>
-              <Link href={`/${locale}/pricing`} style={linkStyle} onClick={() => setMobileOpen(false)}>{t('pricing')}</Link>
+              <Link href={`/${locale}/#pricing`} style={linkStyle} onClick={() => setMobileOpen(false)}>{t('pricing')}</Link>
               {user
                   ? <Link href={`/${locale}/home`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 8, padding: '12px 18px', fontSize: 14, fontWeight: 500, textDecoration: 'none', textAlign: 'center' }}>{t('dashboard')}</Link>
                   : <Link href={`/${locale}/auth/signup`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 8, padding: '12px 18px', fontSize: 14, fontWeight: 500, textDecoration: 'none', textAlign: 'center' }}>{t('start')}</Link>

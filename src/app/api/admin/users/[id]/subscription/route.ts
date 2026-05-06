@@ -22,7 +22,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   const { id } = await context.params;
   const { access } = await req.json();
 
-  if (access !== 'pro' && access !== 'free') {
+  if (access !== 'pro' && access !== 'max' && access !== 'free') {
     return NextResponse.json({ error: 'Invalid access value' }, { status: 400 });
   }
 
@@ -41,8 +41,8 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     user_id: id,
     xp: existingSubscription?.xp ?? 0,
     level: existingSubscription?.level ?? 'beginner',
-    plan: access === 'pro' ? 'pro' : 'free',
-    status: access === 'pro' ? 'active' : 'free',
+    plan: access === 'max' ? 'max' : access === 'pro' ? 'pro' : 'free',
+    status: access === 'max' || access === 'pro' ? 'active' : 'free',
   };
 
   const { data: subscription, error: subscriptionError } = await admin

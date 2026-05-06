@@ -46,9 +46,9 @@
       "title": "12 exams covered",
       "desc": "IELTS, TOEFL, SAT, GMAT, GRE, and more — all in one place."
     },
-    "offline": {
-      "title": "Works offline",
-      "desc": "Download questions in advance and study without internet — anywhere."
+    "school": {
+      "title": "Schools & courses",
+      "desc": "Teachers can track group progress, add custom questions, and run competitions."
     }
   },
   "quiz": {
@@ -67,6 +67,7 @@
     "sub": "Start free. Upgrade when you're ready.",
     "free": {
       "name": "Free",
+      "price": "$0",
       "period": "forever",
       "cta": "Start for free",
       "features": [
@@ -75,30 +76,53 @@
         "Basic AI explanations"
       ],
       "missing": [
+        "50 questions every 3 days",
         "Personal study plan",
+        "AI Tutor",
         "Progress statistics"
       ]
     },
     "pro": {
-      "name": "Pro",
-      "badge": "Most popular",
+      "name": "Pro Practice",
+      "badge": "Practice tier",
+      "price": "$10",
       "period": "per month · cancel anytime",
       "cta": "Start Pro for $10/mo",
       "features": [
-        "Unlimited questions",
-        "All 12 exams",
+        "50 questions every 3 days",
+        "All exams",
         "Detailed AI explanations",
-        "Day-by-day study plan",
         "Full statistics",
-        "AI Tutor chat"
+        "School question access"
+      ],
+      "missing": [
+        "AI Tutor chat",
+        "Day-by-day study plan",
+        "Unlimited questions"
+      ]
+    },
+    "max": {
+      "name": "Max",
+      "badge": "Full access",
+      "price": "$19",
+      "period": "per month · for intensive prep",
+      "cta": "Start Max for $19/mo",
+      "features": [
+        "Everything in Pro Practice",
+        "Unlimited questions",
+        "AI Tutor chat",
+        "Day-by-day study plan",
+        "Advanced weak-topic analytics",
+        "Priority AI responses"
       ]
     },
     "teams": {
       "name": "Schools & Courses",
+      "price": "B2B",
       "period": "contact us for pricing",
       "cta": "Contact us",
       "features": [
-        "Everything in Pro",
+        "Everything in Max",
         "Teacher dashboard",
         "Group statistics",
         "Custom content",

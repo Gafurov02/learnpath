@@ -11,6 +11,8 @@ const serverEnvSchema = z.object({
   STRIPE_SECRET_KEY: z.string().min(1),
   STRIPE_WEBHOOK_SECRET: z.string().min(1),
   STRIPE_PRICE_ID: z.string().min(1),
+  STRIPE_PRO_PRICE_ID: z.string().min(1).optional(),
+  STRIPE_MAX_PRICE_ID: z.string().min(1).optional(),
   ANTHROPIC_API_KEY: z.string().min(1),
   ADMIN_EMAILS: z.string().optional(),
 });
@@ -25,4 +27,3 @@ export function getServerEnv() {
   cached = serverEnvSchema.parse(process.env);
   return cached;
 }
-

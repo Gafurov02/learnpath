@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest } from 'next/server';
-import { hasProAccess } from '@/lib/subscription';
+import { hasMaxAccess } from '@/lib/subscription';
 import { getServerEnv } from '@/lib/env/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/server-supabase';
 
@@ -11,10 +11,9 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return new Response('Unauthorized', { status: 401 });
 
-    // Check Pro
     const admin = createServiceRoleClient();
     const { data: sub } = await admin.from('subscriptions').select('plan, status').eq('user_id', user.id).single();
-    if (!hasProAccess(sub)) return new Response('Pro required', { status: 403 });
+    if (!hasMaxAccess(sub)) return new Response('Max required', { status: 403 });
 
     const { messages, exam, locale } = await req.json();
 

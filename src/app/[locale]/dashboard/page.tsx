@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { ManageSubscriptionButton } from '@/components/ui/StripeButtons';
 import { calculateDailyStreak } from '@/lib/progress';
-import { hasProAccess } from '@/lib/subscription';
+import { getSubscriptionTier, hasProAccess, type SubscriptionTier } from '@/lib/subscription';
 import { getUserDisplayName } from '@/lib/user-profile';
 
 type AttemptRow = {
@@ -34,6 +34,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Stats>({ total: 0, correct: 0, accuracy: 0, attempts: [] });
   const [isPro, setIsPro] = useState(false);
+  const [tier, setTier] = useState<SubscriptionTier>('free');
   const [streak, setStreak] = useState(0);
   const [xp, setXp] = useState(0);
   const [examStats, setExamStats] = useState<Record<string, { total: number; correct: number }>>({});
@@ -92,6 +93,7 @@ export default function DashboardPage() {
       const subscription = subscriptionResponse.data as SubscriptionRow | null;
       setXp(subscription?.xp ?? 0);
       setIsPro(hasProAccess(subscription));
+      setTier(getSubscriptionTier(subscription));
       setLoading(false);
     }
 
@@ -125,6 +127,7 @@ export default function DashboardPage() {
     { name: 'GMAT', sub: 'Business' },
     { name: 'GRE', sub: 'Graduate' },
   ];
+  const isMax = tier === 'max';
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
@@ -177,8 +180,10 @@ export default function DashboardPage() {
         {isPro ? (
           <div style={{ background: 'rgba(34,192,122,0.08)', border: '1px solid rgba(34,192,122,0.2)', borderRadius: 16, padding: '16px 24px', marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 2 }}>✓ Pro plan active</div>
-              <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>Unlimited questions · All exams · Full AI explanations</div>
+              <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 2 }}>✓ {isMax ? 'Max' : 'Pro'} plan active</div>
+              <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
+                {isMax ? 'Unlimited questions · AI Tutor · Day-by-day plan' : '50 questions / 3 days · All exams · Full AI explanations'}
+              </div>
             </div>
             <ManageSubscriptionButton label="Manage subscription" />
           </div>

@@ -207,7 +207,7 @@ export function AdminConsole({ locale, currentUserEmail, generatedAt, overview, 
   const selectedUser = usersState.find((user) => user.id === selectedUserId) ?? null;
   const selectedSchool = schools.find((school) => school.id === selectedSchoolId) ?? null;
 
-  async function updateUserAccess(userId: string, access: 'pro' | 'free') {
+  async function updateUserAccess(userId: string, access: 'pro' | 'max' | 'free') {
     setPendingUserId(userId);
     setActionError('');
 
@@ -549,11 +549,19 @@ export function AdminConsole({ locale, currentUserEmail, generatedAt, overview, 
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button
                     type="button"
-                    disabled={pendingUserId === selectedUser.id || selectedUser.hasPro}
+                    disabled={pendingUserId === selectedUser.id || selectedUser.plan === 'pro'}
                     onClick={() => updateUserAccess(selectedUser.id, 'pro')}
-                    style={{ background: selectedUser.hasPro ? 'rgba(34,192,122,0.12)' : '#6B5CE7', color: selectedUser.hasPro ? '#22C07A' : '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 600, cursor: selectedUser.hasPro ? 'default' : 'pointer', fontFamily: 'inherit' }}
+                    style={{ background: selectedUser.plan === 'pro' ? 'rgba(34,192,122,0.12)' : '#6B5CE7', color: selectedUser.plan === 'pro' ? '#22C07A' : '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 600, cursor: selectedUser.plan === 'pro' ? 'default' : 'pointer', fontFamily: 'inherit' }}
                   >
                     {pendingUserId === selectedUser.id ? '...' : (locale === 'ru' ? 'Выдать Pro' : 'Grant Pro')}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={pendingUserId === selectedUser.id || selectedUser.plan === 'max'}
+                    onClick={() => updateUserAccess(selectedUser.id, 'max')}
+                    style={{ background: selectedUser.plan === 'max' ? 'rgba(34,192,122,0.12)' : '#18122B', color: selectedUser.plan === 'max' ? '#22C07A' : '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 600, cursor: selectedUser.plan === 'max' ? 'default' : 'pointer', fontFamily: 'inherit' }}
+                  >
+                    {pendingUserId === selectedUser.id ? '...' : (locale === 'ru' ? 'Выдать Max' : 'Grant Max')}
                   </button>
                   <button
                     type="button"
@@ -578,7 +586,7 @@ export function AdminConsole({ locale, currentUserEmail, generatedAt, overview, 
                   <div style={{ flex: 1, minWidth: 260 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
                       <div style={{ fontSize: 16, fontWeight: 600 }}>{user.fullName}</div>
-                      {user.hasPro && <span style={{ fontSize: 11, background: 'rgba(34,192,122,0.12)', color: '#22C07A', borderRadius: 20, padding: '2px 10px', fontWeight: 700 }}>PRO</span>}
+                      {user.hasPro && <span style={{ fontSize: 11, background: 'rgba(34,192,122,0.12)', color: '#22C07A', borderRadius: 20, padding: '2px 10px', fontWeight: 700 }}>{user.plan === 'max' ? 'MAX' : 'PRO'}</span>}
                       {user.isAdmin && <span style={{ fontSize: 11, background: 'rgba(107,92,231,0.12)', color: '#6B5CE7', borderRadius: 20, padding: '2px 10px', fontWeight: 700 }}>ADMIN</span>}
                     </div>
                     <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginBottom: 8 }}>{user.email}</div>
@@ -616,11 +624,19 @@ export function AdminConsole({ locale, currentUserEmail, generatedAt, overview, 
                     </button>
                     <button
                       type="button"
-                      disabled={isPending || user.hasPro}
+                      disabled={isPending || user.plan === 'pro'}
                       onClick={() => updateUserAccess(user.id, 'pro')}
-                      style={{ background: user.hasPro ? 'rgba(34,192,122,0.12)' : '#6B5CE7', color: user.hasPro ? '#22C07A' : '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 600, cursor: user.hasPro ? 'default' : 'pointer', fontFamily: 'inherit' }}
+                      style={{ background: user.plan === 'pro' ? 'rgba(34,192,122,0.12)' : '#6B5CE7', color: user.plan === 'pro' ? '#22C07A' : '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 600, cursor: user.plan === 'pro' ? 'default' : 'pointer', fontFamily: 'inherit' }}
                     >
                       {isPending ? '...' : (locale === 'ru' ? 'Выдать Pro' : 'Grant Pro')}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isPending || user.plan === 'max'}
+                      onClick={() => updateUserAccess(user.id, 'max')}
+                      style={{ background: user.plan === 'max' ? 'rgba(34,192,122,0.12)' : '#18122B', color: user.plan === 'max' ? '#22C07A' : '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 600, cursor: user.plan === 'max' ? 'default' : 'pointer', fontFamily: 'inherit' }}
+                    >
+                      {isPending ? '...' : (locale === 'ru' ? 'Выдать Max' : 'Grant Max')}
                     </button>
                     <button
                       type="button"

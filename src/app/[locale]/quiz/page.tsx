@@ -8,9 +8,9 @@ import type { User } from '@supabase/supabase-js';
 import { Navbar } from '@/components/layout/Navbar';
 import { AppNavbar } from '@/components/layout/AppNavbar';
 import { createClient } from '@/lib/supabase';
-import { FREE_LIMITS, ALL_EXAMS } from '@/lib/limits';
+import { FREE_LIMITS, PRO_LIMITS, ALL_EXAMS } from '@/lib/limits';
 import { ExplanationBlock } from '@/components/quiz/ExplanationBlock';
-import { hasProAccess } from '@/lib/subscription';
+import { getSubscriptionTier, hasProAccess, type SubscriptionTier } from '@/lib/subscription';
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 
@@ -50,6 +50,7 @@ export default function QuizPage() {
   const [streak, setStreak] = useState(0);
   const [user, setUser] = useState<User | null>(null);
   const [isPro, setIsPro] = useState(false);
+  const [tier, setTier] = useState<SubscriptionTier>('free');
   const [dailyCount, setDailyCount] = useState(0);
   const [selectedExams, setSelectedExams] = useState<string[]>([]);
   const [limitError, setLimitError] = useState<'daily' | 'exam' | null>(null);
@@ -71,12 +72,15 @@ export default function QuizPage() {
 
       const { data: sub } = await supabase.from('subscriptions').select('plan, status').eq('user_id', session.user.id).single();
       setIsPro(hasProAccess(sub));
+      setTier(getSubscriptionTier(sub));
 
       const { data: membership } = await supabase.from('school_members').select('school_id').eq('user_id', session.user.id).limit(1).single();
       if (membership?.school_id) setHasSchool(true);
 
-      // Get daily count
-      const today = new Date(); today.setHours(0,0,0,0);
+      // Get count in the active billing window: 1 day for free, 3 days for Pro.
+      const today = new Date();
+      today.setDate(today.getDate() - (getSubscriptionTier(sub) === 'pro' ? PRO_LIMITS.windowDays - 1 : 0));
+      today.setHours(0,0,0,0);
       const { count } = await supabase.from('quiz_attempts').select('*', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', today.toISOString());
       setDailyCount(count ?? 0);
 
@@ -103,7 +107,7 @@ export default function QuizPage() {
       });
       if (res.status === 403) {
         const data = await res.json();
-        if (data.error === 'daily_limit_reached') setLimitError('daily');
+        if (data.error === 'daily_limit_reached' || data.error === 'question_limit_reached') setLimitError('daily');
         else if (data.error === 'exam_not_selected') setLimitError('exam');
         return null;
       }
@@ -167,6 +171,9 @@ export default function QuizPage() {
       });
 
       if (!progressResponse.ok) {
+        if (progressResponse.status === 403) {
+          setLimitError('daily');
+        }
         setAnswered(false);
         setSelected(null);
         return;
@@ -207,7 +214,9 @@ export default function QuizPage() {
 
   const letters = ['A', 'B', 'C', 'D'];
   const accuracy = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
-  const questionsLeft = isPro ? null : FREE_LIMITS.questionsPerDay - dailyCount;
+  const activeLimit = tier === 'pro' ? PRO_LIMITS.questionsPerWindow : FREE_LIMITS.questionsPerDay;
+  const activeWindowDays = tier === 'pro' ? PRO_LIMITS.windowDays : FREE_LIMITS.windowDays;
+  const questionsLeft = tier === 'max' ? null : Math.max(activeLimit - dailyCount, 0);
   const availableExams = isPro ? ALL_EXAMS : (selectedExams.length > 0 ? selectedExams : ALL_EXAMS);
 
   // Exam picker for free users
@@ -280,15 +289,15 @@ export default function QuizPage() {
           </div>
 
           {/* Free plan info bar */}
-          {!isPro && user && (
+          {tier !== 'max' && user && (
               <div style={{ background: questionsLeft === 0 ? 'rgba(232,64,64,0.08)' : 'rgba(107,92,231,0.06)', border: `1px solid ${questionsLeft === 0 ? 'rgba(232,64,64,0.2)' : 'rgba(107,92,231,0.15)'}`, borderRadius: 10, padding: '10px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
             <span style={{ fontSize: 13, color: questionsLeft === 0 ? '#E84040' : 'hsl(var(--muted-foreground))' }}>
               {questionsLeft === 0
-                  ? (locale === 'ru' ? '⚠ Лимит на сегодня исчерпан' : '⚠ Daily limit reached')
-                  : (locale === 'ru' ? `Осталось сегодня: ${questionsLeft}/${FREE_LIMITS.questionsPerDay}` : `Today: ${questionsLeft}/${FREE_LIMITS.questionsPerDay} left`)}
+                  ? (locale === 'ru' ? '⚠ Лимит вопросов исчерпан' : '⚠ Question limit reached')
+                  : (locale === 'ru' ? `Осталось: ${questionsLeft}/${activeLimit} за ${activeWindowDays} дн.` : `${questionsLeft}/${activeLimit} left per ${activeWindowDays} day${activeWindowDays > 1 ? 's' : ''}`)}
             </span>
                 <Link href={`/${locale}/pricing`} style={{ fontSize: 12, color: '#6B5CE7', textDecoration: 'none', fontWeight: 500 }}>
-                  {locale === 'ru' ? 'Безлимит в Pro →' : 'Unlimited with Pro →'}
+                  {locale === 'ru' ? 'Безлимит в Max →' : 'Unlimited with Max →'}
                 </Link>
               </div>
           )}
@@ -345,10 +354,10 @@ export default function QuizPage() {
                     {locale === 'ru' ? 'Лимит на сегодня исчерпан' : 'Daily limit reached'}
                   </h3>
                   <p style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', marginBottom: 20 }}>
-                    {locale === 'ru' ? `Вы ответили на ${FREE_LIMITS.questionsPerDay} вопросов сегодня. Возвращайся завтра или перейди на Pro.` : `You've answered ${FREE_LIMITS.questionsPerDay} questions today. Come back tomorrow or upgrade to Pro.`}
+                    {locale === 'ru' ? `Вы ответили на ${activeLimit} вопросов за период ${activeWindowDays} дн. Дождись обновления лимита или перейди на Max.` : `You've answered ${activeLimit} questions in the ${activeWindowDays}-day window. Wait for the limit to refresh or upgrade to Max.`}
                   </p>
                   <Link href={`/${locale}/pricing`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '11px 24px', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
-                    {locale === 'ru' ? 'Перейти на Pro →' : 'Upgrade to Pro →'}
+                    {locale === 'ru' ? 'Перейти на Max →' : 'Upgrade to Max →'}
                   </Link>
                 </div>
             ) : loading ? (

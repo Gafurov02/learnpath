@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { AppNavbar } from '@/components/layout/AppNavbar';
-import { hasProAccess } from '@/lib/subscription';
+import { hasMaxAccess } from '@/lib/subscription';
 
 const EXAMS = ['IELTS', 'SAT', 'TOEFL', 'GMAT', 'GRE', 'ЕГЭ'];
 
@@ -111,7 +111,7 @@ export default function ChatPage() {
         supabase.auth.getSession().then(async ({ data: { session } }) => {
             if (!session) { router.push(`/${locale}/auth/login`); return; }
             const { data: sub } = await supabase.from('subscriptions').select('plan, status').eq('user_id', session.user.id).single();
-            setIsPro(hasProAccess(sub));
+            setIsPro(hasMaxAccess(sub));
             setChecking(false);
         });
     }, []);
@@ -174,10 +174,10 @@ export default function ChatPage() {
                         : "Ask your AI tutor anything — it explains concepts, breaks down mistakes, and helps you prepare for exams."}
                 </p>
                 <Link href={`/${locale}/pricing`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 12, padding: '13px 32px', fontSize: 15, fontWeight: 500, textDecoration: 'none', display: 'inline-block' }}>
-                    {locale === 'ru' ? 'Перейти на Pro →' : 'Upgrade to Pro →'}
+                    {locale === 'ru' ? 'Перейти на Max →' : 'Upgrade to Max →'}
                 </Link>
                 <p style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginTop: 16 }}>
-                    {locale === 'ru' ? 'AI чат — эксклюзивная Pro функция' : 'AI chat is a Pro-exclusive feature'}
+                    {locale === 'ru' ? 'AI чат — эксклюзивная Max функция' : 'AI chat is a Max-exclusive feature'}
                 </p>
             </div>
         </div>

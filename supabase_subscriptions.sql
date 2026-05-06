@@ -5,8 +5,8 @@ create table if not exists subscriptions (
   user_id                 uuid references auth.users(id) on delete cascade not null unique,
   stripe_customer_id      text,
   stripe_subscription_id  text,
-  status                  text not null default 'free',  -- 'free' | 'active' | 'cancelled'
-  plan                    text not null default 'free',  -- 'free' | 'pro'
+  status                  text not null default 'free',  -- 'free' | 'active' | 'trialing' | 'cancelled'
+  plan                    text not null default 'free',  -- 'free' | 'pro' | 'max'
   created_at              timestamptz default now(),
   updated_at              timestamptz default now()
 );

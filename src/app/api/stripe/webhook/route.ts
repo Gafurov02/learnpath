@@ -3,6 +3,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerEnv } from '@/lib/env/server';
 
+function getPlanFromSubscription(sub: Stripe.Subscription, env: ReturnType<typeof getServerEnv>) {
+  const metadataPlan = sub.metadata?.plan;
+  if (metadataPlan === 'max' || metadataPlan === 'pro') {
+    return metadataPlan;
+  }
+
+  const priceId = sub.items.data[0]?.price.id;
+  if (priceId && env.STRIPE_MAX_PRICE_ID && priceId === env.STRIPE_MAX_PRICE_ID) {
+    return 'max';
+  }
+
+  return 'pro';
+}
+
 export async function POST(req: NextRequest) {
   const env = getServerEnv();
   const stripe = new Stripe(env.STRIPE_SECRET_KEY);
@@ -41,13 +55,14 @@ export async function POST(req: NextRequest) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.user_id;
+        const plan = session.metadata?.plan === 'max' ? 'max' : 'pro';
         if (userId) {
           await supabaseAdmin.from('subscriptions').upsert({
             user_id: userId,
             stripe_customer_id: session.customer as string,
             stripe_subscription_id: session.subscription as string,
             status: 'active',
-            plan: 'pro',
+            plan,
           });
         }
         break;
@@ -55,9 +70,13 @@ export async function POST(req: NextRequest) {
       case 'customer.subscription.deleted':
       case 'customer.subscription.updated': {
         const sub = event.data.object as Stripe.Subscription;
+        const isActive = sub.status === 'active' || sub.status === 'trialing';
         await supabaseAdmin
             .from('subscriptions')
-            .update({ status: sub.status === 'active' ? 'active' : 'cancelled', plan: sub.status === 'active' ? 'pro' : 'free' })
+            .update({
+              status: isActive ? sub.status : 'cancelled',
+              plan: isActive ? getPlanFromSubscription(sub, env) : 'free',
+            })
             .eq('stripe_subscription_id', sub.id);
         break;
       }

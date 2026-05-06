@@ -3,6 +3,8 @@ import { getServerEnv } from '@/lib/env/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/server-supabase';
 import { getXpForAction } from '@/lib/levels';
 import { hashAnswerToken, openAnswerToken } from '@/lib/answer-token';
+import { FREE_LIMITS, PRO_LIMITS, getWindowCount } from '@/lib/limits';
+import { getSubscriptionTier } from '@/lib/subscription';
 
 function getWeekStart(): string {
   const d = new Date();
@@ -43,6 +45,23 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = createServiceRoleClient();
+  const { data: sub } = await admin
+    .from('subscriptions')
+    .select('plan, status')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  const tier = getSubscriptionTier(sub);
+
+  if (tier !== 'max') {
+    const limit = tier === 'pro' ? PRO_LIMITS.questionsPerWindow : FREE_LIMITS.questionsPerDay;
+    const windowDays = tier === 'pro' ? PRO_LIMITS.windowDays : FREE_LIMITS.windowDays;
+    const windowCount = await getWindowCount(admin, user.id, windowDays);
+
+    if (windowCount >= limit) {
+      return NextResponse.json({ error: 'question_limit_reached', limit, used: windowCount, windowDays }, { status: 403 });
+    }
+  }
+
   const correct = selected === payload.correctIndex;
   const tokenHash = hashAnswerToken(answerToken);
 

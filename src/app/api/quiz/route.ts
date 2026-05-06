@@ -1,10 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
-import { getDailyCount, getSelectedExams, FREE_LIMITS } from '@/lib/limits';
+import { FREE_LIMITS, PRO_LIMITS, getSelectedExams, getWindowCount } from '@/lib/limits';
 import { getServerEnv } from '@/lib/env/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/server-supabase';
 import { createAnswerToken } from '@/lib/answer-token';
-import { hasProAccess } from '@/lib/subscription';
+import { getSubscriptionTier } from '@/lib/subscription';
 
 const EXAM_CONFIGS: Record<string, { subject: string; description: string }> = {
   IELTS:  { subject: 'IELTS Academic Reading and Grammar', description: 'academic English, vocabulary, reading comprehension, grammar' },
@@ -82,17 +82,23 @@ export async function POST(req: NextRequest) {
       .select('plan, status')
       .eq('user_id', user.id)
       .maybeSingle();
-    const isPro = hasProAccess(sub);
+    const tier = getSubscriptionTier(sub);
+    const isPro = tier !== 'free';
+    const isMax = tier === 'max';
 
-    if (!isPro) {
-      const [dailyCount, selectedExams] = await Promise.all([
-        getDailyCount(supabase, user.id),
-        getSelectedExams(supabase, user.id),
+    if (!isMax) {
+      const limit = tier === 'pro' ? PRO_LIMITS.questionsPerWindow : FREE_LIMITS.questionsPerDay;
+      const windowDays = tier === 'pro' ? PRO_LIMITS.windowDays : FREE_LIMITS.windowDays;
+      const [windowCount, selectedExams] = await Promise.all([
+        getWindowCount(supabase, user.id, windowDays),
+        tier === 'free' ? getSelectedExams(supabase, user.id) : Promise.resolve([]),
       ]);
-      if (dailyCount >= FREE_LIMITS.questionsPerDay) {
-        return NextResponse.json({ error: 'daily_limit_reached', limit: FREE_LIMITS.questionsPerDay, used: dailyCount }, { status: 403 });
+
+      if (windowCount >= limit) {
+        return NextResponse.json({ error: 'question_limit_reached', limit, used: windowCount, windowDays }, { status: 403 });
       }
-      if (selectedExams.length > 0 && !selectedExams.includes(exam)) {
+
+      if (tier === 'free' && selectedExams.length > 0 && !selectedExams.includes(exam)) {
         return NextResponse.json({ error: 'exam_not_selected', selectedExams }, { status: 403 });
       }
     }
@@ -134,7 +140,7 @@ export async function POST(req: NextRequest) {
           difficulty: q.difficulty,
           source: 'custom',
         });
-        return NextResponse.json({ question, exam, isPro, source: 'custom' });
+        return NextResponse.json({ question, exam, isPro, tier, source: 'custom' });
       }
     }
 
@@ -186,7 +192,7 @@ Return ONLY valid JSON:
       source: 'ai',
     });
 
-    return NextResponse.json({ question, exam, isPro });
+    return NextResponse.json({ question, exam, isPro, tier });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to generate question';
     console.error('Quiz API error:', message);

@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
-import { hasProAccess } from '@/lib/subscription';
+import { hasMaxAccess } from '@/lib/subscription';
 import { getServerEnv } from '@/lib/env/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/server-supabase';
 
@@ -14,9 +14,8 @@ export async function GET(req: NextRequest) {
 
     const admin = createServiceRoleClient();
 
-    // Check Pro
     const { data: sub } = await admin.from('subscriptions').select('plan, status').eq('user_id', user.id).single();
-    if (!hasProAccess(sub)) return NextResponse.json({ error: 'Pro required' }, { status: 403 });
+    if (!hasMaxAccess(sub)) return NextResponse.json({ error: 'Max required' }, { status: 403 });
 
     // Get last 50 attempts
     const { data: attempts } = await admin

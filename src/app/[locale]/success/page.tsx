@@ -19,10 +19,12 @@ export default function SuccessPage() {
           ✓
         </div>
         <h1 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 36, fontWeight: 400, letterSpacing: '-1px', marginBottom: 12, color: 'hsl(var(--foreground))' }}>
-          You&apos;re Pro now!
+          {locale === 'ru' ? 'Подписка активна!' : 'Your subscription is active!'}
         </h1>
         <p style={{ fontSize: 16, color: 'hsl(var(--muted-foreground))', lineHeight: 1.7, marginBottom: 32, fontWeight: 300 }}>
-          Unlimited questions, all 12 exams, detailed AI explanations and personal study plan — all unlocked.
+          {locale === 'ru'
+            ? 'Pro Practice откроет 50 вопросов на 3 дня, а Max добавит безлимит, AI тьютора и план по дням.'
+            : 'Pro Practice unlocks 50 questions every 3 days, while Max adds unlimited practice, AI Tutor, and the day-by-day plan.'}
         </p>
         <Link href={`/${locale}/dashboard`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '13px 32px', fontSize: 15, fontWeight: 500, textDecoration: 'none', display: 'inline-block' }}>
           Go to Dashboard →

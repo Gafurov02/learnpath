@@ -49,7 +49,7 @@ export function HeroSection() {
         {t('sub')}
       </p>
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-        <Link href={`/${locale}/auth/signup`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 12, padding: '14px 28px', fontSize: 15, fontWeight: 500, textDecoration: 'none' }}>
+        <Link href={`/${locale}/#pricing`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 12, padding: '14px 28px', fontSize: 15, fontWeight: 500, textDecoration: 'none' }}>
           {t('cta')}
         </Link>
         <Link href={`/${locale}/#quiz`} style={{ background: 'transparent', border: '1.5px solid hsl(var(--border))', color: 'hsl(var(--foreground))', borderRadius: 12, padding: '13px 28px', fontSize: 15, fontWeight: 500, textDecoration: 'none' }}>
