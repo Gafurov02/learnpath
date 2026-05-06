@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase';
 import { AppNavbar } from '@/components/layout/AppNavbar';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { getLevelByXp } from '@/lib/levels';
@@ -13,6 +12,8 @@ import { useLiveRefresh } from '@/hooks/useLiveRefresh';
 type Member = { user_id: string; role: string; joined_at: string; display_name: string; avatar_url: string | null; xp: number; total: number; correct: number };
 type SchoolMembersResponse = {
   school: { name: string };
+  currentUserId: string;
+  isTeacher: boolean;
   members: Member[];
 };
 
@@ -24,6 +25,8 @@ export default function StudentsPage({ params }: { params: Promise<{ id: string 
   const [schoolName, setSchoolName] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState('');
+  const [isTeacher, setIsTeacher] = useState(false);
 
   useEffect(() => {
     params.then((value) => setSchoolId(value.id));
@@ -55,6 +58,8 @@ export default function StudentsPage({ params }: { params: Promise<{ id: string 
 
       const payload = (await response.json()) as SchoolMembersResponse;
       setSchoolName(payload.school.name ?? '');
+      setCurrentUserId(payload.currentUserId ?? '');
+      setIsTeacher(payload.isTeacher ?? false);
       setMembers(payload.members);
     } finally {
       if (silent) {
@@ -76,8 +81,16 @@ export default function StudentsPage({ params }: { params: Promise<{ id: string 
   });
 
   async function removeStudent(userId: string) {
-    const supabase = createClient();
-    await supabase.from('school_members').delete().eq('school_id', schoolId).eq('user_id', userId);
+    const response = await fetch(`/api/school/${schoolId}/members`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+
+    if (!response.ok) {
+      return;
+    }
+
     setMembers((currentMembers) => currentMembers.filter((member) => member.user_id !== userId));
   }
 
@@ -152,7 +165,7 @@ export default function StudentsPage({ params }: { params: Promise<{ id: string 
                         <div style={{ fontSize: 10, color: 'hsl(var(--muted-foreground))' }}>{locale === 'ru' ? 'вопр.' : 'q'}</div>
                       </div>
                     </div>
-                    {member.role === 'student' && (
+                    {isTeacher && member.role === 'student' && member.user_id !== currentUserId && (
                       <button onClick={() => void removeStudent(member.user_id)} style={{ background: 'transparent', border: '1px solid rgba(232,64,64,0.3)', borderRadius: 6, padding: '4px 10px', fontSize: 11, color: '#E84040', cursor: 'pointer', fontFamily: 'inherit' }}>
                         {locale === 'ru' ? 'Удалить' : 'Remove'}
                       </button>

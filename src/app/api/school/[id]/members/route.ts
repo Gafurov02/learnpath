@@ -156,3 +156,86 @@ export async function GET(_: Request, context: RouteContext) {
     members: enrichedMembers,
   });
 }
+
+export async function DELETE(req: Request, context: RouteContext) {
+  const { id } = await context.params;
+  const supabase = await createServerSupabaseClient();
+  const admin = createServiceRoleClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const payload = await req.json().catch(() => ({})) as { userId?: unknown };
+  const targetUserId = typeof payload.userId === 'string' ? payload.userId : '';
+
+  if (!targetUserId) {
+    return NextResponse.json({ error: 'user_id_required' }, { status: 400 });
+  }
+
+  const { data: school, error: schoolError } = await admin
+    .from('schools')
+    .select('id, owner_id')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (schoolError) {
+    return NextResponse.json({ error: schoolError.message }, { status: 500 });
+  }
+
+  if (!school) {
+    return NextResponse.json({ error: 'School not found' }, { status: 404 });
+  }
+
+  const { data: viewerMembership, error: viewerMembershipError } = await admin
+    .from('school_members')
+    .select('role')
+    .eq('school_id', id)
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (viewerMembershipError) {
+    return NextResponse.json({ error: viewerMembershipError.message }, { status: 500 });
+  }
+
+  const isManager = school.owner_id === user.id || viewerMembership?.role === 'teacher';
+  if (!isManager) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  if (targetUserId === school.owner_id) {
+    return NextResponse.json({ error: 'cannot_remove_owner' }, { status: 400 });
+  }
+
+  const { data: targetMembership, error: targetMembershipError } = await admin
+    .from('school_members')
+    .select('role')
+    .eq('school_id', id)
+    .eq('user_id', targetUserId)
+    .maybeSingle();
+
+  if (targetMembershipError) {
+    return NextResponse.json({ error: targetMembershipError.message }, { status: 500 });
+  }
+
+  if (!targetMembership) {
+    return NextResponse.json({ error: 'member_not_found' }, { status: 404 });
+  }
+
+  if (targetMembership.role !== 'student' && school.owner_id !== user.id) {
+    return NextResponse.json({ error: 'owner_required' }, { status: 403 });
+  }
+
+  const { error: deleteError } = await admin
+    .from('school_members')
+    .delete()
+    .eq('school_id', id)
+    .eq('user_id', targetUserId);
+
+  if (deleteError) {
+    return NextResponse.json({ error: deleteError.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

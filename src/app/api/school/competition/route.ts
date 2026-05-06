@@ -11,48 +11,12 @@ function getWeekStart(): string {
     return monday.toISOString().split('T')[0];
 }
 
-// Update score after quiz attempt
-export async function POST(req: NextRequest) {
-    const env = getServerEnv();
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const { school_id, xp_gained, correct, questions } = await req.json();
-    const week_start = getWeekStart();
-
-    const admin = createAdminClient(
-        env.NEXT_PUBLIC_SUPABASE_URL,
-        env.SUPABASE_SERVICE_ROLE_KEY
+// Scores are derived from verified /api/progress attempts only.
+export async function POST() {
+    return NextResponse.json(
+        { error: 'competition_scores_are_derived_from_progress' },
+        { status: 410 }
     );
-
-    // Upsert weekly score
-    const { data: existing } = await admin
-        .from('weekly_scores')
-        .select('*')
-        .eq('school_id', school_id)
-        .eq('user_id', user.id)
-        .eq('week_start', week_start)
-        .single();
-
-    if (existing) {
-        await admin.from('weekly_scores').update({
-            xp_gained: existing.xp_gained + (xp_gained || 0),
-            questions: existing.questions + (questions || 0),
-            correct: existing.correct + (correct ? 1 : 0),
-            updated_at: new Date().toISOString(),
-        }).eq('id', existing.id);
-    } else {
-        await admin.from('weekly_scores').insert({
-            school_id, user_id: user.id, week_start,
-            xp_gained: xp_gained || 0,
-            questions: questions || 0,
-            correct: correct ? 1 : 0,
-            streak_days: 0,
-        });
-    }
-
-    return NextResponse.json({ ok: true });
 }
 
 // Get leaderboard for school

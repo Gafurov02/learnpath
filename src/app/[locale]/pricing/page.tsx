@@ -50,7 +50,7 @@ function PricingContent({ locale }: { locale: string }) {
             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
               {(t.raw('teams.features') as string[]).map((f: string) => <li key={f} style={{ display: 'flex', gap: '8px', fontSize: '14px' }}><span style={{ color: '#22C07A', fontWeight: 700 }}>✓</span>{f}</li>)}
             </ul>
-            <a href="mailto:hello@learnpath.app" style={{ display: 'block', padding: '13px', borderRadius: '10px', border: '1.5px solid hsl(var(--border))', textAlign: 'center', fontSize: '14px', fontWeight: 500, textDecoration: 'none', color: 'hsl(var(--foreground))' }}>{t('teams.cta')}</a>
+            <a href="mailto:boburbek@gafurov.cc" style={{ display: 'block', padding: '13px', borderRadius: '10px', border: '1.5px solid hsl(var(--border))', textAlign: 'center', fontSize: '14px', fontWeight: 500, textDecoration: 'none', color: 'hsl(var(--foreground))' }}>{t('teams.cta')}</a>
           </div>
         </div>
       </section>

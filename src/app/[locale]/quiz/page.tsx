@@ -17,6 +17,15 @@ const DIFFICULTIES = ['easy', 'medium', 'hard'];
 type Question = {
   question: string;
   options: string[];
+  correctIndex?: number;
+  explanation?: string;
+  topic: string;
+  difficulty: string;
+  answerToken: string;
+};
+
+type ProgressResponse = {
+  correct: boolean;
   correctIndex: number;
   explanation: string;
   topic: string;
@@ -48,11 +57,16 @@ export default function QuizPage() {
   const [isProQuestion, setIsProQuestion] = useState(false);
   const [quizMode, setQuizMode] = useState<'ai' | 'school'>('ai');
   const [hasSchool, setHasSchool] = useState(false);
+  const [authRequired, setAuthRequired] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) return;
+      if (!session) {
+        setAuthRequired(true);
+        return;
+      }
+      setAuthRequired(false);
       setUser(session.user);
 
       const { data: sub } = await supabase.from('subscriptions').select('plan, status').eq('user_id', session.user.id).single();
@@ -91,6 +105,10 @@ export default function QuizPage() {
         const data = await res.json();
         if (data.error === 'daily_limit_reached') setLimitError('daily');
         else if (data.error === 'exam_not_selected') setLimitError('exam');
+        return null;
+      }
+      if (res.status === 401) {
+        setAuthRequired(true);
         return null;
       }
       const data = await res.json();
@@ -138,21 +156,42 @@ export default function QuizPage() {
     if (answered || !question) return;
     setAnswered(true);
     setSelected(i);
-    const correct = i === question.correctIndex;
+
+    let progress: ProgressResponse | null = null;
+
+    if (user) {
+      const progressResponse = await fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answerToken: question.answerToken, selectedIndex: i }),
+      });
+
+      if (!progressResponse.ok) {
+        setAnswered(false);
+        setSelected(null);
+        return;
+      }
+
+      progress = (await progressResponse.json()) as ProgressResponse;
+    }
+
+    if (!progress) return;
+
+    const correct = progress.correct;
+    setQuestion((current) => current ? {
+      ...current,
+      correctIndex: progress.correctIndex,
+      explanation: progress.explanation,
+      topic: progress.topic,
+      difficulty: progress.difficulty,
+    } : current);
     setScore(p => ({ correct: p.correct + (correct ? 1 : 0), total: p.total + 1 }));
     if (correct) setStreak(p => p + 1); else setStreak(0);
     setDailyCount(p => p + 1);
 
     if (user) {
-      await fetch('/api/progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exam, topic: initialTopic || question.topic, correct, difficulty }),
-      });
       await fetch('/api/xp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ xpGained: correct ? 10 : 2, correct: score.correct + (correct ? 1 : 0), totalAnswered: score.total + 1, streak, sessionCorrect: score.correct + (correct ? 1 : 0), sessionTotal: score.total + 1 }),
       });
     }
   }
@@ -286,7 +325,20 @@ export default function QuizPage() {
 
           {/* Question card */}
           <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 20, padding: 32, minHeight: 340 }}>
-            {limitError === 'daily' ? (
+            {authRequired ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                  <div style={{ fontSize: 40, marginBottom: 16 }}>🔐</div>
+                  <h3 style={{ fontSize: 18, fontWeight: 500, marginBottom: 8 }}>
+                    {locale === 'ru' ? 'Войдите, чтобы начать практику' : 'Sign in to start practicing'}
+                  </h3>
+                  <p style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', marginBottom: 20 }}>
+                    {locale === 'ru' ? 'Так мы сможем сохранить прогресс, XP и защитить генерацию вопросов.' : 'This lets us save progress, XP, and protect question generation.'}
+                  </p>
+                  <Link href={`/${locale}/auth/login`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '11px 24px', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
+                    {locale === 'ru' ? 'Войти →' : 'Sign in →'}
+                  </Link>
+                </div>
+            ) : limitError === 'daily' ? (
                 <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                   <div style={{ fontSize: 40, marginBottom: 16 }}>⏰</div>
                   <h3 style={{ fontSize: 18, fontWeight: 500, marginBottom: 8 }}>
@@ -334,7 +386,7 @@ export default function QuizPage() {
 
                   {answered && (
                       <ExplanationBlock
-                          explanation={question.explanation}
+                          explanation={question.explanation ?? ''}
                           isPro={isProQuestion}
                           locale={locale}
                           locale_link={locale}

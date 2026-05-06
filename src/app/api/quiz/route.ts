@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDailyCount, getSelectedExams, FREE_LIMITS } from '@/lib/limits';
 import { getServerEnv } from '@/lib/env/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/server-supabase';
+import { createAnswerToken } from '@/lib/answer-token';
+import { hasProAccess } from '@/lib/subscription';
 
 const EXAM_CONFIGS: Record<string, { subject: string; description: string }> = {
   IELTS:  { subject: 'IELTS Academic Reading and Grammar', description: 'academic English, vocabulary, reading comprehension, grammar' },
@@ -13,6 +15,53 @@ const EXAM_CONFIGS: Record<string, { subject: string; description: string }> = {
   ЕГЭ:   { subject: 'ЕГЭ по русскому языку', description: 'орфография, пунктуация, грамматика, лексика' },
 };
 
+type CustomQuestionRow = {
+  question: string;
+  options: unknown;
+  correct_index: number;
+  explanation: string | null;
+  topic: string | null;
+  difficulty: string | null;
+};
+
+function normalizeOptions(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((option): option is string => typeof option === 'string' && option.trim().length > 0)
+    : [];
+}
+
+function buildQuestionResponse(params: {
+  userId: string;
+  secret: string;
+  exam: string;
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation?: string | null;
+  topic?: string | null;
+  difficulty?: string | null;
+  source: 'ai' | 'custom';
+}) {
+  const answerToken = createAnswerToken(params.secret, {
+    userId: params.userId,
+    exam: params.exam,
+    topic: params.topic,
+    difficulty: params.difficulty,
+    correctIndex: params.correctIndex,
+    optionCount: params.options.length,
+    explanation: params.explanation,
+    source: params.source,
+  });
+
+  return {
+    question: params.question,
+    options: params.options,
+    topic: params.topic || 'General',
+    difficulty: params.difficulty || 'medium',
+    answerToken,
+  };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const env = getServerEnv();
@@ -22,58 +71,70 @@ export async function POST(req: NextRequest) {
     const config = EXAM_CONFIGS[exam];
     if (!config) return NextResponse.json({ error: 'Unknown exam' }, { status: 400 });
 
-    // Check auth & limits
     const { data: { user } } = await supabase.auth.getUser();
-    let isPro = false;
+    if (!user) {
+      return NextResponse.json({ error: 'authentication_required' }, { status: 401 });
+    }
 
-    if (user) {
-      const admin = createServiceRoleClient();
-      const { data: sub } = await admin.from('subscriptions').select('plan').eq('user_id', user.id).single();
-      isPro = sub?.plan === 'pro';
+    const admin = createServiceRoleClient();
+    const { data: sub } = await admin
+      .from('subscriptions')
+      .select('plan, status')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    const isPro = hasProAccess(sub);
 
-      if (!isPro) {
-        const [dailyCount, selectedExams] = await Promise.all([
-          getDailyCount(supabase, user.id),
-          getSelectedExams(supabase, user.id),
-        ]);
-        if (dailyCount >= FREE_LIMITS.questionsPerDay) {
-          return NextResponse.json({ error: 'daily_limit_reached', limit: FREE_LIMITS.questionsPerDay, used: dailyCount }, { status: 403 });
-        }
-        if (selectedExams.length > 0 && !selectedExams.includes(exam)) {
-          return NextResponse.json({ error: 'exam_not_selected', selectedExams }, { status: 403 });
-        }
+    if (!isPro) {
+      const [dailyCount, selectedExams] = await Promise.all([
+        getDailyCount(supabase, user.id),
+        getSelectedExams(supabase, user.id),
+      ]);
+      if (dailyCount >= FREE_LIMITS.questionsPerDay) {
+        return NextResponse.json({ error: 'daily_limit_reached', limit: FREE_LIMITS.questionsPerDay, used: dailyCount }, { status: 403 });
       }
+      if (selectedExams.length > 0 && !selectedExams.includes(exam)) {
+        return NextResponse.json({ error: 'exam_not_selected', selectedExams }, { status: 403 });
+      }
+    }
 
-      // Check if user is in a school with custom questions
-      const { data: membership } = await admin
-          .from('school_members')
-          .select('school_id')
-          .eq('user_id', user.id)
-          .limit(1)
-          .single();
+    const { data: memberships } = await admin
+      .from('school_members')
+      .select('school_id')
+      .eq('user_id', user.id);
+    const schoolIds = [...new Set((memberships ?? []).map((membership) => membership.school_id))];
 
-      if (membership?.school_id) {
-        // Get random custom question from school
-        const { data: customQs } = await admin
-            .from('custom_questions')
-            .select('*')
-            .eq('school_id', membership.school_id)
-            .eq('active', true)
-            .eq('exam', exam);
+    if (schoolIds.length > 0) {
+      const { data: customQs } = await admin
+        .from('custom_questions')
+        .select('question, options, correct_index, explanation, topic, difficulty')
+        .in('school_id', schoolIds)
+        .eq('active', true)
+        .eq('exam', exam)
+        .limit(50);
 
-        if (customQs && customQs.length > 0) {
-          // Pick random question
-          const q = customQs[Math.floor(Math.random() * customQs.length)];
-          const question = {
-            question: q.question,
-            options: q.options,
-            correctIndex: q.correct_index,
-            explanation: q.explanation || '',
-            topic: q.topic,
-            difficulty: q.difficulty,
-          };
-          return NextResponse.json({ question, exam, isPro, source: 'custom' });
-        }
+      const usableQuestions = ((customQs ?? []) as CustomQuestionRow[])
+        .map((question) => ({ ...question, options: normalizeOptions(question.options) }))
+        .filter((question) => (
+          question.options.length >= 2 &&
+          question.correct_index >= 0 &&
+          question.correct_index < question.options.length
+        ));
+
+      if (usableQuestions.length > 0) {
+        const q = usableQuestions[Math.floor(Math.random() * usableQuestions.length)];
+        const question = buildQuestionResponse({
+          userId: user.id,
+          secret: env.SUPABASE_SERVICE_ROLE_KEY,
+          exam,
+          question: q.question,
+          options: q.options,
+          correctIndex: q.correct_index,
+          explanation: q.explanation,
+          topic: q.topic,
+          difficulty: q.difficulty,
+          source: 'custom',
+        });
+        return NextResponse.json({ question, exam, isPro, source: 'custom' });
       }
     }
 
@@ -98,11 +159,37 @@ Return ONLY valid JSON:
     const text = message.content[0].type === 'text' ? message.content[0].text : '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('No JSON found');
-    const question = JSON.parse(jsonMatch[0]);
+    const generated = JSON.parse(jsonMatch[0]);
+    const options = normalizeOptions(generated.options);
+    const correctIndex = Number(generated.correctIndex);
+
+    if (
+      !generated.question ||
+      options.length < 2 ||
+      !Number.isInteger(correctIndex) ||
+      correctIndex < 0 ||
+      correctIndex >= options.length
+    ) {
+      throw new Error('Invalid question generated');
+    }
+
+    const question = buildQuestionResponse({
+      userId: user.id,
+      secret: env.SUPABASE_SERVICE_ROLE_KEY,
+      exam,
+      question: generated.question,
+      options,
+      correctIndex,
+      explanation: generated.explanation,
+      topic: generated.topic,
+      difficulty: generated.difficulty || difficulty,
+      source: 'ai',
+    });
 
     return NextResponse.json({ question, exam, isPro });
-  } catch (err: any) {
-    console.error('Quiz API error:', err?.message || err);
-    return NextResponse.json({ error: err?.message || 'Failed to generate question' }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to generate question';
+    console.error('Quiz API error:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -4,12 +4,18 @@ import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase';
 import { AppNavbar } from '@/components/layout/AppNavbar';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { getLevelByXp } from '@/lib/levels';
 
 type School = { id: string; name: string; invite_code: string; owner_id: string };
-type Member = { user_id: string; role: string; xp: number; total: number; correct: number };
+type Member = { user_id: string; role: string; display_name: string; avatar_url: string | null; xp: number; total: number; correct: number };
+type SchoolMembersResponse = {
+  school: School;
+  currentUserId: string;
+  isTeacher: boolean;
+  members: Member[];
+};
 
 export default function SchoolDashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const locale = useLocale();
@@ -26,56 +32,37 @@ export default function SchoolDashboardPage({ params }: { params: Promise<{ id: 
 
   useEffect(() => {
     if (!schoolId) return;
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) { router.push(`/${locale}/auth/login`); return; }
-      setUserId(session.user.id);
+    let active = true;
 
-      const { data: schoolData } = await supabase.from('schools').select('*').eq('id', schoolId).single();
-      if (!schoolData) { router.push(`/${locale}/school`); return; }
-      setSchool(schoolData);
+    async function loadSchool() {
+      const response = await fetch(`/api/school/${schoolId}/members`, { cache: 'no-store' });
 
-      const teacher = schoolData.owner_id === session.user.id;
-      setIsTeacher(teacher);
-
-      // Get members
-      const { data: memberData } = await supabase
-          .from('school_members')
-          .select('user_id, role')
-          .eq('school_id', schoolId);
-
-      if (memberData && memberData.length > 0) {
-        const userIds = memberData.map((m: any) => m.user_id);
-
-        const [subsRes, attemptsRes] = await Promise.all([
-          supabase.from('subscriptions').select('user_id, xp').in('user_id', userIds),
-          supabase.from('quiz_attempts').select('user_id, correct').in('user_id', userIds),
-        ]);
-
-        const subMap: Record<string, number> = {};
-        (subsRes.data ?? []).forEach((s: any) => { subMap[s.user_id] = s.xp ?? 0; });
-
-        const attemptMap: Record<string, { total: number; correct: number }> = {};
-        (attemptsRes.data ?? []).forEach((a: any) => {
-          if (!attemptMap[a.user_id]) attemptMap[a.user_id] = { total: 0, correct: 0 };
-          attemptMap[a.user_id].total++;
-          if (a.correct) attemptMap[a.user_id].correct++;
-        });
-
-        const enriched: Member[] = memberData.map((m: any) => ({
-          user_id: m.user_id,
-          role: m.role,
-          xp: subMap[m.user_id] ?? 0,
-          total: attemptMap[m.user_id]?.total ?? 0,
-          correct: attemptMap[m.user_id]?.correct ?? 0,
-        }));
-
-        setMembers(enriched.sort((a, b) => b.xp - a.xp));
+      if (response.status === 401) {
+        router.push(`/${locale}/auth/login`);
+        return;
       }
 
+      if (response.status === 403 || response.status === 404) {
+        router.push(`/${locale}/school`);
+        return;
+      }
+
+      const payload = (await response.json()) as SchoolMembersResponse;
+      if (!active) return;
+
+      setUserId(payload.currentUserId);
+      setSchool(payload.school);
+      setIsTeacher(payload.isTeacher);
+      setMembers(payload.members);
       setLoading(false);
-    });
-  }, [schoolId]);
+    }
+
+    void loadSchool();
+
+    return () => {
+      active = false;
+    };
+  }, [locale, router, schoolId]);
 
   if (loading) return (
       <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -173,12 +160,10 @@ export default function SchoolDashboardPage({ params }: { params: Promise<{ id: 
                     <div style={{ width: 32, textAlign: 'center', fontSize: i < 3 ? 20 : 13, fontWeight: 600, color: i >= 3 ? 'hsl(var(--muted-foreground))' : undefined, flexShrink: 0 }}>
                       {i < 3 ? medals[i] : `#${i + 1}`}
                     </div>
-                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600, color: '#6B5CE7', flexShrink: 0 }}>
-                      {s.user_id.slice(0, 1).toUpperCase()}
-                    </div>
+                    <UserAvatar avatarUrl={s.avatar_url} name={s.display_name} id={s.user_id} size={36} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 14, fontWeight: 500 }}>
-                        Student {s.user_id.slice(0, 8)}
+                        {s.display_name}
                         {isMe && <span style={{ fontSize: 11, color: '#6B5CE7', marginLeft: 6 }}>({locale === 'ru' ? 'вы' : 'you'})</span>}
                       </div>
                       <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>{level.icon} {level.name}</div>

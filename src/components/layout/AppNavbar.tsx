@@ -8,6 +8,7 @@ import { Sun, Moon, Home, Zap, Trophy, User, School, MessageCircle } from 'lucid
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { getLevelByXp } from '@/lib/levels';
+import { hasProAccess } from '@/lib/subscription';
 import { LangSwitcher } from './LangSwitcher';
 
 export function AppNavbar() {
@@ -27,9 +28,9 @@ export function AppNavbar() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return;
       setUser(session.user);
-      const { data: sub } = await supabase.from('subscriptions').select('xp, plan').eq('user_id', session.user.id).single();
+      const { data: sub } = await supabase.from('subscriptions').select('xp, plan, status').eq('user_id', session.user.id).single();
       setXp(sub?.xp ?? 0);
-      setIsPro(sub?.plan === 'pro');
+      setIsPro(hasProAccess(sub));
       const { data: attempts } = await supabase.from('quiz_attempts').select('created_at').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(60);
       if (attempts) {
         const dates = [...new Set(attempts.map((a: any) => new Date(a.created_at).toDateString()))];
