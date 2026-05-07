@@ -1,17 +1,28 @@
 'use client';
 
+import React from 'react';
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
+import { NextIntlClientProvider } from "next-intl";
 
 export default function Providers({
                                       children,
-                          }: {
+    locale,
+    messages,
+                                  }: {
     children: React.ReactNode;
+    locale: string;
+    messages: any;
 }) {
     return (
-        <TonConnectUIProvider
-            manifestUrl="https://gafurov.cc/tonconnect-manifest.json"
+        <NextIntlClientProvider
+            locale={locale}
+            messages={messages}
         >
-            {children}
-        </TonConnectUIProvider>
+            <TonConnectUIProvider
+                manifestUrl="https://gafurov.cc/tonconnect-manifest.json"
+            >
+                {children}
+            </TonConnectUIProvider>
+        </NextIntlClientProvider>
     );
 }
