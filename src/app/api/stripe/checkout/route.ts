@@ -40,8 +40,6 @@ export async function POST(req: NextRequest) {
             amount,
             description: `LearnPath ${plan.toUpperCase()} Subscription`,
             hidden_message: 'Спасибо за оплату ❤️',
-            paid_btn_name: 'openBot',
-            paid_btn_url: 'https://t.me/learnpath_robot',
             payload: JSON.stringify({
               user_id: user.id,
               plan,
