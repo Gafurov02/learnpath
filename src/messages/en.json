@@ -85,7 +85,7 @@
     "pro": {
       "name": "Pro Practice",
       "badge": "Practice tier",
-      "price": "$10",
+      "price": "$0.99",
       "period": "per month · cancel anytime",
       "cta": "Start Pro for $10/mo",
       "features": [
@@ -104,7 +104,7 @@
     "max": {
       "name": "Max",
       "badge": "Full access",
-      "price": "$19",
+      "price": "$10",
       "period": "per month · for intensive prep",
       "cta": "Start Max for $19/mo",
       "features": [

@@ -5,7 +5,7 @@ import { useLocale } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
-export function SubscribeButton({ label = 'Start Pro for $10/mo', tier = 'pro' }: { label?: string; tier?: 'pro' | 'max' }) {
+export function SubscribeButton({ label = 'Start Pro for $0.99/mo', tier = 'pro' }: { label?: string; tier?: 'pro' | 'max' }) {
   const locale = useLocale();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
