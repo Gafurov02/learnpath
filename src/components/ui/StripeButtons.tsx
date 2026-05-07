@@ -12,7 +12,7 @@ export function SubscribeButton({ label = 'Start Pro for $0.99/mo', tier = 'pro'
 
   async function handleClick() {
     const wallet =
-        'UQCVTRFthItzY4JgF8B-RlqFzece7_xXC7_JcOAldeiFbHPK';
+        'UQB4Crze6EzZiHr1htiapYIb9bvreKgldnavD8oRjnsn-HKt';
 
     const amount =
         tier === 'max'
