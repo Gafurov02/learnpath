@@ -22,7 +22,7 @@ export function SubscribeButton({ label = 'Start Pro for $0.99/mo', tier = 'pro'
     }
 
     try {
-      const res = await fetch('/api/checkout', {
+      const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ locale, tier }),
