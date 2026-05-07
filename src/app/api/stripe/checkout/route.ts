@@ -1,4 +1,3 @@
-import Stripe from 'stripe';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerEnv } from '@/lib/env/server';
 import { createServerSupabaseClient } from '@/lib/server-supabase';
@@ -6,39 +5,73 @@ import { createServerSupabaseClient } from '@/lib/server-supabase';
 export async function POST(req: NextRequest) {
   try {
     const env = getServerEnv();
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+
     const supabase = await createServerSupabaseClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    const { locale = 'en', tier = 'pro' } = await req.json();
-    const origin = req.headers.get('origin') || 'http://localhost:3000';
-    const plan = tier === 'max' ? 'max' : 'pro';
-    const price = plan === 'max'
-      ? env.STRIPE_MAX_PRICE_ID
-      : (env.STRIPE_PRO_PRICE_ID || env.STRIPE_PRICE_ID);
-
-    if (!price) {
-      return NextResponse.json({ error: `Missing Stripe price for ${plan}` }, { status: 500 });
+    if (!user) {
+      return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+      );
     }
 
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      payment_method_types: ['card'],
-      customer_email: user.email,
-      line_items: [{ price, quantity: 1 }],
-      success_url: `${origin}/${locale}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/${locale}/pricing`,
-      metadata: { user_id: user.id, locale, plan },
-      subscription_data: {
-        metadata: { user_id: user.id, locale, plan },
-      },
-    });
+    const { tier = 'pro' } = await req.json();
 
-    return NextResponse.json({ url: session.url });
-  } catch (err: any) {
-    console.error('Stripe checkout error:', err.message);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const plan = tier === 'max' ? 'max' : 'pro';
+
+    // цены
+    const amount = plan === 'max' ? '10' : '0.99';
+
+    // создаем invoice
+    const response = await fetch(
+        'https://pay.crypt.bot/api/createInvoice',
+        {
+          method: 'POST',
+          headers: {
+            'Crypto-Pay-API-Token': env.CRYPTO_PAY_TOKEN,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            asset: 'USDT',
+            amount,
+            description: `LearnPath ${plan.toUpperCase()} Subscription`,
+            hidden_message: 'Спасибо за оплату ❤️',
+            paid_btn_name: 'openBot',
+            paid_btn_url: 'https://t.me/learnpath_robot',
+            payload: JSON.stringify({
+              user_id: user.id,
+              plan,
+            }),
+            allow_comments: false,
+            allow_anonymous: false,
+          }),
+        }
+    );
+
+    const data = await response.json();
+
+    if (!data.ok) {
+      return NextResponse.json(
+          {
+            error: data.error || 'Failed to create invoice',
+          },
+          { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      url: data.result.pay_url,
+    });
+  } catch (e: any) {
+    return NextResponse.json(
+        {
+          error: e.message || 'Server error',
+        },
+        { status: 500 }
+    );
   }
 }

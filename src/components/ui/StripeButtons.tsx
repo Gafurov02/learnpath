@@ -22,7 +22,7 @@ export function SubscribeButton({ label = 'Start Pro for $0.99/mo', tier = 'pro'
     }
 
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ locale, tier }),
@@ -55,40 +55,40 @@ export function SubscribeButton({ label = 'Start Pro for $0.99/mo', tier = 'pro'
   );
 }
 
-export function ManageSubscriptionButton({ label = 'Manage subscription' }: { label?: string }) {
-  const locale = useLocale();
-  const [loading, setLoading] = useState(false);
-
-  async function handleClick() {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/stripe/portal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ locale }),
-      });
-      const { url, error } = await res.json();
-      if (error) throw new Error(error);
-      window.location.href = url;
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Something went wrong';
-      alert(message);
-      setLoading(false);
-    }
-  }
-
-  return (
-    <button
-      onClick={handleClick}
-      disabled={loading}
-      style={{
-        border: '1px solid hsl(var(--border))', borderRadius: 10,
-        padding: '10px 20px', fontSize: 14, fontWeight: 500,
-        background: 'transparent', color: 'hsl(var(--foreground))',
-        cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit',
-      }}
-    >
-      {loading ? '...' : label}
-    </button>
-  );
-}
+// export function ManageSubscriptionButton({ label = 'Manage subscription' }: { label?: string }) {
+//   const locale = useLocale();
+//   const [loading, setLoading] = useState(false);
+//
+//   async function handleClick() {
+//     setLoading(true);
+//     try {
+//       const res = await fetch('/api/stripe/portal', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ locale }),
+//       });
+//       const { url, error } = await res.json();
+//       if (error) throw new Error(error);
+//       window.location.href = url;
+//     } catch (error: unknown) {
+//       const message = error instanceof Error ? error.message : 'Something went wrong';
+//       alert(message);
+//       setLoading(false);
+//     }
+//   }
+//
+//   return (
+//     <button
+//       onClick={handleClick}
+//       disabled={loading}
+//       style={{
+//         border: '1px solid hsl(var(--border))', borderRadius: 10,
+//         padding: '10px 20px', fontSize: 14, fontWeight: 500,
+//         background: 'transparent', color: 'hsl(var(--foreground))',
+//         cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit',
+//       }}
+//     >
+//       {loading ? '...' : label}
+//     </button>
+//   );
+// }

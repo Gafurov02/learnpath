@@ -7,8 +7,9 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1).optional(),
 
   // Server-only
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  STRIPE_SECRET_KEY: z.string().min(1),
+  SUPABASE_SERVICE_ROLE_KEY: z.string(),
+  CRYPTO_PAY_TOKEN: z.string(),
+  STRIPE_SECRET_KEY: z.string(),
   STRIPE_WEBHOOK_SECRET: z.string().min(1),
   STRIPE_PRICE_ID: z.string().optional(),
   STRIPE_PRO_PRICE_ID: z.string(),
