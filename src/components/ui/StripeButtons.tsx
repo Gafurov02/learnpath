@@ -11,30 +11,25 @@ export function SubscribeButton({ label = 'Start Pro for $0.99/mo', tier = 'pro'
   const [loading, setLoading] = useState(false);
 
   async function handleClick() {
-    setLoading(true);
-    const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const wallet =
+        'UQCVTRFthItzY4JgF8B-RlqFzece7_xXC7_JcOAldeiFbHPK';
 
-    if (!session) {
-      router.push(`/${locale}/auth/signup`);
-      setLoading(false);
-      return;
-    }
+    const amount =
+        tier === 'max'
+          ? '3000000000'
+          : '300000000';
 
-    try {
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ locale, tier }),
-      });
-      const { url, error } = await res.json();
-      if (error) throw new Error(error);
-      window.location.href = url;
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Something went wrong';
-      alert(message);
-      setLoading(false);
-    }
+    const text =
+        tier === 'max'
+          ? 'LearnPath MAX'
+          : 'LearnPath PRO';
+
+    const url =
+        `ton://transfer/${wallet}` +
+        `?amount=${amount}` +
+        `&text=${encodeURIComponent(text)}`;
+
+    window.location.href = url;
   }
 
   return (
