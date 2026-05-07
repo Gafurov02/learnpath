@@ -185,7 +185,7 @@ export default function DashboardPage() {
                 {isMax ? 'Unlimited questions · AI Tutor · Day-by-day plan' : '50 questions / 3 days · All exams · Full AI explanations'}
               </div>
             </div>
-            <ManageSubscriptionButton label="Manage subscription" />
+            {/*<ManageSubscriptionButton label="Manage subscription" />*/}
           </div>
         ) : (
           <div style={{ background: 'rgba(107,92,231,0.08)', border: '1px solid rgba(107,92,231,0.2)', borderRadius: 16, padding: '20px 24px', marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
