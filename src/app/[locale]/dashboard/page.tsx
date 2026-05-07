@@ -7,7 +7,7 @@ import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
-import { ManageSubscriptionButton } from '@/components/ui/StripeButtons';
+// import { ManageSubscriptionButton } from '@/components/ui/StripeButtons';
 import { calculateDailyStreak } from '@/lib/progress';
 import { getSubscriptionTier, hasProAccess, type SubscriptionTier } from '@/lib/subscription';
 import { getUserDisplayName } from '@/lib/user-profile';
