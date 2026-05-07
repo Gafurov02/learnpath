@@ -2,6 +2,7 @@
 
 import { ThemeProvider } from 'next-themes';
 import { NextIntlClientProvider } from 'next-intl';
+import { TonConnectUIProvider } from "@tonconnect/ui-react";
 
 export function Providers({
                               children,
@@ -13,16 +14,10 @@ export function Providers({
     locale: string;
 }) {
     return (
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            enableColorScheme={false}
-            disableTransitionOnChange
+        <TonConnectUIProvider
+            manifestUrl="https://gafurov.cc/tonconnect-manifest.json"
         >
-            <NextIntlClientProvider locale={locale} messages={messages} timeZone="UTC">
-                {children}
-            </NextIntlClientProvider>
-        </ThemeProvider>
+            {children}
+        </TonConnectUIProvider>
     );
 }

@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase';
 import { getLevelByXp } from '@/lib/levels';
 import { hasProAccess } from '@/lib/subscription';
 import { LangSwitcher } from './LangSwitcher';
+import WalletButton from "@/components/TonConnectButton";
 
 export function AppNavbar() {
   const locale = useLocale();
@@ -88,6 +89,7 @@ export function AppNavbar() {
                 </Link>
               </div>
             </div>
+            <WalletButton />
           </div>
         </nav>
 
