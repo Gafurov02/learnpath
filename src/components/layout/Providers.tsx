@@ -1,17 +1,11 @@
 'use client';
 
-import { ThemeProvider } from 'next-themes';
-import { NextIntlClientProvider } from 'next-intl';
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
 
-export function Providers({
-                              children,
-                              messages,
-                              locale,
+export default function Providers({
+                                      children,
                           }: {
     children: React.ReactNode;
-    messages: Record<string, unknown>;
-    locale: string;
 }) {
     return (
         <TonConnectUIProvider

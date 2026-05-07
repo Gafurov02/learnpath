@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { notFound } from 'next/navigation';
 import { getMessages } from 'next-intl/server';
-import { Providers } from '@/components/layout/Providers';
+import Providers from '@/components/layout/Providers';
 import { ServiceWorkerRegister } from '@/components/layout/ServiceWorkerRegister';
 import '../globals.css';
 
