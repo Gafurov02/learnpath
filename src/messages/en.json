@@ -67,7 +67,7 @@
     "sub": "Start free. Upgrade when you're ready.",
     "free": {
       "name": "Free",
-      "price": "$0",
+      "price": "0 TON",
       "period": "forever",
       "cta": "Start for free",
       "features": [
@@ -85,9 +85,9 @@
     "pro": {
       "name": "Pro Practice",
       "badge": "Practice tier",
-      "price": "$0.99",
+      "price": "0.3 TON",
       "period": "per month · cancel anytime",
-      "cta": "Start Pro for $10/mo",
+      "cta": "Start Pro for 0.3 TON/mo",
       "features": [
         "50 questions every 3 days",
         "All exams",
@@ -104,9 +104,9 @@
     "max": {
       "name": "Max",
       "badge": "Full access",
-      "price": "$10",
+      "price": "3 TON",
       "period": "per month · for intensive prep",
-      "cta": "Start Max for $19/mo",
+      "cta": "Start Max for 3 TON/mo",
       "features": [
         "Everything in Pro Practice",
         "Unlimited questions",

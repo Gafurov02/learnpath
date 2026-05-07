@@ -37,7 +37,7 @@ function StatsSection() {
         { num: '50K+', label: t('students') },
         { num: '12', label: t('exams') },
         { num: '94%', label: t('passRate') },
-        { num: '$0.99+', label: t('price') },
+        { num: '0.3 TON+', label: t('price') },
     ];
     return (
         <div style={{ borderTop: '1px solid hsl(var(--border))', borderBottom: '1px solid hsl(var(--border))' }}>

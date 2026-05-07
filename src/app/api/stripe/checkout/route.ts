@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const plan = tier === 'max' ? 'max' : 'pro';
 
     // цены
-    const amount = plan === 'max' ? '10' : '0.99';
+    const amount = plan === 'max' ? '3' : '0.3';
 
     // создаем invoice
     const response = await fetch(
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            asset: 'USDT',
+            asset: 'TON',
             amount,
             description: `LearnPath ${plan.toUpperCase()} Subscription`,
             hidden_message: 'Спасибо за оплату ❤️',
