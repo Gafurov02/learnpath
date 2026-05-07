@@ -40,7 +40,7 @@ export default async function LocaleLayout({
     return (
         <html lang={locale} suppressHydrationWarning data-scroll-behavior="smooth">
         <body style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', margin: 0 }}>
-        <Providers messages={messages as Record<string, unknown>} locale={locale}>
+        <Providers>
             <ServiceWorkerRegister />
             {children}
         </Providers>
