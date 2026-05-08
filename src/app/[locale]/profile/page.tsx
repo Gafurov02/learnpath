@@ -274,7 +274,16 @@ export default function ProfilePage() {
   return (
       <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
         <AppNavbar />
-        <main style={{ maxWidth: 860, margin: '0 auto', padding: '20px 16px 80px' }}>
+        <main
+          style={{
+            maxWidth: 920,
+            margin: '0 auto',
+            padding: '32px 20px 120px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20,
+          }}
+        >
 
           <ProfileHero
               name={name}
@@ -311,7 +320,7 @@ export default function ProfilePage() {
               accuracy={accuracy}
           />
 
-          <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             {/* Avatar upload */}
             <label style={{ position: 'relative', cursor: 'pointer', flexShrink: 0 }} title={locale === 'ru' ? 'Нажми чтобы изменить фото' : 'Click to change photo'}>
               <UserAvatar avatarUrl={avatarUrl} email={user?.email} name={nickname.trim() || name} id={user?.id} size={44} accent={isPro ? 'pro' : 'default'} />
@@ -337,7 +346,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Tabs */}
-          <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'hsl(var(--muted))', borderRadius: 10, padding: 4 }}>
+          <div style={{ display: 'flex', gap: 4, background: 'hsl(var(--muted))', borderRadius: 12, padding: 5 }}>
             <button onClick={() => setActiveTab('stats')} style={tabStyle(activeTab === 'stats')}>
               📊 {locale === 'ru' ? 'Статистика' : 'Statistics'}
               {isPro && <span style={{ marginLeft: 6, fontSize: 10, background: 'linear-gradient(135deg,#6B5CE7,#9B8DFF)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontWeight: 700 }}>PRO</span>}
@@ -356,14 +365,16 @@ export default function ProfilePage() {
 
           {/* STATS TAB */}
           {activeTab === 'stats' && (
-              <ProfileStatsTab
-                  locale={locale}
-                  isPro={isPro}
-                  examStats={examStats}
-                  diffStats={diffStats}
-                  weakTopics={weakTopics}
-                  strongTopics={strongTopics}
-              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <ProfileStatsTab
+                    locale={locale}
+                    isPro={isPro}
+                    examStats={examStats}
+                    diffStats={diffStats}
+                    weakTopics={weakTopics}
+                    strongTopics={strongTopics}
+                />
+              </div>
           )}
         </main>
       </div>
