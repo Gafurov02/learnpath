@@ -446,7 +446,9 @@ export default function ProfilePage() {
               position: 'relative',
               maxWidth: 1320,
               margin: '0 auto',
-              padding: '40px 24px 120px',
+              padding: window.innerWidth < 768
+                ? '20px 14px 120px'
+                : '40px 24px 120px',
               display: 'flex',
               flexDirection: 'column',
               gap: 28,
@@ -470,8 +472,11 @@ export default function ProfilePage() {
                 ...glassCard,
                 padding: 24,
                 display: 'flex',
+                flexDirection:
+                  window.innerWidth < 768 ? 'column' : 'row',
                 justifyContent: 'space-between',
-                alignItems: 'center',
+                alignItems:
+                  window.innerWidth < 768 ? 'stretch' : 'center',
                 gap: 20,
                 flexWrap: 'wrap',
               }}
@@ -523,7 +528,7 @@ export default function ProfilePage() {
                     type="file"
                     accept="image/*"
                     onChange={handleAvatarFileChange}
-                    style={{ display: 'none' }}
+                    style={{ display: 'none', boxSizing: 'border-box' }}
                 />
               </label>
 
@@ -578,7 +583,10 @@ export default function ProfilePage() {
                         : 'Nickname'
                   }
                   style={{
-                    width: 220,
+                    width:
+                      window.innerWidth < 768
+                        ? '100%'
+                        : 220,
                     padding: '12px 14px',
                     borderRadius: 14,
                     border:
@@ -587,6 +595,7 @@ export default function ProfilePage() {
                     color: '#fff',
                     fontSize: 14,
                     outline: 'none',
+                    boxSizing: 'border-box',
                   }}
               />
 
@@ -602,6 +611,9 @@ export default function ProfilePage() {
                     color: '#fff',
                     fontWeight: 600,
                     cursor: 'pointer',
+                    flex: window.innerWidth < 768 ? 1 : undefined,
+                    justifyContent: 'center',
+                    boxSizing: 'border-box',
                   }}
               >
                 {savingProfile
@@ -623,6 +635,9 @@ export default function ProfilePage() {
                     color: '#ff8080',
                     fontWeight: 600,
                     cursor: 'pointer',
+                    flex: window.innerWidth < 768 ? 1 : undefined,
+                    justifyContent: 'center',
+                    boxSizing: 'border-box',
                   }}
               >
                 {locale === 'ru'
@@ -637,7 +652,9 @@ export default function ProfilePage() {
               style={{
                 display: 'grid',
                 gridTemplateColumns:
-                    'minmax(0,1fr) 340px',
+                    window.innerWidth < 1024
+                        ? '1fr'
+                        : 'minmax(0,1fr) 340px',
                 gap: 24,
                 alignItems: 'start',
               }}
@@ -687,7 +704,10 @@ export default function ProfilePage() {
 
                 <div
                     style={{
-                      maxHeight: 620,
+                      maxHeight:
+                        window.innerWidth < 768
+                            ? 'unset'
+                            : 620,
                       overflowY: 'auto',
                       paddingRight: 4,
                     }}
@@ -711,8 +731,14 @@ export default function ProfilePage() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 24,
-                  position: 'sticky',
-                  top: 100,
+                  position:
+                    window.innerWidth < 1024
+                        ? 'relative'
+                        : 'sticky',
+                  top:
+                    window.innerWidth < 1024
+                        ? undefined
+                        : 100,
                 }}
             >
               <DailyQuests quests={dailyQuests} />

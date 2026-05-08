@@ -21,7 +21,11 @@ export function ProfileAchievements({
             style={{
                 display: 'grid',
                 gridTemplateColumns:
-                    'repeat(auto-fill, minmax(180px, 1fr))',
+                    window.innerWidth < 640
+                        ? '1fr'
+                        : window.innerWidth < 1024
+                            ? 'repeat(2,1fr)'
+                            : 'repeat(3,1fr)',
                 gap: 12,
             }}
         >
