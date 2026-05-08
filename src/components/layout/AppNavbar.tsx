@@ -50,7 +50,7 @@ export function AppNavbar() {
     { href: `/${locale}/quiz`, label: t('practice'), icon: Zap },
     { href: `/${locale}/chat`, label: locale === 'ru' ? 'Тьютор' : 'Tutor', icon: MessageCircle },
     { href: `/${locale}/leaderboard`, label: t('leaderboard'), icon: Trophy },
-    { href: `/${locale}/school`, label: locale === 'ru' ? 'Школа' : 'School', icon: School },
+    { href: `/${locale}/schools`, label: locale === 'ru' ? 'Школы' : 'Schools', icon: School },
     { href: `/${locale}/profile`, label: t('profile'), icon: User },
   ];
 
