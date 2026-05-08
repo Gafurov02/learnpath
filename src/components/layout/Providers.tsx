@@ -48,7 +48,9 @@ export default function Providers({
 
                     <CommandMenu />
 
-                    <MobileDock />
+                    <div className="mobile-dock-wrapper">
+                        <MobileDock />
+                    </div>
                 </TonConnectUIProvider>
             </ThemeProvider>
         </NextIntlClientProvider>
