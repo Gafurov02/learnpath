@@ -140,6 +140,32 @@ export function AppNavbar() {
           .lp-desktop-nav { display: none !important; }
           .lp-mobile-bottom-pad { height: 65px; }
         }
+
+        .profile-card {
+          transition: all 0.2s ease;
+        }
+
+        .profile-card:hover {
+          transform: translateY(-2px);
+          border-color: rgba(107,92,231,0.25) !important;
+          box-shadow: 0 10px 24px rgba(107,92,231,0.06);
+        }
+
+        @media (max-width: 768px) {
+          .profile-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+
+          .profile-card {
+            padding: 20px !important;
+            border-radius: 20px !important;
+          }
+
+          .profile-section {
+            gap: 18px !important;
+          }
+        }
       `}</style>
       </>
   );
