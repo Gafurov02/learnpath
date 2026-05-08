@@ -3,6 +3,7 @@
 import React from 'react';
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import { NextIntlClientProvider } from "next-intl";
+import { ThemeProvider } from "next-themes";
 
 export default function Providers({
                                       children,
@@ -18,11 +19,17 @@ export default function Providers({
             locale={locale}
             messages={messages}
         >
-            <TonConnectUIProvider
-                manifestUrl="https://gafurov.cc/tonconnect-manifest.json"
+            <ThemeProvider
+                attribute="class"
+                defaultTheme="dark"
+                enableSystem
             >
-                {children}
-            </TonConnectUIProvider>
+                <TonConnectUIProvider
+                    manifestUrl="https://gafurov.cc/tonconnect-manifest.json"
+                >
+                    {children}
+                </TonConnectUIProvider>
+            </ThemeProvider>
         </NextIntlClientProvider>
     );
 }
