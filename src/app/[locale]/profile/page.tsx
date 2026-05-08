@@ -73,7 +73,6 @@ export default function ProfilePage() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPro, setIsPro] = useState(false);
-  const [activeTab, setActiveTab] = useState<'stats' | 'achievements'>('stats');
   const [nickname, setNickname] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -328,8 +327,22 @@ export default function ProfilePage() {
             }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-              <ProfileOverview xp={xp} streak={streak} accuracy={accuracy} plan={"free"} />
+              <ProfileOverview
+                  xp={xp}
+                  streak={streak}
+                  accuracy={accuracy}
+                  plan={isPro ? 'pro' : 'free'}
+              />
               <ProfileActivityChart data={last7} />
+              <ProfileAchievements
+                  achievements={achievements}
+              />
+              <LeagueCard
+                  name={league.name}
+                  icon={league.icon}
+                  color={league.color}
+                  xp={xp}
+              />
               <StudyRecommendations
                   weakTopics={weakTopics}
                   streak={streak}
@@ -338,22 +351,10 @@ export default function ProfilePage() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-              <LeagueCard
-                  name={league.name}
-                  icon={league.icon}
-                  color={league.color}
-                  xp={xp}
-              />
 
               <DailyQuests quests={dailyQuests} />
             </div>
           </div>
-
-          <StudyRecommendations
-              weakTopics={weakTopics}
-              streak={streak}
-              accuracy={accuracy}
-          />
 
           <div style={{
             ...glassCard,
@@ -387,38 +388,6 @@ export default function ProfilePage() {
                 <button onClick={() => setAvatarUrl(null)} style={{ background: 'transparent', border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 10px', fontSize: 12, color: 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>✕</button>
             )}
           </div>
-
-          {/* Tabs */}
-          <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)', borderRadius: 18, padding: 6 }}>
-            <button onClick={() => setActiveTab('stats')} style={tabStyle(activeTab === 'stats')}>
-              📊 {locale === 'ru' ? 'Статистика' : 'Statistics'}
-              {isPro && <span style={{ marginLeft: 6, fontSize: 10, background: 'linear-gradient(135deg,#6B5CE7,#9B8DFF)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontWeight: 700 }}>PRO</span>}
-            </button>
-            <button onClick={() => setActiveTab('achievements')} style={tabStyle(activeTab === 'achievements')}>
-              🏆 {t('achievements')} · {achievements.filter(a => a.earned).length}/{achievements.length}
-            </button>
-          </div>
-
-          {/* ACHIEVEMENTS TAB */}
-          {activeTab === 'achievements' && (
-              <ProfileAchievements
-                  achievements={achievements}
-              />
-          )}
-
-          {/* STATS TAB */}
-          {activeTab === 'stats' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                <ProfileStatsTab
-                    locale={locale}
-                    isPro={isPro}
-                    examStats={examStats}
-                    diffStats={diffStats}
-                    weakTopics={weakTopics}
-                    strongTopics={strongTopics}
-                />
-              </div>
-          )}
         </main>
       </div>
   );
