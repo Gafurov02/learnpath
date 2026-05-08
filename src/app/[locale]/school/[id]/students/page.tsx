@@ -74,11 +74,11 @@ export default function StudentsPage({ params }: { params: Promise<{ id: string 
     void loadStudents();
   }, [loadStudents]);
 
-  useLiveRefresh({
-    enabled: !!schoolId,
-    intervalMs: 12000,
-    onRefresh: async () => loadStudents(true),
-  });
+  // useLiveRefresh({
+  //   enabled: !!schoolId,
+  //   intervalMs: 12000,
+  //   onRefresh: async () => loadStudents(true),
+  // });
 
   async function removeStudent(userId: string) {
     const response = await fetch(`/api/school/${schoolId}/members`, {

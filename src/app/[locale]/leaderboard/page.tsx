@@ -59,11 +59,11 @@ export default function LeaderboardPage() {
     void loadLeaderboard();
   }, [loadLeaderboard]);
 
-  useLiveRefresh({
-    enabled: !!userId,
-    intervalMs: 12000,
-    onRefresh: async () => loadLeaderboard(true),
-  });
+  // useLiveRefresh({
+  //   enabled: !!userId,
+  //   intervalMs: 12000,
+  //   onRefresh: async () => loadLeaderboard(true),
+  // });
 
   if (loading) {
     return (

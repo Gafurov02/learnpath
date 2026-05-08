@@ -74,11 +74,11 @@ export default function SchoolPage() {
     void loadSchools();
   }, [loadSchools]);
 
-  useLiveRefresh({
-    enabled: !!user && !joining,
-    intervalMs: 12000,
-    onRefresh: async () => loadSchools(true),
-  });
+  // useLiveRefresh({
+  //   enabled: !!user && !joining,
+  //   intervalMs: 12000,
+  //   onRefresh: async () => loadSchools(true),
+  // });
 
   async function handleJoin(event: React.FormEvent) {
     event.preventDefault();
