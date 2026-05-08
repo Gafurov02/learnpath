@@ -111,7 +111,7 @@ export default function SchoolPage() {
 
       setJoinCode('');
       await loadSchools(true);
-      router.push(`/${locale}/school/${payload.schoolId}`);
+      router.push(`/${locale}/schools/${payload.schoolId}`);
     } finally {
       setJoining(false);
     }
@@ -149,7 +149,7 @@ export default function SchoolPage() {
                 {refreshing ? (locale === 'ru' ? 'Обновляю...' : 'Refreshing...') : (locale === 'ru' ? 'Обновить' : 'Refresh')}
               </button>
               {!ownedSchool && (
-                <Link href={`/${locale}/school/create`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '10px 20px', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
+                <Link href={`/${locale}/schools/create`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '10px 20px', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
                   + {locale === 'ru' ? 'Создать школу' : 'Create school'}
                 </Link>
               )}
@@ -171,13 +171,13 @@ export default function SchoolPage() {
                 </span>
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <Link href={`/${locale}/school/${ownedSchool.id}`} style={{ background: '#fff', color: '#6B5CE7', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+                <Link href={`/${locale}/schools/${ownedSchool.id}`} style={{ background: '#fff', color: '#6B5CE7', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
                   {locale === 'ru' ? 'Панель управления →' : 'Dashboard →'}
                 </Link>
-                <Link href={`/${locale}/school/${ownedSchool.id}/students`} style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>
+                <Link href={`/${locale}/schools/${ownedSchool.id}/students`} style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>
                   {locale === 'ru' ? 'Студенты' : 'Students'}
                 </Link>
-                <Link href={`/${locale}/school/${ownedSchool.id}/questions`} style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>
+                <Link href={`/${locale}/schools/${ownedSchool.id}/questions`} style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>
                   {locale === 'ru' ? 'Вопросы' : 'Questions'}
                 </Link>
               </div>
@@ -189,7 +189,7 @@ export default function SchoolPage() {
               <h3 style={{ fontSize: 16, fontWeight: 500, marginBottom: 14 }}>{locale === 'ru' ? 'Вы участник' : 'You\'re a member of'}</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {memberships.map((membership) => (
-                  <Link key={membership.school_id} href={`/${locale}/school/${membership.school_id}`} style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 14, padding: '16px 20px', textDecoration: 'none', color: 'hsl(var(--foreground))', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Link key={membership.school_id} href={`/${locale}/schools/${membership.school_id}`} style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 14, padding: '16px 20px', textDecoration: 'none', color: 'hsl(var(--foreground))', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ fontSize: 15, fontWeight: 500 }}>{membership.schools?.name ?? (locale === 'ru' ? 'Школа' : 'School')}</div>
                       <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginTop: 2, textTransform: 'capitalize' }}>{membership.role}</div>
