@@ -111,11 +111,11 @@ export default function ProfilePage() {
   if (loading) {
     return (
         <div
-          style={{
-            minHeight: '100vh',
-            backgroundColor:
-              'hsl(var(--background))',
-          }}
+            style={{
+              minHeight: '100vh',
+              backgroundColor:
+                  'hsl(var(--background))',
+            }}
         >
           <AppNavbar />
           <ProfilePageSkeleton />

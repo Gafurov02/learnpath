@@ -8,7 +8,14 @@ import { PricingCards } from '@/components/pricing/PricingCards';
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
     return (
-        <main style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
+        <main style={{
+            minHeight: '100vh',
+            backgroundColor: 'hsl(var(--background))',
+            color: 'hsl(var(--foreground))',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '32px'
+        }}>
             <Navbar />
             <HeroSection />
             <StatsSection />
@@ -18,13 +25,41 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <Footer locale={locale} />
             <style>{`
         @media (max-width: 600px) {
-          .stats-grid { gap: 16px 32px !important; }
-          .features-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-          .pricing-grid { grid-template-columns: 1fr !important; }
-          .feature-card { padding: 16px !important; }
-          .feature-icon { width: 32px !important; height: 32px !important; font-size: 14px !important; margin-bottom: 10px !important; }
-          .feature-title { font-size: 13px !important; }
-          .feature-desc { font-size: 12px !important; }
+          .stats-grid {
+            gap: 18px 24px !important;
+            padding: 28px 18px !important;
+          }
+
+          .features-grid {
+            grid-template-columns: 1fr !important;
+            gap: 14px !important;
+          }
+
+          .pricing-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+
+          .feature-card {
+            padding: 18px !important;
+            border-radius: 18px !important;
+          }
+
+          .feature-icon {
+            width: 34px !important;
+            height: 34px !important;
+            font-size: 15px !important;
+            margin-bottom: 12px !important;
+          }
+
+          .feature-title {
+            font-size: 14px !important;
+          }
+
+          .feature-desc {
+            font-size: 12px !important;
+            line-height: 1.6 !important;
+          }
         }
       `}</style>
         </main>
@@ -40,8 +75,22 @@ function StatsSection() {
         { num: '0.3 TON+', label: t('price') },
     ];
     return (
-        <div style={{ borderTop: '1px solid hsl(var(--border))', borderBottom: '1px solid hsl(var(--border))' }}>
-            <div className="stats-grid" style={{ maxWidth: 900, margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '28px 56px', padding: '36px 24px' }}>
+        <div style={{
+            borderTop: '1px solid hsl(var(--border))',
+            borderBottom: '1px solid hsl(var(--border))',
+            margin: '0 20px',
+            borderRadius: 20,
+            background: 'rgba(255,255,255,0.02)'
+        }}>
+            <div className="stats-grid" style={{
+                maxWidth: 900,
+                margin: '0 auto',
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: '32px 64px',
+                padding: '42px 28px'
+            }}>
                 {stats.map(s => (
                     <div key={s.label} style={{ textAlign: 'center', minWidth: 60 }}>
                         <div style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 'clamp(24px,5vw,38px)', letterSpacing: '-1px', color: 'hsl(var(--foreground))' }}>{s.num}</div>
@@ -64,15 +113,34 @@ function FeaturesSection() {
         { key: 'school', icon: '⬡' },
     ] as const;
     return (
-        <section id="features" style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(48px,8vw,80px) 20px' }}>
+        <section id="features" style={{
+            maxWidth: 1000,
+            margin: '0 auto',
+            padding: 'clamp(56px,8vw,92px) 20px'
+        }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: '#6B5CE7', textTransform: 'uppercase', marginBottom: 12 }}>{t('tag')}</div>
             <h2 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 'clamp(26px,4vw,44px)', letterSpacing: '-1px', lineHeight: 1.15, marginBottom: 12, fontWeight: 400, color: 'hsl(var(--foreground))' }}>
                 {t('title')}
             </h2>
             <p style={{ fontSize: 15, color: 'hsl(var(--muted-foreground))', lineHeight: 1.7, maxWidth: 480, marginBottom: 36, fontWeight: 300 }}>{t('sub')}</p>
-            <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+            <div className="features-grid" style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: 18,
+                alignItems: 'stretch'
+            }}>
                 {features.map(f => (
-                    <div key={f.key} className="feature-card" style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16, padding: 22 }}>
+                    <div key={f.key} className="feature-card" style={{
+                        background: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: 20,
+                        padding: 24,
+                        minHeight: 180,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-start',
+                        transition: 'all 0.2s ease'
+                    }}>
                         <div className="feature-icon" style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(107,92,231,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, color: '#6B5CE7', marginBottom: 14 }}>
                             {f.icon}
                         </div>
@@ -88,7 +156,11 @@ function FeaturesSection() {
 function PricingSection({ locale }: { locale: string }) {
     const t = useTranslations('pricing');
     return (
-        <section id="pricing" style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(48px,8vw,80px) 20px' }}>
+        <section id="pricing" style={{
+            maxWidth: 1000,
+            margin: '0 auto',
+            padding: 'clamp(56px,8vw,92px) 20px'
+        }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: '#6B5CE7', textTransform: 'uppercase', marginBottom: 12 }}>{t('tag')}</div>
             <h2 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 'clamp(26px,4vw,44px)', letterSpacing: '-1px', marginBottom: 12, fontWeight: 400, color: 'hsl(var(--foreground))' }}>
                 {t('title')}
@@ -105,7 +177,11 @@ function PricingSection({ locale }: { locale: string }) {
 function Footer({ locale }: { locale: string }) {
     const t = useTranslations('footer');
     return (
-        <footer style={{ borderTop: '1px solid hsl(var(--border))', padding: '28px 20px' }}>
+        <footer style={{
+            borderTop: '1px solid hsl(var(--border))',
+            padding: '36px 20px 28px',
+            marginTop: 24
+        }}>
             <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <div style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 17, color: 'hsl(var(--foreground))' }}>
                     Learn<span style={{ color: '#6B5CE7' }}>Path</span>
