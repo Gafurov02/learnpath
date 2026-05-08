@@ -589,13 +589,15 @@ export default function ProfilePage() {
                         : 220,
                     padding: '12px 14px',
                     borderRadius: 14,
-                    border:
-                        '1px solid rgba(255,255,255,0.08)',
-                    background: 'rgba(255,255,255,0.04)',
-                    color: '#fff',
+                    border: '1px solid hsl(var(--border))',
+                    background: 'hsl(var(--background))',
+                    color: 'hsl(var(--foreground))',
                     fontSize: 14,
                     outline: 'none',
                     boxSizing: 'border-box',
+                    transition: 'all 0.2s ease',
+                    boxShadow:
+                        '0 2px 10px rgba(0,0,0,0.04)',
                   }}
               />
 
