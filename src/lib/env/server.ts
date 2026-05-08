@@ -16,6 +16,9 @@ const serverEnvSchema = z.object({
   STRIPE_MAX_PRICE_ID: z.string(),
   ANTHROPIC_API_KEY: z.string().min(1),
   ADMIN_EMAILS: z.string().optional(),
+
+  TON_API_KEY: z.string(),
+  TON_WALLET_ADDRESS: z.string(),
 });
 
 let cached: z.infer<typeof serverEnvSchema> | null = null;

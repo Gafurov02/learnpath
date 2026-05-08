@@ -5,10 +5,13 @@ import { useLocale } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
-export function SubscribeButton({ label = 'Start Pro for $0.99/mo', tier = 'pro' }: { label?: string; tier?: 'pro' | 'max' }) {
+export function SubscribeButton({ label = 'Start Pro for 0.3 TON/mo', tier = 'pro', currentPlan = 'free' }: { label?: string; tier?: 'pro' | 'max'; currentPlan?: string; }) {
   const locale = useLocale();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const alreadySubscribed =
+      currentPlan === tier ||
+      currentPlan === 'max';
 
   async function handleClick() {
     const wallet =
@@ -35,17 +38,30 @@ export function SubscribeButton({ label = 'Start Pro for $0.99/mo', tier = 'pro'
   return (
     <button
       onClick={handleClick}
-      disabled={loading}
+      disabled={loading || alreadySubscribed}
       style={{
         display: 'block', width: '100%', textAlign: 'center',
-        background: loading ? '#9B8DFF' : '#6B5CE7',
+        background:
+            alreadySubscribed
+                ? '#22C07A'
+                : loading
+                    ? '#9B8DFF'
+                    : '#6B5CE7',
         borderRadius: 10, padding: 12, fontSize: 14,
         fontWeight: 500, color: '#fff', border: 'none',
         cursor: loading ? 'default' : 'pointer',
         fontFamily: 'inherit', transition: 'opacity 0.15s',
       }}
     >
-      {loading ? 'Redirecting...' : label}
+      {
+          loading
+              ? 'Redirecting...'
+              : alreadySubscribed
+                ? tier === 'max'
+                    ? 'MAX Active'
+                    : 'Current Plan'
+                : label
+      }
     </button>
   );
 }

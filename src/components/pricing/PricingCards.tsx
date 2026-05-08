@@ -26,7 +26,7 @@ function getBorder(plan: Plan) {
   return '1px solid hsl(var(--border))';
 }
 
-export function PricingCards({ locale }: { locale: string }) {
+export function PricingCards({ locale, currentPlan, }: { locale: string, currentPlan: string; }) {
   const t = useTranslations('pricing');
 
   return (
@@ -68,8 +68,8 @@ export function PricingCards({ locale }: { locale: string }) {
                 {t(`${plan.key}.cta`)}
               </Link>
             )}
-            {plan.action === 'pro' && <SubscribeButton tier="pro" label={t(`${plan.key}.cta`)} />}
-            {plan.action === 'max' && <SubscribeButton tier="max" label={t(`${plan.key}.cta`)} />}
+            {plan.action === 'pro' && <SubscribeButton tier="pro" currentPlan={currentPlan} label={t(`${plan.key}.cta`)} />}
+            {plan.action === 'max' && <SubscribeButton tier="max" currentPlan={currentPlan} label={t(`${plan.key}.cta`)} />}
             {plan.action === 'contact' && (
               <a href="mailto:boburbek@gafurov.cc" style={{ display: 'block', textAlign: 'center', border: '1.5px solid hsl(var(--border))', borderRadius: 10, padding: '11px', fontSize: 14, fontWeight: 500, color: textColor, textDecoration: 'none' }}>
                 {t(`${plan.key}.cta`)}
