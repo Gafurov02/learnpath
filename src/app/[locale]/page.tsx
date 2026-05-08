@@ -94,7 +94,10 @@ function PricingSection({ locale }: { locale: string }) {
                 {t('title')}
             </h2>
             <p style={{ fontSize: 15, color: 'hsl(var(--muted-foreground))', marginBottom: 40, fontWeight: 300 }}>{t('sub')}</p>
-            <PricingCards locale={locale} />
+            <PricingCards
+                locale={locale}
+                currentPlan="free"
+            />
         </section>
     );
 }
