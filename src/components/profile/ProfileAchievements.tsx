@@ -37,8 +37,9 @@ export function ProfileAchievements({
                                 ? 'rgba(107,92,231,0.28)'
                                 : 'hsl(var(--border))'
                         }`,
-                        borderRadius: 20,
-                        padding: 18,
+                        borderRadius: 18,
+                        minHeight: 110,
+                        padding: 14,
                         opacity: a.earned ? 1 : 0.45,
                         transition: 'all 0.25s ease',
                         position: 'relative',
