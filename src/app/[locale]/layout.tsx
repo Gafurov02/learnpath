@@ -4,6 +4,7 @@ import { getMessages } from 'next-intl/server';
 import Providers from '@/components/layout/Providers';
 import { ServiceWorkerRegister } from '@/components/layout/ServiceWorkerRegister';
 import '../globals.css';
+import { PageTransition } from "@/components/layout/PageTransition";
 
 export const metadata: Metadata = {
     title: 'LearnPath — AI Exam Prep',
@@ -45,7 +46,10 @@ export default async function LocaleLayout({
             messages={messages}
         >
             <ServiceWorkerRegister />
-            {children}
+
+            <PageTransition>
+                {children}
+            </PageTransition>
         </Providers>
         </body>
         </html>
