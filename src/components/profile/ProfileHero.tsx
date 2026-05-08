@@ -1,6 +1,7 @@
 'use client';
 
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { AnimatedXP } from "@/components/profile/AnimatedXP";
 
 type Props = {
     name: string;
@@ -135,7 +136,7 @@ export function ProfileHero({
                                     fontWeight: 600,
                                 }}
                             >
-                                ⚡ {xp.toLocaleString()} XP
+                                ⚡ <AnimatedXP value={xp} /> XP
                             </div>
 
                             <div
