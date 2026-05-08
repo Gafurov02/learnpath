@@ -11,6 +11,7 @@ import { UserAvatar } from '@/components/ui/UserAvatar';
 import { getLevelByXp, LEVELS } from '@/lib/levels';
 import { hasProAccess } from '@/lib/subscription';
 import { getUserAvatarUrl, getUserDisplayName } from '@/lib/user-profile';
+import { ProfileOverview } from "@/components/profile/ProfileOverview";
 
 type Achievement = { code: string; name: string; description: string; icon: string; earned: boolean; earned_at?: string };
 type Attempt = { exam: string; topic: string; correct: boolean; difficulty: string; created_at: string };
@@ -283,6 +284,13 @@ export default function ProfilePage() {
               <button onClick={handleLogout} style={{ flex: isPro ? 1 : undefined, border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '9px 16px', fontSize: 13, background: 'transparent', color: 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit' }}>{t('logOut')}</button>
             </div>
           </div>
+
+          <ProfileOverview
+              xp={profile.xp ?? 0}
+              streak={streak}
+              accuracy={accuracy}
+              plan={subscription?.plan ?? 'free'}
+          />
 
           <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             {/* Avatar upload */}
