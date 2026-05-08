@@ -286,10 +286,10 @@ export default function ProfilePage() {
           </div>
 
           <ProfileOverview
-              xp={subscription.xp ?? 0}
+              xp={xp}
               streak={streak}
               accuracy={accuracy}
-              plan={subscription?.plan ?? 'free'}
+              plan={isPro ? 'pro' : 'free'}
           />
 
           <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -318,22 +318,6 @@ export default function ProfilePage() {
 
             {profileError && <div style={{ width: '100%', fontSize: 12, color: '#E84040' }}>{profileError}</div>}
             {profileSuccess && <div style={{ width: '100%', fontSize: 12, color: '#22C07A' }}>{profileSuccess}</div>}
-          </div>
-
-          {/* Quick stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 8, marginBottom: 16 }}>
-            {[
-              { label: t('questions'), value: total.toString(), color: '#6B5CE7' },
-              { label: t('correct'), value: correct.toString(), color: '#22C07A' },
-              { label: t('accuracy'), value: total > 0 ? `${accuracy}%` : '—', color: '#22C07A' },
-              { label: t('streakLabel'), value: streak.toString(), color: '#EF9F27' },
-              { label: 'XP', value: xp.toLocaleString(), color: '#6B5CE7' },
-            ].map(s => (
-                <div key={s.label} style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12, padding: '12px 14px' }}>
-                  <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>{s.label}</div>
-                  <div style={{ fontSize: 22, fontWeight: 500, color: s.color }}>{s.value}</div>
-                </div>
-            ))}
           </div>
 
           {/* Tabs */}
