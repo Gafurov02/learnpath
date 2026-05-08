@@ -337,12 +337,6 @@ export default function ProfilePage() {
               <ProfileAchievements
                   achievements={achievements}
               />
-              <LeagueCard
-                  name={league.name}
-                  icon={league.icon}
-                  color={league.color}
-                  xp={xp}
-              />
               <StudyRecommendations
                   weakTopics={weakTopics}
                   streak={streak}
@@ -353,6 +347,12 @@ export default function ProfilePage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
               <DailyQuests quests={dailyQuests} />
+              <LeagueCard
+                  name={league.name}
+                  icon={league.icon}
+                  color={league.color}
+                  xp={xp}
+              />
             </div>
           </div>
 
