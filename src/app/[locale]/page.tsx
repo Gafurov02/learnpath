@@ -24,6 +24,28 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <PricingSection locale={locale} />
             <Footer locale={locale} />
             <style>{`
+        .feature-card:hover {
+          transform: translateY(-4px);
+          border-color: rgba(107,92,231,0.35) !important;
+          box-shadow: 0 10px 30px rgba(107,92,231,0.08);
+        }
+
+        .stats-wrapper {
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+        }
+
+        .section-heading {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-bottom: 42px;
+        }
+
+        .section-subtitle {
+          max-width: 560px;
+        }
+
         @media (max-width: 600px) {
           .stats-grid {
             gap: 18px 24px !important;
@@ -75,7 +97,7 @@ function StatsSection() {
         { num: '0.3 TON+', label: t('price') },
     ];
     return (
-        <div style={{
+        <div className="stats-wrapper" style={{
             borderTop: '1px solid hsl(var(--border))',
             borderBottom: '1px solid hsl(var(--border))',
             margin: '0 20px',
@@ -118,11 +140,13 @@ function FeaturesSection() {
             margin: '0 auto',
             padding: 'clamp(56px,8vw,92px) 20px'
         }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: '#6B5CE7', textTransform: 'uppercase', marginBottom: 12 }}>{t('tag')}</div>
-            <h2 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 'clamp(26px,4vw,44px)', letterSpacing: '-1px', lineHeight: 1.15, marginBottom: 12, fontWeight: 400, color: 'hsl(var(--foreground))' }}>
-                {t('title')}
-            </h2>
-            <p style={{ fontSize: 15, color: 'hsl(var(--muted-foreground))', lineHeight: 1.7, maxWidth: 480, marginBottom: 36, fontWeight: 300 }}>{t('sub')}</p>
+            <div className="section-heading">
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: '#6B5CE7', textTransform: 'uppercase' }}>{t('tag')}</div>
+                <h2 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 'clamp(26px,4vw,44px)', letterSpacing: '-1px', lineHeight: 1.15, margin: 0, fontWeight: 400, color: 'hsl(var(--foreground))' }}>
+                    {t('title')}
+                </h2>
+                <p className="section-subtitle" style={{ fontSize: 15, color: 'hsl(var(--muted-foreground))', lineHeight: 1.7, margin: 0, fontWeight: 300 }}>{t('sub')}</p>
+            </div>
             <div className="features-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
@@ -139,7 +163,9 @@ function FeaturesSection() {
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'flex-start',
-                        transition: 'all 0.2s ease'
+                        transition: 'all 0.2s ease',
+                        cursor: 'default',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
                     }}>
                         <div className="feature-icon" style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(107,92,231,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, color: '#6B5CE7', marginBottom: 14 }}>
                             {f.icon}
@@ -161,11 +187,13 @@ function PricingSection({ locale }: { locale: string }) {
             margin: '0 auto',
             padding: 'clamp(56px,8vw,92px) 20px'
         }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: '#6B5CE7', textTransform: 'uppercase', marginBottom: 12 }}>{t('tag')}</div>
-            <h2 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 'clamp(26px,4vw,44px)', letterSpacing: '-1px', marginBottom: 12, fontWeight: 400, color: 'hsl(var(--foreground))' }}>
-                {t('title')}
-            </h2>
-            <p style={{ fontSize: 15, color: 'hsl(var(--muted-foreground))', marginBottom: 40, fontWeight: 300 }}>{t('sub')}</p>
+            <div className="section-heading">
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: '#6B5CE7', textTransform: 'uppercase' }}>{t('tag')}</div>
+                <h2 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 'clamp(26px,4vw,44px)', letterSpacing: '-1px', margin: 0, fontWeight: 400, color: 'hsl(var(--foreground))' }}>
+                    {t('title')}
+                </h2>
+                <p className="section-subtitle" style={{ fontSize: 15, color: 'hsl(var(--muted-foreground))', margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{t('sub')}</p>
+            </div>
             <PricingCards
                 locale={locale}
                 currentPlan="free"
