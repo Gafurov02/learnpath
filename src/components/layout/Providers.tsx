@@ -4,6 +4,7 @@ import React from 'react';
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "next-themes";
+import { Toaster } from "sonner";
 
 export default function Providers({
                                       children,
@@ -28,6 +29,11 @@ export default function Providers({
                     manifestUrl="https://gafurov.cc/tonconnect-manifest.json"
                 >
                     {children}
+
+                    <Toaster
+                        richColors
+                        position="top-right"
+                    />
                 </TonConnectUIProvider>
             </ThemeProvider>
         </NextIntlClientProvider>

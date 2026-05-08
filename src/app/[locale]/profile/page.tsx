@@ -14,6 +14,7 @@ import { getUserAvatarUrl, getUserDisplayName } from '@/lib/user-profile';
 import { ProfileOverview } from "@/components/profile/ProfileOverview";
 import { ProfileActivityChart } from "@/components/profile/ProfileActivityChart";
 import { ProfileHero } from "@/components/profile/ProfileHero";
+import { toast } from "sonner";
 
 type Achievement = { code: string; name: string; description: string; icon: string; earned: boolean; earned_at?: string };
 type Attempt = { exam: string; topic: string; correct: boolean; difficulty: string; created_at: string };
@@ -69,8 +70,6 @@ export default function ProfilePage() {
   const [nickname, setNickname] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
-  const [profileError, setProfileError] = useState('');
-  const [profileSuccess, setProfileSuccess] = useState('');
 
   useEffect(() => {
     const supabase = createClient();
@@ -174,19 +173,9 @@ export default function ProfilePage() {
       return;
     }
 
-    if (!file.type.startsWith('image/')) {
-      setProfileError(locale === 'ru' ? 'Выбери файл изображения' : 'Please choose an image file');
-      return;
-    }
-
-    setProfileError('');
-    setProfileSuccess('');
-
     try {
       const resizedAvatar = await resizeAvatarFile(file);
       setAvatarUrl(resizedAvatar);
-    } catch (error) {
-      setProfileError(error instanceof Error ? error.message : (locale === 'ru' ? 'Не удалось обработать изображение' : 'Could not process the image'));
     } finally {
       event.target.value = '';
     }
@@ -195,7 +184,6 @@ export default function ProfilePage() {
   async function handleSaveProfile() {
     const trimmedNickname = nickname.trim();
     if (trimmedNickname === '') {
-      setProfileError(locale === 'ru' ? 'Никнейм не может быть пустым' : 'Nickname cannot be empty');
       return;
     }
 
@@ -204,8 +192,6 @@ export default function ProfilePage() {
     }
 
     setSavingProfile(true);
-    setProfileError('');
-    setProfileSuccess('');
 
     try {
       const supabase = createClient();
@@ -228,10 +214,14 @@ export default function ProfilePage() {
         setAvatarUrl(getUserAvatarUrl(data.user));
       }
 
-      setProfileSuccess(locale === 'ru' ? 'Профиль обновлён' : 'Profile updated');
+      toast.success(
+          locale === 'ru'
+              ? 'Профиль обновлён'
+              : 'Profile updated'
+      );
       router.refresh();
     } catch (error) {
-      setProfileError(error instanceof Error ? error.message : (locale === 'ru' ? 'Не удалось обновить профиль' : 'Could not update the profile'));
+      toast.error(error instanceof Error ? error.message : (locale === 'ru' ? 'Не удалось обновить профиль' : 'Could not update the profile'));
     } finally {
       setSavingProfile(false);
     }
@@ -293,9 +283,6 @@ export default function ProfilePage() {
             {avatarUrl && (
                 <button onClick={() => setAvatarUrl(null)} style={{ background: 'transparent', border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 10px', fontSize: 12, color: 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>✕</button>
             )}
-
-            {profileError && <div style={{ width: '100%', fontSize: 12, color: '#E84040' }}>{profileError}</div>}
-            {profileSuccess && <div style={{ width: '100%', fontSize: 12, color: '#22C07A' }}>{profileSuccess}</div>}
           </div>
 
           {/* Tabs */}
