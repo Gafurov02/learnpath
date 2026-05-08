@@ -86,7 +86,7 @@ export default function SchoolPage() {
     setJoinError('');
 
     try {
-      const response = await fetch('/api/school/join', {
+      const response = await fetch('/api/schools/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inviteCode: joinCode }),
