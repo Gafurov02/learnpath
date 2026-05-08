@@ -13,6 +13,7 @@ import { hasProAccess } from '@/lib/subscription';
 import { getUserAvatarUrl, getUserDisplayName } from '@/lib/user-profile';
 import { ProfileOverview } from "@/components/profile/ProfileOverview";
 import { ProfileActivityChart } from "@/components/profile/ProfileActivityChart";
+import { ProfileHero } from "@/components/profile/ProfileHero";
 
 type Achievement = { code: string; name: string; description: string; icon: string; earned: boolean; earned_at?: string };
 type Attempt = { exam: string; topic: string; correct: boolean; difficulty: string; created_at: string };
@@ -249,42 +250,16 @@ export default function ProfilePage() {
         <AppNavbar />
         <main style={{ maxWidth: 860, margin: '0 auto', padding: '20px 16px 80px' }}>
 
-          {/* Profile header */}
-          <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 20, padding: '20px', marginBottom: 16 }}>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 16 }}>
-              <UserAvatar
-                avatarUrl={avatarUrl}
-                email={user?.email}
-                name={name}
-                id={user?.id}
-                size={56}
-                accent={isPro ? 'pro' : 'default'}
-              />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 17, fontWeight: 500 }}>{name}</span>
-                  {isPro && <span style={{ background: 'linear-gradient(135deg,#6B5CE7,#9B8DFF)', color: '#fff', fontSize: 10, fontWeight: 700, borderRadius: 20, padding: '2px 8px' }}>⭐ PRO</span>}
-                </div>
-                <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 16 }}>{level.icon}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, fontSize: 11 }}>
-                      <span style={{ fontWeight: 500 }}>{level.name} · {xp} XP</span>
-                      {nextLevel && <span style={{ color: 'hsl(var(--muted-foreground))' }}>{nextLevel.minXp}</span>}
-                    </div>
-                    <div style={{ height: 5, background: 'hsl(var(--border))', borderRadius: 3 }}>
-                      <div style={{ height: 5, background: '#6B5CE7', borderRadius: 3, width: `${progress}%` }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {!isPro && <Link href={`/${locale}/pricing`} style={{ flex: 1, background: '#6B5CE7', color: '#fff', borderRadius: 8, padding: '9px 14px', fontSize: 13, fontWeight: 500, textDecoration: 'none', textAlign: 'center' }}>{t('upgradePro')}</Link>}
-              <button onClick={handleLogout} style={{ flex: isPro ? 1 : undefined, border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '9px 16px', fontSize: 13, background: 'transparent', color: 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit' }}>{t('logOut')}</button>
-            </div>
-          </div>
+          <ProfileHero
+              name={name}
+              email={user?.email}
+              avatarUrl={avatarUrl}
+              xp={xp}
+              level={level.name}
+              streak={streak}
+              progress={progress}
+              isPro={isPro}
+          />
 
           <ProfileOverview
               xp={xp}
