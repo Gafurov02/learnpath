@@ -11,6 +11,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { calculateDailyStreak } from '@/lib/progress';
 import { getSubscriptionTier, hasProAccess, type SubscriptionTier } from '@/lib/subscription';
 import { getUserDisplayName } from '@/lib/user-profile';
+import {useTonWallet} from "@/hooks/useTonWallet";
 
 type AttemptRow = {
   created_at: string;
@@ -38,6 +39,8 @@ export default function DashboardPage() {
   const [streak, setStreak] = useState(0);
   const [xp, setXp] = useState(0);
   const [examStats, setExamStats] = useState<Record<string, { total: number; correct: number }>>({});
+
+  useTonWallet();
 
   useEffect(() => {
     let isActive = true;
