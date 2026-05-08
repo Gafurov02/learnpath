@@ -93,6 +93,144 @@ export function AppNavbar() {
           </div>
         </nav>
 
+          {/* Mobile Header */}
+          <nav
+              className="lp-mobile-nav"
+              style={{
+                  position: 'sticky',
+                  top: 0,
+
+                  zIndex: 60,
+
+                  paddingTop: 'env(safe-area-inset-top)',
+
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+
+                  background:
+                      theme === 'dark'
+                          ? 'rgba(15,15,20,0.72)'
+                          : 'rgba(255,255,255,0.72)',
+
+                  borderBottom:
+                      theme === 'dark'
+                          ? '1px solid rgba(255,255,255,0.06)'
+                          : '1px solid rgba(0,0,0,0.05)',
+              }}
+          >
+              <div
+                  style={{
+                      height: 58,
+
+                      padding: '0 16px',
+
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                  }}
+              >
+                  <Link
+                      href={`/${locale}/home`}
+                      style={{
+                          textDecoration: 'none',
+
+                          fontSize: 20,
+                          fontWeight: 800,
+
+                          letterSpacing: '-0.04em',
+
+                          color: 'hsl(var(--foreground))',
+                      }}
+                  >
+                      Learn
+                      <span style={{ color: '#8B7CFF' }}>
+        Path
+      </span>
+                  </Link>
+
+                  <div
+                      style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10,
+                      }}
+                  >
+                      {streak > 0 && (
+                          <div
+                              style={{
+                                  fontSize: 13,
+                                  fontWeight: 700,
+                                  color: '#EF9F27',
+                              }}
+                          >
+                              🔥 {streak}
+                          </div>
+                      )}
+
+                      <div
+                          style={{
+                              fontSize: 12,
+                              fontWeight: 600,
+                              color:
+                                  'hsl(var(--muted-foreground))',
+                          }}
+                      >
+                          {level.icon} {xp}
+                      </div>
+
+                      {mounted && (
+                          <button
+                              onClick={() =>
+                                  setTheme(
+                                      theme === 'dark'
+                                          ? 'light'
+                                          : 'dark'
+                                  )
+                              }
+                              style={{
+                                  width: 34,
+                                  height: 34,
+
+                                  borderRadius: 12,
+
+                                  border: 'none',
+
+                                  background:
+                                      theme === 'dark'
+                                          ? 'rgba(255,255,255,0.06)'
+                                          : 'rgba(0,0,0,0.04)',
+
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+
+                                  cursor: 'pointer',
+
+                                  color:
+                                      'hsl(var(--foreground))',
+                              }}
+                          >
+                              {theme === 'dark' ? (
+                                  <Sun
+                                      style={{
+                                          width: 16,
+                                          height: 16,
+                                      }}
+                                  />
+                              ) : (
+                                  <Moon
+                                      style={{
+                                          width: 16,
+                                          height: 16,
+                                      }}
+                                  />
+                              )}
+                          </button>
+                      )}
+                  </div>
+              </div>
+          </nav>
+
         {/* Premium Mobile Dock */}
         <div
             className="lp-mobile-bottom"
@@ -221,6 +359,7 @@ export function AppNavbar() {
         @media (max-width: 768px) {
           .lp-desktop-nav { display: none !important; }
           .lp-mobile-bottom-pad { height: 95px; }
+          .lp-mobile-nav { display: block !important; }
         }
 
         .profile-card {
