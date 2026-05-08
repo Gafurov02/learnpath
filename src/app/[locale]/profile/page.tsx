@@ -15,6 +15,7 @@ import { ProfileOverview } from "@/components/profile/ProfileOverview";
 import { ProfileActivityChart } from "@/components/profile/ProfileActivityChart";
 import { ProfileHero } from "@/components/profile/ProfileHero";
 import { toast } from "sonner";
+import { ProfileAchievements } from "@/components/profile/ProfileAchievements";
 
 type Achievement = { code: string; name: string; description: string; icon: string; earned: boolean; earned_at?: string };
 type Attempt = { exam: string; topic: string; correct: boolean; difficulty: string; created_at: string };
@@ -298,16 +299,9 @@ export default function ProfilePage() {
 
           {/* ACHIEVEMENTS TAB */}
           {activeTab === 'achievements' && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
-                {achievements.map(a => (
-                    <div key={a.code} style={{ background: 'hsl(var(--card))', border: `1px solid ${a.earned ? '#6B5CE7' : 'hsl(var(--border))'}`, borderRadius: 14, padding: 16, opacity: a.earned ? 1 : 0.4, transition: 'all 0.2s' }}>
-                      <div style={{ fontSize: 28, marginBottom: 8 }}>{a.icon}</div>
-                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>{a.name}</div>
-                      <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', lineHeight: 1.4 }}>{a.description}</div>
-                      {a.earned && a.earned_at && <div style={{ fontSize: 10, color: '#6B5CE7', marginTop: 6 }}>✓ {new Date(a.earned_at).toLocaleDateString()}</div>}
-                    </div>
-                ))}
-              </div>
+              <ProfileAchievements
+                  achievements={achievements}
+              />
           )}
 
           {/* STATS TAB */}
