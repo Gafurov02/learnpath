@@ -58,19 +58,12 @@
   a {
     transition: color 0.2s ease, opacity 0.2s ease;
   }
-
-  .mobile-dock-wrapper {
-    display: none;
-  }
 }
 
 /* Mobile utilities */
 @media (max-width: 768px) {
   .lp-desktop-only { display: none !important; }
   .lp-mobile-only { display: flex !important; }
-  .mobile-dock-wrapper {
-    display: block;
-  }
 }
 @media (min-width: 769px) {
   .lp-mobile-only { display: none !important; }
