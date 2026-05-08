@@ -20,6 +20,8 @@ import { ProfileStatsTab } from "@/components/profile/ProfileStatsTab";
 import { ProfilePageSkeleton } from "@/components/profile/ProfilePageSkeleton";
 import { StudyRecommendations } from "@/components/profile/StudyRecomendations";
 import { DailyQuests } from "@/components/profile/DailyQuests";
+import { getLeagueByXp } from "@/lib/league";
+import { LeagueCard } from "@/components/profile/LeagueCard";
 
 type Achievement = { code: string; name: string; description: string; icon: string; earned: boolean; earned_at?: string };
 type Attempt = { exam: string; topic: string; correct: boolean; difficulty: string; created_at: string };
@@ -122,6 +124,7 @@ export default function ProfilePage() {
   }
 
   const level = getLevelByXp(xp);
+  const league = getLeagueByXp(xp);
   const nextLevel = LEVELS[LEVELS.findIndex(l => l.name === level.name) + 1];
   const progress = nextLevel ? Math.round(((xp - level.minXp) / (nextLevel.minXp - level.minXp)) * 100) : 100;
   const name = getUserDisplayName(user);
@@ -292,6 +295,13 @@ export default function ProfilePage() {
           />
 
           <ProfileActivityChart data={last7} />
+
+          <LeagueCard
+              name={league.name}
+              icon={league.icon}
+              color={league.color}
+              xp={xp}
+          />
 
           <DailyQuests quests={dailyQuests} />
 
