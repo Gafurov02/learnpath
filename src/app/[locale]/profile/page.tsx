@@ -17,7 +17,7 @@ import { ProfileHero } from "@/components/profile/ProfileHero";
 import { toast } from "sonner";
 import { ProfileAchievements } from "@/components/profile/ProfileAchievements";
 import { ProfileStatsTab } from "@/components/profile/ProfileStatsTab";
-import {diff} from "@vitest/utils/diff";
+import { ProfilePageSkeleton } from "@/components/profile/ProfilePageSkeleton";
 
 type Achievement = { code: string; name: string; description: string; icon: string; earned: boolean; earned_at?: string };
 type Attempt = { exam: string; topic: string; correct: boolean; difficulty: string; created_at: string };
@@ -104,12 +104,20 @@ export default function ProfilePage() {
     });
   }, []);
 
-  if (loading) return (
-      <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: 32, height: 32, border: '3px solid hsl(var(--border))', borderTopColor: '#6B5CE7', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      </div>
-  );
+  if (loading) {
+    return (
+        <div
+          style={{
+            minHeight: '100vh',
+            backgroundColor:
+              'hsl(var(--background))',
+          }}
+        >
+          <AppNavbar />
+          <ProfilePageSkeleton />
+        </div>
+    );
+  }
 
   const level = getLevelByXp(xp);
   const nextLevel = LEVELS[LEVELS.findIndex(l => l.name === level.name) + 1];
