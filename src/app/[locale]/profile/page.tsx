@@ -12,6 +12,7 @@ import { getLevelByXp, LEVELS } from '@/lib/levels';
 import { hasProAccess } from '@/lib/subscription';
 import { getUserAvatarUrl, getUserDisplayName } from '@/lib/user-profile';
 import { ProfileOverview } from "@/components/profile/ProfileOverview";
+import { ProfileActivityChart } from "@/components/profile/ProfileActivityChart";
 
 type Achievement = { code: string; name: string; description: string; icon: string; earned: boolean; earned_at?: string };
 type Attempt = { exam: string; topic: string; correct: boolean; difficulty: string; created_at: string };
@@ -291,6 +292,8 @@ export default function ProfilePage() {
               accuracy={accuracy}
               plan={isPro ? 'pro' : 'free'}
           />
+
+          <ProfileActivityChart data={last7} />
 
           <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             {/* Avatar upload */}
