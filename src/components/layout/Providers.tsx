@@ -5,6 +5,7 @@ import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
+import { CommandMenu } from "@/components/layout/CommandMenu";
 
 export default function Providers({
                                       children,
@@ -43,6 +44,7 @@ export default function Providers({
                             },
                         }}
                     />
+                    <CommandMenu />
                 </TonConnectUIProvider>
             </ThemeProvider>
         </NextIntlClientProvider>
