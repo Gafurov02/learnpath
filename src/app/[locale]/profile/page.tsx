@@ -19,6 +19,7 @@ import { ProfileAchievements } from "@/components/profile/ProfileAchievements";
 import { ProfileStatsTab } from "@/components/profile/ProfileStatsTab";
 import { ProfilePageSkeleton } from "@/components/profile/ProfilePageSkeleton";
 import { StudyRecommendations } from "@/components/profile/StudyRecomendations";
+import { DailyQuests } from "@/components/profile/DailyQuests";
 
 type Achievement = { code: string; name: string; description: string; icon: string; earned: boolean; earned_at?: string };
 type Attempt = { exam: string; topic: string; correct: boolean; difficulty: string; created_at: string };
@@ -127,6 +128,26 @@ export default function ProfilePage() {
   const total = attempts.length;
   const correct = attempts.filter(a => a.correct).length;
   const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+  const dailyQuests = [
+    {
+      title: 'Solve 20 questions',
+      progress: total,
+      target: 20,
+      reward: 120,
+    },
+    {
+      title: 'Reach 80% accuracy',
+      progress: accuracy,
+      target: 80,
+      reward: 200,
+    },
+    {
+      title: 'Maintain streak',
+      progress: streak,
+      target: 7,
+      reward: 250,
+    },
+  ];
 
   // Per-exam stats
   const examStats: Record<string, { total: number; correct: number }> = {};
@@ -271,6 +292,8 @@ export default function ProfilePage() {
           />
 
           <ProfileActivityChart data={last7} />
+
+          <DailyQuests quests={dailyQuests} />
 
           <StudyRecommendations
               weakTopics={weakTopics}
