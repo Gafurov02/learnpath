@@ -59,15 +59,15 @@ export function AppNavbar() {
   return (
       <>
         {/* Desktop top navbar */}
-        <nav style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--background))', backdropFilter: 'blur(12px)' }} className="lp-desktop-nav">
-          <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', height: 58 }}>
+        <nav style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid hsl(var(--border))', backgroundColor: theme === 'dark' ? 'rgba(15,15,20,0.72)' : 'rgba(255,255,255,0.72)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }} className="lp-desktop-nav">
+          <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', height: 54 }}>
             <Link href={`/${locale}/home`} style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 20, color: 'hsl(var(--foreground))', textDecoration: 'none', flexShrink: 0 }}>
               Learn<span style={{ color: '#6B5CE7' }}>Path</span>
             </Link>
 
             <div style={{ display: 'flex', gap: 2 }}>
               {tabs.map(tab => (
-                  <Link key={tab.href} href={tab.href} style={{ padding: '6px 13px', borderRadius: 8, fontSize: 13, fontWeight: 500, textDecoration: 'none', background: isActive(tab.href) ? '#6B5CE7' : 'transparent', color: isActive(tab.href) ? '#fff' : 'hsl(var(--muted-foreground))', transition: 'all 0.15s' }}>
+                  <Link key={tab.href} href={tab.href} style={{ padding: '6px 13px', borderRadius: 8, fontSize: 13, fontWeight: 500, textDecoration: 'none', background: isActive(tab.href) ? 'rgba(107,92,231,0.14)' : 'transparent', color: isActive(tab.href) ? '#8B7CFF' : 'hsl(var(--muted-foreground))', transition: 'all 0.15s' }}>
                     {tab.label}
                   </Link>
               ))}
@@ -93,35 +93,117 @@ export function AppNavbar() {
           </div>
         </nav>
 
-        {/* Mobile top bar */}
-        <nav style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--background))' }} className="lp-mobile-nav">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', height: 52 }}>
-            <Link href={`/${locale}/home`} style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 18, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
-              Learn<span style={{ color: '#6B5CE7' }}>Path</span>
-            </Link>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {streak > 0 && <span style={{ fontSize: 13, color: '#EF9F27', fontWeight: 600 }}>🔥{streak}</span>}
-              <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>{level.icon}{xp}</span>
-              <LangSwitcher />
-              {mounted && (
-                  <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))', padding: 4, display: 'flex' }}>
-                    {theme === 'dark' ? <Sun style={{ width: 16, height: 16 }} /> : <Moon style={{ width: 16, height: 16 }} />}
-                  </button>
-              )}
-              {isPro && <span style={{ background: '#6B5CE7', color: '#fff', borderRadius: 20, padding: '2px 7px', fontSize: 10, fontWeight: 700 }}>PRO</span>}
-            </div>
-          </div>
-        </nav>
+        {/* Premium Mobile Dock */}
+        <div
+            className="lp-mobile-bottom"
+            style={{
+              position: 'fixed',
 
-        {/* Mobile bottom navigation */}
-        <div className="lp-mobile-bottom" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, borderTop: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--background))', display: 'flex', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+              left: 12,
+              right: 12,
+              bottom: 12,
+
+              height: 64,
+
+              zIndex: 100,
+
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-around',
+
+              borderRadius: 24,
+
+              background:
+                theme === 'dark'
+                  ? 'rgba(15,15,20,0.78)'
+                  : 'rgba(255,255,255,0.75)',
+
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+
+              border:
+                theme === 'dark'
+                  ? '1px solid rgba(255,255,255,0.08)'
+                  : '1px solid rgba(0,0,0,0.06)',
+
+              boxShadow:
+                  theme === 'dark'
+                    ? '0 10px 40px rgba(0,0,0,0.35)'
+                    : '0 10px 30px rgba(0,0,0,0.08)',
+
+              paddingBottom: 'env(safe-area-inset-bottom)'
+          }}
+        >
           {tabs.map(tab => {
             const active = isActive(tab.href);
             const Icon = tab.icon;
+
             return (
-                <Link key={tab.href} href={tab.href} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6px 2px', textDecoration: 'none', color: active ? '#6B5CE7' : 'hsl(var(--muted-foreground))', gap: 2 }}>
-                  <Icon style={{ width: 18, height: 18, strokeWidth: active ? 2.5 : 1.8 }} />
-                  <span style={{ fontSize: 9, fontWeight: active ? 600 : 400, letterSpacing: '-0.01em' }}>{tab.label}</span>
+                <Link
+                    key={tab.href}
+                    href={tab.href}
+                    style={{
+                      flex: 1,
+
+                      height: '100%',
+
+                      display: 'flex',
+                      flexDirection: 'column',
+
+                      alignItems: 'center',
+                      justifyContent: 'center',
+
+                      gap: 4,
+
+                      textDecoration: 'none',
+                      color: active
+                          ? '#8B7CFF'
+                          : 'hsl(var(--muted-foreground))',
+
+                      transition: 'all 0.2s ease',
+
+                      transform:
+                        active
+                          ? 'translateY(-2px)'
+                          : 'translateY(0)',
+                    }}
+                >
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+
+                      borderRadius: 12,
+
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+
+                      background: active
+                        ? 'rgba(139,124,255,0.14)'
+                        : 'transparent',
+
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <Icon
+                        style={{
+                          width: 18,
+                          height: 18,
+                          strokeWidth: active ? 2.6 : 2,
+                        }}
+                    />
+                  </div>
+
+                  <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: active ? 700 : 500,
+                        letterSpacing: '-0.02em',
+                      }}
+                  >
+                    {tab.label}
+                  </span>
                 </Link>
             );
           })}
@@ -138,7 +220,7 @@ export function AppNavbar() {
         }
         @media (max-width: 768px) {
           .lp-desktop-nav { display: none !important; }
-          .lp-mobile-bottom-pad { height: 65px; }
+          .lp-mobile-bottom-pad { height: 95px; }
         }
 
         .profile-card {
