@@ -16,6 +16,8 @@ import { ProfileActivityChart } from "@/components/profile/ProfileActivityChart"
 import { ProfileHero } from "@/components/profile/ProfileHero";
 import { toast } from "sonner";
 import { ProfileAchievements } from "@/components/profile/ProfileAchievements";
+import { ProfileStatsTab } from "@/components/profile/ProfileStatsTab";
+import {diff} from "@vitest/utils/diff";
 
 type Achievement = { code: string; name: string; description: string; icon: string; earned: boolean; earned_at?: string };
 type Attempt = { exam: string; topic: string; correct: boolean; difficulty: string; created_at: string };
@@ -306,146 +308,14 @@ export default function ProfilePage() {
 
           {/* STATS TAB */}
           {activeTab === 'stats' && (
-              isPro ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-                    {/* Activity chart */}
-                    <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16, padding: 24 }}>
-                      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 16 }}>
-                        {locale === 'ru' ? '📈 Активность (7 дней)' : '📈 Activity (7 days)'}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 80 }}>
-                        {last7.map((d, i) => (
-                            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                              <div style={{ width: '100%', background: d.count > 0 ? '#6B5CE7' : 'hsl(var(--border))', borderRadius: 4, height: `${Math.max((d.count / maxCount) * 60, d.count > 0 ? 8 : 4)}px`, transition: 'height 0.3s ease' }} />
-                              <div style={{ fontSize: 10, color: 'hsl(var(--muted-foreground))' }}>{d.date}</div>
-                              {d.count > 0 && <div style={{ fontSize: 10, color: '#6B5CE7', fontWeight: 600 }}>{d.count}</div>}
-                            </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Per-exam */}
-                    <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16, padding: 24 }}>
-                      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 16 }}>
-                        {locale === 'ru' ? '📚 По экзаменам' : '📚 By exam'}
-                      </div>
-                      {Object.entries(examStats).length === 0 ? (
-                          <p style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>{locale === 'ru' ? 'Нет данных' : 'No data yet'}</p>
-                      ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            {Object.entries(examStats).map(([exam, s]) => {
-                              const pct = Math.round((s.correct / s.total) * 100);
-                              return (
-                                  <div key={exam}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 13 }}>
-                                      <span style={{ fontWeight: 500 }}>{exam}</span>
-                                      <span style={{ color: 'hsl(var(--muted-foreground))' }}>{pct}% · {s.correct}/{s.total}</span>
-                                    </div>
-                                    <div style={{ height: 6, background: 'hsl(var(--border))', borderRadius: 3 }}>
-                                      <div style={{ height: 6, background: pct >= 70 ? '#22C07A' : pct >= 40 ? '#EF9F27' : '#E84040', borderRadius: 3, width: `${pct}%`, transition: 'width 0.6s ease' }} />
-                                    </div>
-                                  </div>
-                              );
-                            })}
-                          </div>
-                      )}
-                    </div>
-
-                    {/* Difficulty breakdown */}
-                    <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16, padding: 24 }}>
-                      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 16 }}>
-                        {locale === 'ru' ? '🎯 По сложности' : '🎯 By difficulty'}
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
-                        {(['easy', 'medium', 'hard'] as const).map(d => {
-                          const s = diffStats[d];
-                          const pct = s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
-                          const color = d === 'easy' ? '#22C07A' : d === 'medium' ? '#6B5CE7' : '#E84040';
-                          const label = locale === 'ru' ? { easy: 'Лёгкие', medium: 'Средние', hard: 'Сложные' }[d] : d;
-                          return (
-                              <div key={d} style={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 10, padding: '12px 14px', textAlign: 'center' }}>
-                                <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', textTransform: 'capitalize', marginBottom: 4 }}>{label}</div>
-                                <div style={{ fontSize: 22, fontWeight: 600, color }}>{s.total > 0 ? `${pct}%` : '—'}</div>
-                                <div style={{ fontSize: 10, color: 'hsl(var(--muted-foreground))', marginTop: 2 }}>{s.total} {locale === 'ru' ? 'вопр.' : 'q'}</div>
-                              </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Weak & Strong topics */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 16 }}>
-                      {/* Weak */}
-                      <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16, padding: 24 }}>
-                        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 14 }}>
-                          ⚠️ {locale === 'ru' ? 'Слабые темы' : 'Weak topics'}
-                        </div>
-                        {weakTopics.length === 0 ? (
-                            <p style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>{locale === 'ru' ? 'Нет данных' : 'No data yet'}</p>
-                        ) : weakTopics.map(t => (
-                            <div key={t.topic} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, fontSize: 13 }}>
-                              <div>
-                                <div style={{ fontWeight: 500 }}>{t.topic}</div>
-                                <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>{t.exam} · {t.total} {locale === 'ru' ? 'вопр.' : 'q'}</div>
-                              </div>
-                              <span style={{ fontSize: 14, fontWeight: 600, color: '#E84040' }}>{t.accuracy}%</span>
-                            </div>
-                        ))}
-                      </div>
-
-                      {/* Strong */}
-                      <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16, padding: 24 }}>
-                        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 14 }}>
-                          💪 {locale === 'ru' ? 'Сильные темы' : 'Strong topics'}
-                        </div>
-                        {strongTopics.length === 0 ? (
-                            <p style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>{locale === 'ru' ? 'Нет данных' : 'No data yet'}</p>
-                        ) : strongTopics.map(t => (
-                            <div key={t.topic} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, fontSize: 13 }}>
-                              <div>
-                                <div style={{ fontWeight: 500 }}>{t.topic}</div>
-                                <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>{t.exam} · {t.total} {locale === 'ru' ? 'вопр.' : 'q'}</div>
-                              </div>
-                              <span style={{ fontSize: 14, fontWeight: 600, color: '#22C07A' }}>{t.accuracy}%</span>
-                            </div>
-                        ))}
-                      </div>
-                    </div>
-
-                  </div>
-              ) : (
-                  /* Free users — basic stats + upgrade */
-                  <div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
-                      {Object.entries(examStats).map(([exam, s]) => {
-                        const pct = Math.round((s.correct / s.total) * 100);
-                        return (
-                            <div key={exam}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 13 }}>
-                                <span style={{ fontWeight: 500 }}>{exam}</span>
-                                <span style={{ color: 'hsl(var(--muted-foreground))' }}>{pct}% · {s.correct}/{s.total}</span>
-                              </div>
-                              <div style={{ height: 5, background: 'hsl(var(--border))', borderRadius: 2 }}>
-                                <div style={{ height: 5, background: pct >= 70 ? '#22C07A' : '#6B5CE7', borderRadius: 2, width: `${pct}%` }} />
-                              </div>
-                            </div>
-                        );
-                      })}
-                    </div>
-
-                    <div style={{ background: 'rgba(107,92,231,0.06)', border: '1px solid rgba(107,92,231,0.2)', borderRadius: 16, padding: '24px', textAlign: 'center' }}>
-                      <div style={{ fontSize: 32, marginBottom: 12 }}>📊</div>
-                      <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 8 }}>{locale === 'ru' ? 'Полная статистика — Pro фича' : 'Full statistics is a Pro feature'}</div>
-                      <p style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginBottom: 20, lineHeight: 1.6 }}>
-                        {locale === 'ru' ? 'График активности, слабые темы, разбивка по сложности и многое другое.' : 'Activity chart, weak topics, difficulty breakdown and more.'}
-                      </p>
-                      <Link href={`/${locale}/pricing`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '11px 28px', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
-                        {locale === 'ru' ? 'Перейти на Pro →' : 'Upgrade to Pro →'}
-                      </Link>
-                    </div>
-                  </div>
-              )
+              <ProfileStatsTab
+                  locale={locale}
+                  isPro={isPro}
+                  examStats={examStats}
+                  diffStats={diffStats}
+                  weakTopics={weakTopics}
+                  strongTopics={strongTopics}
+              />
           )}
         </main>
       </div>
