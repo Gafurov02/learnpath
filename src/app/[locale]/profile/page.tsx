@@ -271,17 +271,40 @@ export default function ProfilePage() {
     boxShadow: active ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s',
   });
 
+  const glassCard: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    backdropFilter: 'blur(18px)',
+    WebkitBackdropFilter: 'blur(18px)',
+    borderRadius: 28,
+    boxShadow: '0 10px 40px rgba(0,0,0,0.24)',
+  };
+
   return (
-      <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
+      <div
+          style={{
+            minHeight: '100vh',
+            backgroundColor: `
+              radial-gradient(circle at top left, rgba(120,119,198,0.18), transparent 28%),
+              radial-gradient(circle at bottom right, rgba(91,141,239,0.16), transparent 30%),
+              hsl(var(--background))
+            `,
+            color: 'hsl(var(--foreground))',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+      >
         <AppNavbar />
         <main
           style={{
-            maxWidth: 920,
+            position: 'relative',
+            maxWidth: 1280,
             margin: '0 auto',
-            padding: '32px 20px 120px',
+            padding: '40px 24px 140px',
             display: 'flex',
             flexDirection: 'column',
-            gap: 20,
+            gap: 28,
+            zIndex: 2,
           }}
         >
 
@@ -296,23 +319,35 @@ export default function ProfilePage() {
               isPro={isPro}
           />
 
-          <ProfileOverview
-              xp={xp}
-              streak={streak}
-              accuracy={accuracy}
-              plan={isPro ? 'pro' : 'free'}
-          />
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1.2fr 0.8fr',
+              gap: 24,
+              alignItems: 'start',
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <ProfileOverview xp={xp} streak={streak} accuracy={accuracy} plan={"free"} />
+              <ProfileActivityChart data={last7} />
+              <StudyRecommendations
+                  weakTopics={weakTopics}
+                  streak={streak}
+                  accuracy={accuracy}
+              />
+            </div>
 
-          <ProfileActivityChart data={last7} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <LeagueCard
+                  name={league.name}
+                  icon={league.icon}
+                  color={league.color}
+                  xp={xp}
+              />
 
-          <LeagueCard
-              name={league.name}
-              icon={league.icon}
-              color={league.color}
-              xp={xp}
-          />
-
-          <DailyQuests quests={dailyQuests} />
+              <DailyQuests quests={dailyQuests} />
+            </div>
+          </div>
 
           <StudyRecommendations
               weakTopics={weakTopics}
@@ -320,7 +355,15 @@ export default function ProfilePage() {
               accuracy={accuracy}
           />
 
-          <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{
+            ...glassCard,
+            padding: '18px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            flexWrap: 'wrap',
+          }}
+          >
             {/* Avatar upload */}
             <label style={{ position: 'relative', cursor: 'pointer', flexShrink: 0 }} title={locale === 'ru' ? 'Нажми чтобы изменить фото' : 'Click to change photo'}>
               <UserAvatar avatarUrl={avatarUrl} email={user?.email} name={nickname.trim() || name} id={user?.id} size={44} accent={isPro ? 'pro' : 'default'} />
@@ -346,7 +389,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Tabs */}
-          <div style={{ display: 'flex', gap: 4, background: 'hsl(var(--muted))', borderRadius: 12, padding: 5 }}>
+          <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)', borderRadius: 18, padding: 6 }}>
             <button onClick={() => setActiveTab('stats')} style={tabStyle(activeTab === 'stats')}>
               📊 {locale === 'ru' ? 'Статистика' : 'Statistics'}
               {isPro && <span style={{ marginLeft: 6, fontSize: 10, background: 'linear-gradient(135deg,#6B5CE7,#9B8DFF)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontWeight: 700 }}>PRO</span>}
