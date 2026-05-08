@@ -47,7 +47,9 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
   const { data: subscription, error: subscriptionError } = await admin
     .from('subscriptions')
-    .upsert(payload)
+    .upsert(payload, {
+      onConflict: 'user_id',
+    })
     .select('user_id, xp, level, plan, status')
     .single();
 
