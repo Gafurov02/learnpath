@@ -31,8 +31,17 @@ export default function Providers({
                     {children}
 
                     <Toaster
-                        richColors
                         position="top-right"
+                        richColors
+                        closeButton
+                        toastOptions={{
+                            style: {
+                                borderRadius: 16,
+                                border: '1xp solid hsl(var(--border))',
+                                background: 'hsl(var(--card))',
+                                color: 'hsl(var(--foreground))',
+                            },
+                        }}
                     />
                 </TonConnectUIProvider>
             </ThemeProvider>
