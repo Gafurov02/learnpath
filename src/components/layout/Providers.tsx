@@ -6,6 +6,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { CommandMenu } from "@/components/layout/CommandMenu";
+import { MobileDock } from "@/components/layout/MobileDock";
 
 export default function Providers({
                                       children,
@@ -44,7 +45,10 @@ export default function Providers({
                             },
                         }}
                     />
+
                     <CommandMenu />
+
+                    <MobileDock />
                 </TonConnectUIProvider>
             </ThemeProvider>
         </NextIntlClientProvider>
