@@ -286,7 +286,7 @@ export default function ProfilePage() {
           </div>
 
           <ProfileOverview
-              xp={profile.xp ?? 0}
+              xp={subscription.xp ?? 0}
               streak={streak}
               accuracy={accuracy}
               plan={subscription?.plan ?? 'free'}
