@@ -344,88 +344,110 @@ export default function QuizPage() {
             </div>
           </div>
 
-          {/* Mobile score bar */}
-          <div className="lp-mobile-only" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, padding: '8px 4px' }}>
-            <div style={{ display: 'flex', gap: 14, fontSize: 13 }}>
-              <span>✓ <strong style={{ color: '#22C07A' }}>{score.correct}</strong></span>
-              <span style={{ color: 'hsl(var(--muted-foreground))' }}>{score.total} {locale === 'ru' ? 'всего' : 'total'}</span>
-              <span style={{ color: accuracy >= 70 ? '#22C07A' : 'hsl(var(--muted-foreground))' }}>{accuracy}%</span>
-              {streak >= 3 && <span style={{ color: '#EF9F27' }}>🔥{streak}</span>}
-            </div>
-          </div>
-
           <div
-            style={{
-              marginBottom: 20,
+              style={{
+                marginBottom: 24,
 
-              background: 'rgba(255,255,255,0.04)',
+                background: 'rgba(255,255,255,0.04)',
 
-              border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.08)',
 
-              borderRadius: 18,
+                borderRadius: 24,
 
-              padding: '14px 16px',
+                padding: '18px 20px',
 
-              backdropFilter: 'blur(14px)',
-
-              WebkitBackdropFilter: 'blur(14px)',
-            }}
+                backdropFilter: 'blur(16px)',
+              }}
           >
             <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-
-                fontSize: 12,
-
-                color:
-                  'hsl(var(--muted-foreground))',
-              }}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 16,
+                  flexWrap: 'wrap',
+                  gap: 12,
+                }}
             >
-              <span>
-                {locale === 'ru'
-                  ? 'Прогресс'
-                  : 'Progress'}
-              </span>
+              <Link
+                  href={user ? `/${locale}/home` : `/${locale}`}
+                  style={{
+                    fontSize: 13,
+                    color: 'hsl(var(--muted-foreground))',
+                    textDecoration: 'none',
+                  }}
+              >
+                ← {locale === 'ru' ? 'Назад' : 'Back'}
+              </Link>
 
-              <span>
-                {accuracy}%
-              </span>
+              <div
+                  style={{
+                    display: 'flex',
+                    gap: 14,
+                    alignItems: 'center',
+                    fontSize: 13,
+                  }}
+              >
+      <span>
+        ✓ <strong style={{ color: '#22C07A' }}>
+          {score.correct}
+        </strong>
+      </span>
+
+                <span>
+        {locale === 'ru' ? 'Всего' : 'Total'}:{' '}
+                  <strong>{score.total}</strong>
+      </span>
+
+                <span>
+        {locale === 'ru' ? 'Точность' : 'Accuracy'}:{' '}
+                  <strong>{accuracy}%</strong>
+      </span>
+
+                {streak >= 3 && (
+                    <span style={{ color: '#EF9F27' }}>
+          🔥 {streak}
+        </span>
+                )}
+              </div>
             </div>
 
             <div
-              style={{
-                height: 8,
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: 8,
+                  fontSize: 12,
+                  color: 'hsl(var(--muted-foreground))',
+                }}
+            >
+    <span>
+      {locale === 'ru'
+          ? 'Прогресс'
+          : 'Progress'}
+    </span>
 
-                background:
-                  'rgba(255,255,255,0.06)',
+              <span>{accuracy}%</span>
+            </div>
 
-                borderRadius: 999,
-
-                overflow: 'hidden',
-              }}
+            <div
+                style={{
+                  height: 8,
+                  background: 'rgba(255,255,255,0.06)',
+                  borderRadius: 999,
+                  overflow: 'hidden',
+                }}
             >
               <motion.div
-                initial={{
-                  width: 0,
-                }}
-                animate={{
-                  width: `${accuracy}%`,
-                }}
-                transition={{
-                  duration: 0.5,
-                }}
-                style={{
-                  height: '100%',
-
-                  borderRadius: 999,
-
-                  background:
-                    'linear-gradient(90deg,#6B5CE7,#8B7CFF)',
-
-                  boxShadow:
-                    '0 0 18px rgba(107,92,231,0.4)',
-                }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${accuracy}%` }}
+                  transition={{ duration: 0.5 }}
+                  style={{
+                    height: '100%',
+                    borderRadius: 999,
+                    background:
+                        'linear-gradient(90deg,#6B5CE7,#8B7CFF)',
+                  }}
               />
             </div>
           </div>
@@ -502,9 +524,7 @@ export default function QuizPage() {
 
                 borderRadius: 28,
 
-                padding: 32,
-
-                minHeight: 340,
+                padding: '38px 36px',
 
                 boxShadow:
                   '0 10px 40px rgba(0,0,0,0.22)',
@@ -592,11 +612,17 @@ export default function QuizPage() {
                                 width: '100%',
                                 padding: '16px 18px',
                                 borderRadius: 22,
-                                border: `1px solid ${border}`,
+                                border: `1px solid ${
+                                  answered
+                                    ? border
+                                    : 'rgba(255,255,255,0.09)'
+                                }`,
                                 background:
                                   answered
                                     ? bg
-                                    : 'rgba(255,255,255,0.035)',
+                                    : theme === 'dark'
+                                      ? 'rgba(255,255,255,0.045)'
+                                      : 'rgba(255,255,255,0.82)',
                                 color,
                                 cursor: answered ? 'default' : 'pointer',
                                 textAlign: 'left',
