@@ -100,33 +100,64 @@ export default function QuizPage() {
     });
   }, []);
 
-  async function fetchQuestion(signal?: AbortSignal): Promise<Question | null> {
-    try {
+  async function fetchQuestion(): Promise<Question | null> {
+    const controller = new AbortController();
+
+    const timeout = setTimeout(() => {
+        controller.abort();
+    }, 12000);
+
+      try {
       const res = await fetch('/api/quiz', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exam, difficulty, locale, topic: initialTopic || undefined, mode: quizMode }),
-        signal,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            exam,
+            difficulty,
+            locale,
+            topic: initialTopic || undefined,
+            mode: quizMode
+        }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
+
       if (res.status === 403) {
         const data = await res.json();
-        if (data.error === 'daily_limit_reached' || data.error === 'question_limit_reached') setLimitError('daily');
-        else if (data.error === 'exam_not_selected') setLimitError('exam');
+        if (
+            data.error === 'daily_limit_reached' ||
+            data.error === 'question_limit_reached'
+        ) {
+            setLimitError('daily');
+        } else if (data.error === 'exam_not_selected') {
+            setLimitError('exam');
+        }
+
         return null;
       }
+
       if (res.status === 401) {
         setAuthRequired(true);
         return null;
       }
+
       const data = await res.json();
+
       if (data.question) {
         setIsProQuestion(data.isPro ?? false);
         return data.question;
       }
+
       return null;
-    } catch {
+    } catch (err) {
+      console.error('fetchQuestion error:', err);
       return null;
-    }
+    } finally {
+          clearTimeout(timeout);
+      }
   }
 
   const generateQuestion = useCallback(async () => {
@@ -135,25 +166,37 @@ export default function QuizPage() {
     setSelected(null);
     setLimitError(null);
 
-    // Use prefetched question if available
+    // instant switch from prefetched question
     if (nextQuestion) {
       setQuestion(nextQuestion);
       setNextQuestion(null);
+      setLoading(false);
 
       // Prefetch next in background
-      fetchQuestion().then(q => { if (q) setNextQuestion(q); });
+      fetchQuestion()
+          .then(q => {
+            if (q) setNextQuestion(q);
+          })
+      .catch(() => {});
+
       return;
     }
 
-    const q = await fetchQuestion();
-    setQuestion(q);
-    setLoading(false);
+    try {
+      const q = await fetchQuestion();
 
-    // Prefetch next question in background
-    if (q) {
-      fetchQuestion().then(next => { if (next) setNextQuestion(next); });
+      if (q) {
+        // prefetch next
+        fetchQuestion()
+            .then((next) => {
+                if (next) setNextQuestion(next);
+            })
+            .catch(() => {});
+      }
+    } finally {
+        setLoading(false);
     }
-  }, [exam, difficulty, locale, initialTopic, nextQuestion]);
+  }, [exam, difficulty, locale, initialTopic, nextQuestion, quizMode]);
 
   useEffect(() => {
     if (!showExamPicker) generateQuestion();

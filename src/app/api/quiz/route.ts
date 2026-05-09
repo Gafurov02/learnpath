@@ -75,7 +75,13 @@ export async function POST(req: NextRequest) {
     const env = getServerEnv();
     const supabase = await createServerSupabaseClient();
 
-    const { exam, difficulty = 'medium', locale = 'en', topic } = await req.json();
+    const {
+      exam,
+      difficulty = 'medium',
+      locale = 'en',
+      topic,
+      mode = 'ai',
+    } = await req.json();
     const config = EXAM_CONFIGS[exam];
     if (!config) return NextResponse.json({ error: 'Unknown exam' }, { status: 400 });
 
@@ -150,6 +156,13 @@ export async function POST(req: NextRequest) {
         });
         return NextResponse.json({ question, exam, isPro, tier, source: 'custom' });
       }
+    }
+
+    if (mode === 'school') {
+      return NextResponse.json(
+          { error: 'No school question available' },
+          { status: 404 }
+      );
     }
 
     const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
