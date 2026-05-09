@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase';
 import { FREE_LIMITS, PRO_LIMITS, ALL_EXAMS } from '@/lib/limits';
 import { ExplanationBlock } from '@/components/quiz/ExplanationBlock';
 import { getSubscriptionTier, hasProAccess, type SubscriptionTier } from '@/lib/subscription';
+import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
