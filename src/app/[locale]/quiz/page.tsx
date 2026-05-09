@@ -276,7 +276,7 @@ export default function QuizPage() {
  hsl(var(--background))
 `, color: 'hsl(var(--foreground))' }}>
         {user ? <AppNavbar /> : <Navbar />}
-        <main style={{ maxWidth: 760, margin: '0 auto', padding: '12px 14px 120px' }}>
+        <main style={{ maxWidth: 760, margin: '0 auto', padding: '24px 14px 120px' }}>
 
           {/* Header — hidden on mobile */}
           <div
@@ -356,7 +356,12 @@ export default function QuizPage() {
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                marginBottom: 8,
+                marginBottom: 20,
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 18,
+                padding: '14px 16px',
+                backdropFilter: 'blur(14px)',
 
                 fontSize: 12,
 
@@ -452,7 +457,7 @@ export default function QuizPage() {
           {/* Difficulty */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
             {DIFFICULTIES.map(d => (
-                <button key={d} onClick={() => setDifficulty(d)} style={{ padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500, border: `1px solid ${difficulty === d ? '#22C07A' : 'hsl(var(--border))'}`, background: difficulty === d ? 'rgba(34,192,122,0.1)' : 'transparent', color: difficulty === d ? '#22C07A' : 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit', textTransform: 'capitalize' }}>{d}</button>
+                <button key={d} onClick={() => setDifficulty(d)} style={{ padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500, border: `1px solid ${difficulty === d ? '#22C07A' : 'hsl(var(--border))'}`, background: difficulty === d ? 'rgba(34,192,122,0.16)' : 'rgba(255,255,255,0.04)', backdropFilter: 'blur(10px)', color: difficulty === d ? '#22C07A' : 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit', textTransform: 'capitalize' }}>{d}</button>
             ))}
           </div>
 
@@ -473,7 +478,7 @@ export default function QuizPage() {
                 background:
                   theme === 'dark'
                     ? 'rgba(255,255,255,0.04)'
-                    : 'rgba(255,255,255,0.7)',
+                    : 'rgba(255,255,255,0.92)',
 
                 border:
                   '1px solid rgba(255,255,255,0.08)',
@@ -572,6 +577,16 @@ export default function QuizPage() {
                                 alignItems: 'center',
                                 gap: 14,
 
+                                transform: 'translateZ(0)',
+                                boxShadow:
+                                    i === question.correctIndex
+                                        ? '0 0 24px rgba(34,192,122,0.16)'
+                                        : i === selected
+                                            ? '0 0 24px rgba(232,64,64,0.16)'
+                                            : answered
+                                                ? 'none'
+                                                : '0 4px 18px rgba(0,0,0,0.04)',
+
                                 background:
                                   i === question.correctIndex
                                     ? 'rgba(34,192,122,0.12)'
@@ -614,18 +629,6 @@ export default function QuizPage() {
                                 width: '100%',
 
                                 transition: 'all 0.2s ease',
-
-                                boxShadow:
-
-                                    i === question.correctIndex
-
-                                        ? '0 0 24px rgba(34,192,122,0.16)'
-
-                                        : i === selected
-
-                                            ? '0 0 24px rgba(232,64,64,0.16)'
-
-                                            : 'none',
                               }}
                           >
                             <span
@@ -706,7 +709,7 @@ export default function QuizPage() {
           </motion.div>
 
           {answered && !limitError && (
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 22 }}>
                 <button onClick={generateQuestion} style={{
                   background:
                       'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
