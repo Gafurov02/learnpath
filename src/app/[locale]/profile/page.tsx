@@ -474,6 +474,7 @@ export default function ProfilePage() {
           {/* ACCOUNT */}
           <ScaleIn delay={0.05}>
               <div
+                  className='glass-card'
                   style={{
                       ...glassCard,
                       padding: 24,
@@ -699,6 +700,7 @@ export default function ProfilePage() {
               </FadeIn>
 
               <div
+                  className='glass-card'
                   style={{
                     ...glassCard,
                     padding: 18,

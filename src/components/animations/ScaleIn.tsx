@@ -1,19 +1,22 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import type { ReactNode } from 'react';
+
+type ScaleInProps = {
+    children: ReactNode;
+    delay?: number;
+};
 
 export function ScaleIn({
                             children,
                             delay = 0,
-                        }: {
-    children: React.ReactNode;
-    delay?: number;
-}) {
+                        }: ScaleInProps) {
     return (
         <motion.div
             initial={{
                 opacity: 0,
-                scale: 0.94,
+                scale: 0.96,
             }}
             animate={{
                 opacity: 1,

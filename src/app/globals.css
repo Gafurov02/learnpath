@@ -58,6 +58,23 @@
   a {
     transition: color 0.2s ease, opacity 0.2s ease;
   }
+
+  .glass-card {
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .glass-card:hover {
+    transform: translateY(-4px);
+
+    box-shadow:
+            0 20px 50px rgba(0, 0, 0, 0.35);
+
+    border-color:
+      rgba(107,92,231,0.24) !important;
+  }
 }
 
 /* Mobile utilities */
