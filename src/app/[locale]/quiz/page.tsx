@@ -285,65 +285,6 @@ export default function QuizPage() {
         {user ? <AppNavbar /> : <Navbar />}
         <main style={{ maxWidth: 700, margin: '0 auto', padding: '24px 14px 140px' }}>
 
-          {/* Header — hidden on mobile */}
-          <div
-              className="lp-desktop-only"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 20,
-                flexWrap: 'wrap',
-                gap: 12,
-          }}>
-            <Link
-                href={user ? `/${locale}/home` : `/${locale}`}
-                style={{
-                  fontSize: 13,
-                  color: 'hsl(var(--muted-foreground))',
-                  textDecoration: 'none'
-                }}
-            >
-              ← {locale === 'ru' ? 'Назад' : 'Back'}
-            </Link>
-
-            <div
-                style={{
-                  display: 'flex',
-                  gap: 12,
-                  fontSize: 13,
-                  color: 'hsl(var(--muted-foreground))',
-                  alignItems: 'center'
-                }}
-            >
-              <span>
-                ✓ <strong style={{ color: '#22C07A' }}>
-                  {score.correct}
-                </strong>
-              </span>
-
-              <span>
-                {locale === 'ru'
-                    ? 'Всего'
-                    : 'Total'}:{' '}
-                <strong>{score.total}</strong>
-              </span>
-
-              <span>
-                {locale === 'ru'
-                    ? 'Точность'
-                    : 'Accuracy'}:{' '}
-                <strong>{accuracy}%</strong>
-              </span>
-
-              {streak >= 3 && (
-                  <span style={{ color: '#EF9F27' }}>
-                    🔥 {streak}
-                  </span>
-              )}
-            </div>
-          </div>
-
           <div
               style={{
                 marginBottom: 24,
@@ -632,11 +573,13 @@ export default function QuizPage() {
                                 backdropFilter: 'blur(14px)',
                                 transition: 'all 0.2s ease',
                                 boxShadow:
-                                    i === question.correctIndex
+                                  answered
+                                    ? i === question.correctIndex
                                         ? '0 0 24px rgba(34,192,122,0.16)'
                                         : i === selected
-                                            ? '0 0 24px rgba(232,64,64,0.16)'
-                                            : 'none',
+                                        ? '0 0 24px rgba(232,64,64,0.16)'
+                                        : 'none'
+                                    : 'none',
                               }}
                           >
                             <span
@@ -649,17 +592,20 @@ export default function QuizPage() {
                                   flexShrink: 0,
 
                                   background:
-                                    i === question.correctIndex
-                                      ? '#22C07A'
-                                      : i === selected
-                                      ? '#E84040'
+                                    answered
+                                      ? i === question.correctIndex
+                                        ? '#22C07A'
+                                        : i === selected
+                                        ? '#E84040'
+                                        : 'rgba(255,255,255,0.08)'
                                       : 'rgba(255,255,255,0.08)',
 
                                   color:
-                                  i === question.correctIndex ||
-                                  i === selected
-                                    ? '#fff'
-                                    : 'hsl(var(--foreground))',
+                                    answered &&
+                                    (i === question.correctIndex ||
+                                        i === selected)
+                                          ? '#fff'
+                                          : 'hsl(var(--foreground))',
 
                                   display: 'flex',
                                   alignItems: 'center',
