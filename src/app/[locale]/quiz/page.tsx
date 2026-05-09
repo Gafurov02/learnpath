@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase';
 import { FREE_LIMITS, PRO_LIMITS, ALL_EXAMS } from '@/lib/limits';
 import { ExplanationBlock } from '@/components/quiz/ExplanationBlock';
 import { getSubscriptionTier, hasProAccess, type SubscriptionTier } from '@/lib/subscription';
+import { useTheme } from "next-themes";
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 
@@ -59,6 +60,7 @@ export default function QuizPage() {
   const [quizMode, setQuizMode] = useState<'ai' | 'school'>('ai');
   const [hasSchool, setHasSchool] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const supabase = createClient();
@@ -222,7 +224,11 @@ export default function QuizPage() {
   // Exam picker for free users
   if (showExamPicker && !isPro) {
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
+        <div style={{ minHeight: '100vh', background: `
+ radial-gradient(circle at top left, rgba(107,92,231,0.12), transparent 28%),
+ radial-gradient(circle at bottom right, rgba(34,192,122,0.08), transparent 24%),
+ hsl(var(--background))
+`, color: 'hsl(var(--foreground))' }}>
           {user ? <AppNavbar /> : <Navbar />}
           <main style={{ maxWidth: 560, margin: '0 auto', padding: '60px 24px' }}>
             <h1 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 32, fontWeight: 400, letterSpacing: '-1px', marginBottom: 8, textAlign: 'center' }}>
@@ -263,18 +269,70 @@ export default function QuizPage() {
   }
 
   return (
-      <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
+      <div style={{ minHeight: '100vh', background: `
+ radial-gradient(circle at top left, rgba(107,92,231,0.12), transparent 28%),
+ radial-gradient(circle at bottom right, rgba(34,192,122,0.08), transparent 24%),
+ hsl(var(--background))
+`, color: 'hsl(var(--foreground))' }}>
         {user ? <AppNavbar /> : <Navbar />}
-        <main style={{ maxWidth: 760, margin: '0 auto', padding: '16px 16px 80px' }}>
+        <main style={{ maxWidth: 760, margin: '0 auto', padding: '12px 14px 120px' }}>
 
           {/* Header — hidden on mobile */}
-          <div className="lp-desktop-only" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-            <Link href={user ? `/${locale}/home` : `/${locale}`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none' }}>← {locale === 'ru' ? 'Назад' : 'Back'}</Link>
-            <div style={{ display: 'flex', gap: 12, fontSize: 13, color: 'hsl(var(--muted-foreground))', alignItems: 'center' }}>
-              <span>✓ <strong style={{ color: '#22C07A' }}>{score.correct}</strong></span>
-              <span>{locale === 'ru' ? 'Всего' : 'Total'}: <strong>{score.total}</strong></span>
-              <span>{locale === 'ru' ? 'Точность' : 'Accuracy'}: <strong>{accuracy}%</strong></span>
-              {streak >= 3 && <span style={{ color: '#EF9F27' }}>🔥 {streak}</span>}
+          <div
+              className="lp-desktop-only"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 20,
+                flexWrap: 'wrap',
+                gap: 12,
+          }}>
+            <Link
+                href={user ? `/${locale}/home` : `/${locale}`}
+                style={{
+                  fontSize: 13,
+                  color: 'hsl(var(--muted-foreground))',
+                  textDecoration: 'none'
+                }}
+            >
+              ← {locale === 'ru' ? 'Назад' : 'Back'}
+            </Link>
+
+            <div
+                style={{
+                  display: 'flex',
+                  gap: 12,
+                  fontSize: 13,
+                  color: 'hsl(var(--muted-foreground))',
+                  alignItems: 'center'
+                }}
+            >
+              <span>
+                ✓ <strong style={{ color: '#22C07A' }}>
+                  {score.correct}
+                </strong>
+              </span>
+
+              <span>
+                {locale === 'ru'
+                    ? 'Всего'
+                    : 'Total'}:{' '}
+                <strong>{score.total}</strong>
+              </span>
+
+              <span>
+                {locale === 'ru'
+                    ? 'Точность'
+                    : 'Accuracy'}:{' '}
+                <strong>{accuracy}%</strong>
+              </span>
+
+              {streak >= 3 && (
+                  <span style={{ color: '#EF9F27' }}>
+                    🔥 {streak}
+                  </span>
+              )}
             </div>
           </div>
 
@@ -285,6 +343,71 @@ export default function QuizPage() {
               <span style={{ color: 'hsl(var(--muted-foreground))' }}>{score.total} {locale === 'ru' ? 'всего' : 'total'}</span>
               <span style={{ color: accuracy >= 70 ? '#22C07A' : 'hsl(var(--muted-foreground))' }}>{accuracy}%</span>
               {streak >= 3 && <span style={{ color: '#EF9F27' }}>🔥{streak}</span>}
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginBottom: 20,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+
+                fontSize: 12,
+
+                color:
+                  'hsl(var(--muted-foreground))',
+              }}
+            >
+              <span>
+                {locale === 'ru'
+                  ? 'Прогресс'
+                  : 'Progress'}
+              </span>
+
+              <span>
+                {accuracy}%
+              </span>
+            </div>
+
+            <div
+              style={{
+                height: 8,
+
+                background:
+                  'rgba(255,255,255,0.06)',
+
+                borderRadius: 999,
+
+                overflow: 'hidden',
+              }}
+            >
+              <motion.div
+                initial={{
+                  width: 0,
+                }}
+                animate={{
+                  width: `${accuracy}%`,
+                }}
+                transition={{
+                  duration: 0.5,
+                }}
+                style={{
+                  height: '100%',
+
+                  borderRadius: 999,
+
+                  background:
+                    'linear-gradient(90deg,#6B5CE7,#8B7CFF)',
+
+                  boxShadow:
+                    '0 0 18px rgba(107,92,231,0.4)',
+                }}
+              />
             </div>
           </div>
 
@@ -333,7 +456,41 @@ export default function QuizPage() {
           </div>
 
           {/* Question card */}
-          <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 20, padding: 32, minHeight: 340 }}>
+          <motion.div
+              initial={{
+                opacity: 0,
+                y: 16
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                duration: 0.35,
+              }}
+              style={{
+                background:
+                  theme === 'dark'
+                    ? 'rgba(255,255,255,0.04)'
+                    : 'rgba(255,255,255,0.7)',
+
+                border:
+                  '1px solid rgba(255,255,255,0.08)',
+
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter:
+                  'blur(20px)',
+
+                borderRadius: 28,
+
+                padding: 32,
+
+                minHeight: 340,
+
+                boxShadow:
+                  '0 10px 40px rgba(0,0,0,0.22)',
+              }}
+          >
             {authRequired ? (
                 <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                   <div style={{ fontSize: 40, marginBottom: 16 }}>🔐</div>
@@ -374,7 +531,7 @@ export default function QuizPage() {
                     <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: difficulty === 'easy' ? 'rgba(34,192,122,0.1)' : difficulty === 'hard' ? 'rgba(232,64,64,0.1)' : 'rgba(107,92,231,0.1)', color: difficulty === 'easy' ? '#22C07A' : difficulty === 'hard' ? '#E84040' : '#6B5CE7', fontWeight: 600, textTransform: 'capitalize' }}>{difficulty}</span>
                   </div>
 
-                  <p style={{ fontSize: 17, lineHeight: 1.7, marginBottom: 24, fontWeight: 300, color: 'hsl(var(--foreground))' }}>{question.question}</p>
+                  <p style={{ fontSize: 22, letterSpacing: '-0.03em', lineHeight: 1.45, marginBottom: 24, fontWeight: 700, color: 'hsl(var(--foreground))' }}>{question.question}</p>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {question.options.map((opt, i) => {
@@ -385,10 +542,123 @@ export default function QuizPage() {
                         else { color = 'hsl(var(--muted-foreground))'; }
                       }
                       return (
-                          <button key={i} onClick={() => handleAnswer(i)} disabled={answered} style={{ display: 'flex', alignItems: 'center', gap: 12, background: bg, border: `1px solid ${border}`, borderRadius: 12, padding: '13px 16px', color, cursor: answered ? 'default' : 'pointer', textAlign: 'left', fontSize: 14, fontFamily: 'inherit', transition: 'all 0.15s', width: '100%' }}>
-                            <span style={{ width: 28, height: 28, borderRadius: 7, flexShrink: 0, background: letterBg, color: letterColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600 }}>{letters[i]}</span>
+                          <motion.button
+                              key={i}
+                              onClick={() => handleAnswer(i)}
+                              disabled={answered}
+                              whileHover={
+                                answered
+                                    ? {}
+                                    : {
+                                      scale: 1.015,
+                                      y: -2,
+                                    }
+                              }
+                              whileTap={
+                                answered
+                                  ? {}
+                                  : {
+                                    scale: 0.985,
+                                    }
+                                }
+                              transition={{
+                                type: 'spring',
+                                stiffness: 260,
+                                damping: 18,
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 14,
+
+                                background:
+                                  i === question.correctIndex
+                                    ? 'rgba(34,192,122,0.12)'
+                                    : i === selected
+                                    ? 'rgba(232,64,64,0.12)'
+                                    : 'rgba(255,255,255,0.04)',
+
+                                border: `1px solid ${
+                                  i === question.correctIndex
+                                    ? '#22C07A'
+                                    : i === selected
+                                    ? '#E84040'
+                                    : 'rgba(255,255,255,0.08)'
+                                }`,
+
+                                backdropFilter: 'blur(14px)',
+
+                                borderRadius: 22,
+
+                                padding: '18px',
+
+                                color,
+
+                                cursor:
+
+                                    answered
+
+                                        ? 'default'
+
+                                        : 'pointer',
+
+                                textAlign: 'left',
+
+                                fontSize: 15,
+
+                                fontWeight: 500,
+
+                                fontFamily: 'inherit',
+
+                                width: '100%',
+
+                                transition: 'all 0.2s ease',
+
+                                boxShadow:
+
+                                    i === question.correctIndex
+
+                                        ? '0 0 24px rgba(34,192,122,0.16)'
+
+                                        : i === selected
+
+                                            ? '0 0 24px rgba(232,64,64,0.16)'
+
+                                            : 'none',
+                              }}
+                          >
+                            <span
+                                style={{
+                                  width: 34,
+                                  height: 34,
+
+                                  borderRadius: 12,
+
+                                  flexShrink: 0,
+
+                                  background:
+                                    i === question.correctIndex
+                                      ? '#22C07A'
+                                      : i === selected
+                                      ? '#E84040'
+                                      : 'rgba(255,255,255,0.08)',
+
+                                  color:
+                                  i === question.correctIndex ||
+                                  i === selected
+                                    ? '#fff'
+                                    : 'hsl(var(--foreground))',
+
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+
+                                  fontSize: 13,
+                                  fontWeight: 700,
+                                }}
+                            >{letters[i]}</span>
                             {opt}
-                          </button>
+                          </motion.button>
                       );
                     })}
                   </div>
@@ -405,14 +675,62 @@ export default function QuizPage() {
             ) : (
                 <div style={{ textAlign: 'center', color: 'hsl(var(--muted-foreground))', paddingTop: 80 }}>
                   {locale === 'ru' ? 'Что-то пошло не так.' : 'Something went wrong.'}{' '}
-                  <button onClick={generateQuestion} style={{ color: '#6B5CE7', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14 }}>{locale === 'ru' ? 'Попробовать снова' : 'Try again'}</button>
+                  <button onClick={generateQuestion} style={{
+                    background:
+                        'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
+
+                    color: '#fff',
+
+                    border: 'none',
+
+                    borderRadius: 16,
+
+                    padding: '14px 30px',
+
+                    fontSize: 15,
+
+                    fontWeight: 700,
+
+                    cursor: 'pointer',
+
+                    fontFamily: 'inherit',
+
+                    boxShadow:
+                        '0 10px 30px rgba(107,92,231,0.32)',
+
+                    transition: 'all 0.2s ease',
+                  }}>{locale === 'ru' ? 'Попробовать снова' : 'Try again'}</button>
                 </div>
             )}
-          </div>
+          </motion.div>
 
           {answered && !limitError && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
-                <button onClick={generateQuestion} style={{ background: '#6B5CE7', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 28px', fontSize: 15, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button onClick={generateQuestion} style={{
+                  background:
+                      'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
+
+                  color: '#fff',
+
+                  border: 'none',
+
+                  borderRadius: 16,
+
+                  padding: '14px 30px',
+
+                  fontSize: 15,
+
+                  fontWeight: 700,
+
+                  cursor: 'pointer',
+
+                  fontFamily: 'inherit',
+
+                  boxShadow:
+                      '0 10px 30px rgba(107,92,231,0.32)',
+
+                  transition: 'all 0.2s ease',
+                }}>
                   {locale === 'ru' ? 'Следующий вопрос →' : 'Next question →'}
                 </button>
               </div>
@@ -441,10 +759,62 @@ function ExamPickerGrid({ selected, onToggle, locale }: { selected: string[]; on
           const isSelected = selected.includes(e);
           const isDisabled = !isSelected && selected.length >= 2;
           return (
-              <button key={e} onClick={() => !isDisabled && onToggle(e)} style={{ padding: '20px 16px', borderRadius: 14, textAlign: 'center', border: `2px solid ${isSelected ? '#6B5CE7' : 'hsl(var(--border))'}`, background: isSelected ? 'rgba(107,92,231,0.1)' : 'hsl(var(--card))', color: isDisabled ? 'hsl(var(--muted-foreground))' : 'hsl(var(--foreground))', cursor: isDisabled ? 'default' : 'pointer', fontFamily: 'inherit', opacity: isDisabled ? 0.4 : 1, transition: 'all 0.15s' }}>
+              <motion.button
+                  key={e}
+                  onClick={() => !isDisabled && onToggle(e)}
+                  whileHover={
+                    isDisabled
+                      ? {}
+                      : {
+                        scale: 1.02,
+                        y: -2,
+                        }
+                  }
+                  whileTap={
+                    isDisabled
+                        ? {}
+                        : {
+                          scale: 0.98,
+                        }
+                  }
+                    transition={{
+                      type: 'spring',
+                      stiffness: 260,
+                      damping: 18,
+                    }}
+                  style={{
+                    padding: '20px 16px',
+                    borderRadius: 18,
+                    textAlign: 'center',
+
+                    border: `2px solid ${
+                      isSelected
+                        ? '#6B5CE7'
+                        : 'rgba(255,255,255,0.08)'
+                    }`,
+
+                    background:
+                      isSelected
+                        ? 'hsl(var(--muted-foreground))'
+                        : 'hsl(var(--foreground)',
+
+                    cursor:
+                      isDisabled
+                        ? 'default'
+                        : 'pointer',
+
+                    fontFamily: 'inherit',
+
+                    opacity: isDisabled ? 0.4 : 1,
+
+                    backdropFilter: 'blur(12px)',
+
+                    transition: 'all 0.2s ease',
+                  }}
+                  >
                 <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{e}</div>
                 {isSelected && <div style={{ fontSize: 11, color: '#6B5CE7', fontWeight: 600 }}>✓ {locale === 'ru' ? 'Выбран' : 'Selected'}</div>}
-              </button>
+              </motion.button>
           );
         })}
       </div>
