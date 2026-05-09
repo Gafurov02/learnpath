@@ -19,8 +19,8 @@ const DIFFICULTIES = ['easy', 'medium', 'hard'];
 type Question = {
   question: string;
   options: string[];
-  correctIndex?: number;
-  explanation?: string;
+  correctIndex: number;
+  explanation: string;
   topic: string;
   difficulty: string;
   answerToken: string;
@@ -139,7 +139,7 @@ export default function QuizPage() {
     if (nextQuestion) {
       setQuestion(nextQuestion);
       setNextQuestion(null);
-      setLoading(false);
+
       // Prefetch next in background
       fetchQuestion().then(q => { if (q) setNextQuestion(q); });
       return;
@@ -161,48 +161,45 @@ export default function QuizPage() {
 
   async function handleAnswer(i: number) {
     if (answered || !question) return;
+
     setAnswered(true);
     setSelected(i);
 
-    let progress: ProgressResponse | null = null;
+    const correct =
+        i === question.correctIndex;
 
-    if (user) {
-      const progressResponse = await fetch('/api/progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answerToken: question.answerToken, selectedIndex: i }),
-      });
+    setScore(p => ({
+      correct: p.correct + (correct ? 1 : 0),
+      total: p.total + 1,
+    }));
 
-      if (!progressResponse.ok) {
-        if (progressResponse.status === 403) {
-          setLimitError('daily');
-        }
-        setAnswered(false);
-        setSelected(null);
-        return;
-      }
-
-      progress = (await progressResponse.json()) as ProgressResponse;
+    if (correct) {
+      setStreak(p => p + 1);
+    } else {
+      setStreak(0);
     }
 
-    if (!progress) return;
-
-    const correct = progress.correct;
-    setQuestion((current) => current ? {
-      ...current,
-      correctIndex: progress.correctIndex,
-      explanation: progress.explanation,
-      topic: progress.topic,
-      difficulty: progress.difficulty,
-    } : current);
-    setScore(p => ({ correct: p.correct + (correct ? 1 : 0), total: p.total + 1 }));
-    if (correct) setStreak(p => p + 1); else setStreak(0);
     setDailyCount(p => p + 1);
 
+    // save in background
     if (user) {
-      await fetch('/api/xp', {
+      fetch('/api/progress', {
         method: 'POST',
-      });
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          answerToken: question.answerToken,
+          selectedIndex: i,
+        }),
+      }).catch(() => {});
+    }
+
+    // XP in background
+    if (user && correct) {
+      fetch('/api/xp', {
+        method: 'POST',
+      }).catch(() => {});
     }
   }
 
