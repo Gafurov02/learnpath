@@ -276,7 +276,7 @@ export default function QuizPage() {
  hsl(var(--background))
 `, color: 'hsl(var(--foreground))' }}>
         {user ? <AppNavbar /> : <Navbar />}
-        <main style={{ maxWidth: 760, margin: '0 auto', padding: '24px 14px 120px' }}>
+        <main style={{ maxWidth: 760, margin: '0 auto', padding: '24px 14px 140px' }}>
 
           {/* Header — hidden on mobile */}
           <div
@@ -350,18 +350,24 @@ export default function QuizPage() {
           <div
             style={{
               marginBottom: 20,
+
+              background: 'rgba(255,255,255,0.04)',
+
+              border: '1px solid rgba(255,255,255,0.08)',
+
+              borderRadius: 18,
+
+              padding: '14px 16px',
+
+              backdropFilter: 'blur(14px)',
+
+              WebkitBackdropFilter: 'blur(14px)',
             }}
           >
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                marginBottom: 20,
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 18,
-                padding: '14px 16px',
-                backdropFilter: 'blur(14px)',
 
                 fontSize: 12,
 
@@ -537,7 +543,7 @@ export default function QuizPage() {
                     <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: difficulty === 'easy' ? 'rgba(34,192,122,0.1)' : difficulty === 'hard' ? 'rgba(232,64,64,0.1)' : 'rgba(107,92,231,0.1)', color: difficulty === 'easy' ? '#22C07A' : difficulty === 'hard' ? '#E84040' : '#6B5CE7', fontWeight: 600, textTransform: 'capitalize' }}>{difficulty}</span>
                   </div>
 
-                  <p style={{ fontSize: 22, letterSpacing: '-0.03em', lineHeight: 1.45, marginBottom: 24, fontWeight: 700, color: 'hsl(var(--foreground))' }}>{question.question}</p>
+                  <p style={{ fontSize: 'clamp(22px,4vw,30px)', letterSpacing: '-0.03em', lineHeight: 1.35, marginBottom: 24, fontWeight: 700, color: 'hsl(var(--foreground))' }}>{question.question}</p>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {question.options.map((opt, i) => {
@@ -606,7 +612,7 @@ export default function QuizPage() {
 
                                 borderRadius: 22,
 
-                                padding: '18px',
+                                padding: '18px 18px',
 
                                 color,
 
@@ -629,6 +635,8 @@ export default function QuizPage() {
                                 width: '100%',
 
                                 transition: 'all 0.2s ease',
+
+                                minHeight: 72,
                               }}
                           >
                             <span
@@ -709,33 +717,56 @@ export default function QuizPage() {
           </motion.div>
 
           {answered && !limitError && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 22 }}>
-                <button onClick={generateQuestion} style={{
-                  background:
-                      'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
+              <div
+                  style={{
+                    position: 'sticky',
+                    bottom: 76,
 
-                  color: '#fff',
+                    display: 'flex',
+                    justifyContent: 'center',
 
-                  border: 'none',
+                    marginTop: 26,
 
-                  borderRadius: 16,
+                    zIndex: 40,
 
-                  padding: '14px 30px',
+                    pointerEvents: 'none',
+                  }}
+              >
+                <button
+                    onClick={generateQuestion}
+                    style={{
+                      pointerEvents: 'auto',
 
-                  fontSize: 15,
+                      background:
+                        'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
 
-                  fontWeight: 700,
+                      color: '#fff',
 
-                  cursor: 'pointer',
+                      border: 'none',
 
-                  fontFamily: 'inherit',
+                      borderRadius: 18,
 
-                  boxShadow:
-                      '0 10px 30px rgba(107,92,231,0.32)',
+                      padding: '16px 34px',
 
-                  transition: 'all 0.2s ease',
-                }}>
-                  {locale === 'ru' ? 'Следующий вопрос →' : 'Next question →'}
+                      fontSize: 15,
+
+                      fontWeight: 700,
+
+                      cursor: 'pointer',
+
+                      fontFamily: 'inherit',
+
+                      boxShadow:
+                          '0 18px 40px rgba(107,92,231,0.34)',
+
+                      transition: 'all 0.2s ease',
+
+                      backdropFilter: 'blur(12px)',
+                    }}
+                >
+                  {locale === 'ru'
+                      ? 'Следующий вопрос →'
+                      : 'Next question →'}
                 </button>
               </div>
           )}
