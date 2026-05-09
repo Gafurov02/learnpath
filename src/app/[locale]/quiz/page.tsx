@@ -283,7 +283,7 @@ export default function QuizPage() {
  hsl(var(--background))
 `, color: 'hsl(var(--foreground))' }}>
         {user ? <AppNavbar /> : <Navbar />}
-        <main style={{ maxWidth: 760, margin: '0 auto', padding: '24px 14px 140px' }}>
+        <main style={{ maxWidth: 700, margin: '0 auto', padding: '24px 14px 140px' }}>
 
           {/* Header — hidden on mobile */}
           <div
@@ -550,9 +550,9 @@ export default function QuizPage() {
                     <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: difficulty === 'easy' ? 'rgba(34,192,122,0.1)' : difficulty === 'hard' ? 'rgba(232,64,64,0.1)' : 'rgba(107,92,231,0.1)', color: difficulty === 'easy' ? '#22C07A' : difficulty === 'hard' ? '#E84040' : '#6B5CE7', fontWeight: 600, textTransform: 'capitalize' }}>{difficulty}</span>
                   </div>
 
-                  <p style={{ fontSize: 'clamp(22px,4vw,30px)', letterSpacing: '-0.03em', lineHeight: 1.35, marginBottom: 24, fontWeight: 700, color: 'hsl(var(--foreground))' }}>{question.question}</p>
+                  <p style={{ fontSize: 'clamp(22px,4vw,30px)', letterSpacing: '-0.03em', lineHeight: 1.28, marginBottom: 18, fontWeight: 650, color: 'hsl(var(--foreground))' }}>{question.question}</p>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {question.options.map((opt, i) => {
                       let bg = 'transparent', border = 'hsl(var(--border))', color = 'hsl(var(--foreground))', letterBg = 'hsl(var(--muted))', letterColor = 'hsl(var(--muted-foreground))';
                       if (answered) {
@@ -593,7 +593,10 @@ export default function QuizPage() {
                                 padding: '18px',
                                 borderRadius: 22,
                                 border: `1px solid ${border}`,
-                                background: bg,
+                                background:
+                                  answered
+                                    ? bg
+                                    : 'rgba(255,255,255,0.035)',
                                 color,
                                 cursor: answered ? 'default' : 'pointer',
                                 textAlign: 'left',
@@ -637,7 +640,7 @@ export default function QuizPage() {
                                   justifyContent: 'center',
 
                                   fontSize: 13,
-                                  fontWeight: 700,
+                                  fontWeight: 650,
                                 }}
                             >{letters[i]}</span>
                             {opt}
@@ -672,7 +675,7 @@ export default function QuizPage() {
 
                     fontSize: 15,
 
-                    fontWeight: 700,
+                    fontWeight: 650,
 
                     cursor: 'pointer',
 
@@ -691,7 +694,7 @@ export default function QuizPage() {
               <div
                   style={{
                     position: 'sticky',
-                    bottom: 76,
+                    bottom: 28,
 
                     display: 'flex',
                     justifyContent: 'center',
@@ -713,26 +716,26 @@ export default function QuizPage() {
 
                       color: '#fff',
 
-                      border: 'none',
+                      border: '1px solid rgba(255,255,255,0.12)',
 
-                      borderRadius: 18,
+                      borderRadius: 16,
 
-                      padding: '16px 34px',
+                      padding: '14px 28px',
 
-                      fontSize: 15,
+                      fontSize: 14,
 
-                      fontWeight: 700,
+                      fontWeight: 600,
 
                       cursor: 'pointer',
 
                       fontFamily: 'inherit',
 
                       boxShadow:
-                          '0 18px 40px rgba(107,92,231,0.34)',
+                          '0 10px 30px rgba(107,92,231,0.28)',
+
+                      backdropFilter: 'blur(16px)',
 
                       transition: 'all 0.2s ease',
-
-                      backdropFilter: 'blur(12px)',
                     }}
                 >
                   {locale === 'ru'
@@ -743,7 +746,7 @@ export default function QuizPage() {
           )}
 
           {!user && (
-              <div style={{ marginTop: 24, background: 'rgba(107,92,231,0.06)', border: '1px solid rgba(107,92,231,0.15)', borderRadius: 12, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+              <div style={{ marginTop: 24, background: 'rgba(107,92,231,0.06)', border: '1px solid rgba(107,92,231,0.15)', borderRadius: 12, padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <span style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))' }}>
               {locale === 'ru' ? 'Войди чтобы сохранить прогресс' : 'Sign in to save your progress'}
             </span>
@@ -801,8 +804,8 @@ function ExamPickerGrid({ selected, onToggle, locale }: { selected: string[]; on
 
                     background:
                       isSelected
-                        ? 'hsl(var(--muted-foreground))'
-                        : 'hsl(var(--foreground)',
+                        ? 'rgba(107,92,231,0.12)'
+                        : 'rgba(255,255,255,0.04)',
 
                     cursor:
                       isDisabled
