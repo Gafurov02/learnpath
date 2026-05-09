@@ -468,7 +468,7 @@ export default function QuizPage() {
           )}
 
           {/* Difficulty */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
             {DIFFICULTIES.map(d => (
                 <button key={d} onClick={() => setDifficulty(d)} style={{ padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500, border: `1px solid ${difficulty === d ? '#22C07A' : 'hsl(var(--border))'}`, background: difficulty === d ? 'rgba(34,192,122,0.16)' : 'rgba(255,255,255,0.04)', backdropFilter: 'blur(10px)', color: difficulty === d ? '#22C07A' : 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit', textTransform: 'capitalize' }}>{d}</button>
             ))}
@@ -590,7 +590,7 @@ export default function QuizPage() {
                                 alignItems: 'center',
                                 gap: 14,
                                 width: '100%',
-                                padding: '18px',
+                                padding: '16px 18px',
                                 borderRadius: 22,
                                 border: `1px solid ${border}`,
                                 background:
@@ -763,7 +763,7 @@ export default function QuizPage() {
 
 function ExamPickerGrid({ selected, onToggle, locale }: { selected: string[]; onToggle: (e: string) => void; locale: string }) {
   return (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
         {ALL_EXAMS.map(e => {
           const isSelected = selected.includes(e);
           const isDisabled = !isSelected && selected.length >= 2;
