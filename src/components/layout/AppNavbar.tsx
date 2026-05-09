@@ -269,7 +269,8 @@ export function AppNavbar() {
                     ? '0 10px 40px rgba(0,0,0,0.35)'
                     : '0 10px 30px rgba(0,0,0,0.08)',
 
-              paddingBottom: 'env(safe-area-inset-bottom)'
+              paddingBottom: 'env(safe-area-inset-bottom)',
+              transition: 'all 0.22s ease',
           }}
         >
           {tabs.map(tab => {
@@ -302,7 +303,7 @@ export function AppNavbar() {
 
                       transform:
                         active
-                          ? 'translateY(-2px)'
+                          ? 'translateY(-3px) scale(1.02)'
                           : 'translateY(0)',
                     }}
                 >

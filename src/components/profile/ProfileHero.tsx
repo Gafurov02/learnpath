@@ -33,7 +33,9 @@ export function ProfileHero({
                 padding: 28,
                 marginBottom: 20,
                 background:
-                    'linear-gradient(135deg, rgba(107,92,231,0.18), rgba(55,138,221,0.12))',
+                    'radial-gradient(circle at top left, rgba(107,92,231,0.24), transparent 40%),',
+                animation:
+                    'pulseGlow 6s ease-in out infinite',
                 border: '1px solid rgba(107,92,231,0.18)',
                 backdropFilter: 'blur(20px)',
             }}

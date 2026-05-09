@@ -122,29 +122,34 @@ export function CommandMenu() {
                             <Command.Group heading="Navigation">
                                 {[
                                     {
-                                        label: 'Dashboard',
-                                        path: '/dashboard',
+                                        label: 'Home',
+                                        path: '/home',
                                         icon: '🏠',
+                                    },
+                                    {
+                                        label: 'Practice',
+                                        path: '/quiz',
+                                        icon: '❓',
+                                    },
+                                    {
+                                        label: 'Tutor',
+                                        path: '/chat',
+                                        icon: '💬',
+                                    },
+                                    {
+                                        label: 'Leaderboard',
+                                        path: '/leaderboard',
+                                        icon: '👑',
+                                    },
+                                    {
+                                        label: 'Schools',
+                                        path: '/Schools',
+                                        icon: '🏫',
                                     },
                                     {
                                         label: 'Profile',
                                         path: '/profile',
-                                        icon: '👤',
-                                    },
-                                    {
-                                        label: 'Pricing',
-                                        path: '/pricing',
-                                        icon: '💎',
-                                    },
-                                    {
-                                        label: 'Schools',
-                                        path: '/schools',
-                                        icon: '🏫',
-                                    },
-                                    {
-                                        label: 'Admin',
-                                        path: '/admin',
-                                        icon: '⚡',
+                                        icon: '👤'
                                     },
                                 ].map((item) => (
                                     <Command.Item

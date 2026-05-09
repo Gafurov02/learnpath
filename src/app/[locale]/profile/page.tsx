@@ -28,6 +28,8 @@ import { ProfilePageSkeleton } from '@/components/profile/ProfilePageSkeleton';
 import { StudyRecommendations } from '@/components/profile/StudyRecomendations';
 import { DailyQuests } from '@/components/profile/DailyQuests';
 import { LeagueCard } from '@/components/profile/LeagueCard';
+import { FadeIn } from "@/components/animations/FadeIn";
+import { ScaleIn } from "@/components/animations/ScaleIn";
 
 type Achievement = {
   code: string;
@@ -423,6 +425,7 @@ export default function ProfilePage() {
     WebkitBackdropFilter: 'blur(18px)',
     borderRadius: 28,
     boxShadow: '0 10px 40px rgba(0,0,0,0.24)',
+    transition: 'all 0.25s ease',
   };
 
   return (
@@ -455,199 +458,203 @@ export default function ProfilePage() {
               zIndex: 2,
             }}
         >
-          <ProfileHero
-              name={name}
-              email={user?.email}
-              avatarUrl={avatarUrl}
-              xp={xp}
-              level={level.name}
-              streak={streak}
-              progress={progress}
-              isPro={isPro}
-          />
+            <FadeIn>
+                <ProfileHero
+                    name={name}
+                    email={user?.email}
+                    avatarUrl={avatarUrl}
+                    xp={xp}
+                    level={level.name}
+                    streak={streak}
+                    progress={progress}
+                    isPro={isPro}
+                />
+            </FadeIn>
 
           {/* ACCOUNT */}
-          <div
-              style={{
-                ...glassCard,
-                padding: 24,
-                display: 'flex',
-                flexDirection:
-                  window.innerWidth < 768 ? 'column' : 'row',
-                justifyContent: 'space-between',
-                alignItems:
-                  window.innerWidth < 768 ? 'stretch' : 'center',
-                gap: 20,
-                flexWrap: 'wrap',
-              }}
-          >
-            <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 16,
-                }}
-            >
-              <label
+          <ScaleIn delay={0.05}>
+              <div
                   style={{
-                    position: 'relative',
-                    cursor: 'pointer',
-                  }}
-              >
-                <UserAvatar
-                    avatarUrl={avatarUrl}
-                    email={user?.email}
-                    name={nickname.trim() || name}
-                    id={user?.id}
-                    size={62}
-                    accent={isPro ? 'pro' : 'default'}
-                />
-
-                <div
-                    style={{
-                      position: 'absolute',
-                      bottom: -2,
-                      right: -2,
-                      width: 22,
-                      height: 22,
-                      borderRadius: '50%',
-                      background: '#6B5CE7',
+                      ...glassCard,
+                      padding: 24,
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 11,
-                      color: '#fff',
-                      border:
-                          '2px solid rgba(15,15,20,1)',
-                    }}
-                >
-                  ✎
-                </div>
+                      flexDirection:
+                          window.innerWidth < 768 ? 'column' : 'row',
+                      justifyContent: 'space-between',
+                      alignItems:
+                          window.innerWidth < 768 ? 'stretch' : 'center',
+                      gap: 20,
+                      flexWrap: 'wrap',
+                  }}
+              >
+                  <div
+                      style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 16,
+                      }}
+                  >
+                      <label
+                          style={{
+                              position: 'relative',
+                              cursor: 'pointer',
+                          }}
+                      >
+                          <UserAvatar
+                              avatarUrl={avatarUrl}
+                              email={user?.email}
+                              name={nickname.trim() || name}
+                              id={user?.id}
+                              size={62}
+                              accent={isPro ? 'pro' : 'default'}
+                          />
 
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarFileChange}
-                    style={{ display: 'none', boxSizing: 'border-box' }}
-                />
-              </label>
+                          <div
+                              style={{
+                                  position: 'absolute',
+                                  bottom: -2,
+                                  right: -2,
+                                  width: 22,
+                                  height: 22,
+                                  borderRadius: '50%',
+                                  background: '#6B5CE7',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: 11,
+                                  color: '#fff',
+                                  border:
+                                      '2px solid rgba(15,15,20,1)',
+                              }}
+                          >
+                              ✎
+                          </div>
 
-              <div>
-                <div
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 700,
-                      marginBottom: 4,
-                    }}
-                >
-                  {locale === 'ru'
-                      ? 'Настройки аккаунта'
-                      : 'Account Settings'}
-                </div>
+                          <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleAvatarFileChange}
+                              style={{ display: 'none', boxSizing: 'border-box' }}
+                          />
+                      </label>
 
-                <div
-                    style={{
-                      fontSize: 13,
-                      color:
-                          'hsl(var(--muted-foreground))',
-                    }}
-                >
-                  {locale === 'ru'
-                      ? 'Управление профилем'
-                      : 'Manage your profile'}
-                </div>
+                      <div>
+                          <div
+                              style={{
+                                  fontSize: 18,
+                                  fontWeight: 700,
+                                  marginBottom: 4,
+                              }}
+                          >
+                              {locale === 'ru'
+                                  ? 'Настройки аккаунта'
+                                  : 'Account Settings'}
+                          </div>
+
+                          <div
+                              style={{
+                                  fontSize: 13,
+                                  color:
+                                      'hsl(var(--muted-foreground))',
+                              }}
+                          >
+                              {locale === 'ru'
+                                  ? 'Управление профилем'
+                                  : 'Manage your profile'}
+                          </div>
+                      </div>
+                  </div>
+
+                  <div
+                      style={{
+                          display: 'flex',
+                          gap: 12,
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                      }}
+                  >
+                      <input
+                          value={nickname}
+                          onChange={(e) =>
+                              setNickname(e.target.value)
+                          }
+                          onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                  handleSaveProfile();
+                              }
+                          }}
+                          placeholder={
+                              locale === 'ru'
+                                  ? 'Никнейм'
+                                  : 'Nickname'
+                          }
+                          style={{
+                              width:
+                                  window.innerWidth < 768
+                                      ? '100%'
+                                      : 220,
+                              padding: '12px 14px',
+                              borderRadius: 14,
+                              border: '1px solid hsl(var(--border))',
+                              background: 'hsl(var(--background))',
+                              color: 'hsl(var(--foreground))',
+                              fontSize: 14,
+                              outline: 'none',
+                              boxSizing: 'border-box',
+                              transition: 'all 0.2s ease',
+                              boxShadow:
+                                  '0 2px 10px rgba(0,0,0,0.04)',
+                          }}
+                      />
+
+                      <button
+                          onClick={handleSaveProfile}
+                          disabled={savingProfile}
+                          style={{
+                              height: 44,
+                              padding: '0 18px',
+                              borderRadius: 14,
+                              border: 'none',
+                              background: '#6B5CE7',
+                              color: '#fff',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              flex: window.innerWidth < 768 ? 1 : undefined,
+                              justifyContent: 'center',
+                              boxSizing: 'border-box',
+                          }}
+                      >
+                          {savingProfile
+                              ? '...'
+                              : locale === 'ru'
+                                  ? 'Сохранить'
+                                  : 'Save'}
+                      </button>
+
+                      <button
+                          onClick={handleLogout}
+                          style={{
+                              height: 44,
+                              padding: '0 18px',
+                              borderRadius: 14,
+                              border:
+                                  '1px solid rgba(255,255,255,0.08)',
+                              background: 'rgba(255,255,255,0.04)',
+                              color: '#ff8080',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              flex: window.innerWidth < 768 ? 1 : undefined,
+                              justifyContent: 'center',
+                              boxSizing: 'border-box',
+                          }}
+                      >
+                          {locale === 'ru'
+                              ? 'Выйти'
+                              : 'Logout'}
+                      </button>
+                  </div>
               </div>
-            </div>
-
-            <div
-                style={{
-                  display: 'flex',
-                  gap: 12,
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                }}
-            >
-              <input
-                  value={nickname}
-                  onChange={(e) =>
-                      setNickname(e.target.value)
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSaveProfile();
-                    }
-                  }}
-                  placeholder={
-                    locale === 'ru'
-                        ? 'Никнейм'
-                        : 'Nickname'
-                  }
-                  style={{
-                    width:
-                      window.innerWidth < 768
-                        ? '100%'
-                        : 220,
-                    padding: '12px 14px',
-                    borderRadius: 14,
-                    border: '1px solid hsl(var(--border))',
-                    background: 'hsl(var(--background))',
-                    color: 'hsl(var(--foreground))',
-                    fontSize: 14,
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    transition: 'all 0.2s ease',
-                    boxShadow:
-                        '0 2px 10px rgba(0,0,0,0.04)',
-                  }}
-              />
-
-              <button
-                  onClick={handleSaveProfile}
-                  disabled={savingProfile}
-                  style={{
-                    height: 44,
-                    padding: '0 18px',
-                    borderRadius: 14,
-                    border: 'none',
-                    background: '#6B5CE7',
-                    color: '#fff',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    flex: window.innerWidth < 768 ? 1 : undefined,
-                    justifyContent: 'center',
-                    boxSizing: 'border-box',
-                  }}
-              >
-                {savingProfile
-                    ? '...'
-                    : locale === 'ru'
-                        ? 'Сохранить'
-                        : 'Save'}
-              </button>
-
-              <button
-                  onClick={handleLogout}
-                  style={{
-                    height: 44,
-                    padding: '0 18px',
-                    borderRadius: 14,
-                    border:
-                        '1px solid rgba(255,255,255,0.08)',
-                    background: 'rgba(255,255,255,0.04)',
-                    color: '#ff8080',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    flex: window.innerWidth < 768 ? 1 : undefined,
-                    justifyContent: 'center',
-                    boxSizing: 'border-box',
-                  }}
-              >
-                {locale === 'ru'
-                    ? 'Выйти'
-                    : 'Logout'}
-              </button>
-            </div>
-          </div>
+          </ScaleIn>
 
           {/* CONTENT */}
           <div
@@ -669,21 +676,27 @@ export default function ProfilePage() {
                   gap: 24,
                 }}
             >
-              <ProfileOverview
-                  xp={xp}
-                  streak={streak}
-                  accuracy={accuracy}
-                  plan={isPro ? 'pro' : 'free'}
-              />
+              <FadeIn delay={0.1}>
+                  <ProfileOverview
+                      xp={xp}
+                      streak={streak}
+                      accuracy={accuracy}
+                      plan={isPro ? 'pro' : 'free'}
+                  />
+              </FadeIn>
 
-              <LeagueCard
-                  name={league.name}
-                  icon={league.icon}
-                  color={league.color}
-                  xp={xp}
-              />
+              <FadeIn delay={0.15}>
+                  <LeagueCard
+                      name={league.name}
+                      icon={league.icon}
+                      color={league.color}
+                      xp={xp}
+                  />
+              </FadeIn>
 
-              <ProfileActivityChart data={last7} />
+              <FadeIn delay={0.2}>
+                  <ProfileActivityChart data={last7} />
+              </FadeIn>
 
               <div
                   style={{
