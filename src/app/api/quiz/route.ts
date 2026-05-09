@@ -55,9 +55,17 @@ function buildQuestionResponse(params: {
 
   return {
     question: params.question,
+
     options: params.options,
+
+    correctIndex: params.correctIndex,
+
+    explanation: params.explanation || '',
+
     topic: params.topic || 'General',
+
     difficulty: params.difficulty || 'medium',
+
     answerToken,
   };
 }

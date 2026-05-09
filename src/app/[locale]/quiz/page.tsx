@@ -168,6 +168,16 @@ export default function QuizPage() {
     const correct =
         i === question.correctIndex;
 
+    setQuestion(current =>
+      current
+        ? {
+            ...current,
+            correctIndex: current.correctIndex,
+            explanation: current.explanation,
+          }
+        : current
+    );
+
     setScore(p => ({
       correct: p.correct + (correct ? 1 : 0),
       total: p.total + 1,
@@ -579,61 +589,25 @@ export default function QuizPage() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 14,
-
-                                transform: 'translateZ(0)',
+                                width: '100%',
+                                padding: '18px',
+                                borderRadius: 22,
+                                border: `1px solid ${border}`,
+                                background: bg,
+                                color,
+                                cursor: answered ? 'default' : 'pointer',
+                                textAlign: 'left',
+                                fontSize: 15,
+                                fontWeight: 500,
+                                fontFamily: 'inherit',
+                                backdropFilter: 'blur(14px)',
+                                transition: 'all 0.2s ease',
                                 boxShadow:
                                     i === question.correctIndex
                                         ? '0 0 24px rgba(34,192,122,0.16)'
                                         : i === selected
                                             ? '0 0 24px rgba(232,64,64,0.16)'
-                                            : answered
-                                                ? 'none'
-                                                : '0 4px 18px rgba(0,0,0,0.04)',
-
-                                background:
-                                  i === question.correctIndex
-                                    ? 'rgba(34,192,122,0.12)'
-                                    : i === selected
-                                    ? 'rgba(232,64,64,0.12)'
-                                    : 'rgba(255,255,255,0.04)',
-
-                                border: `1px solid ${
-                                  i === question.correctIndex
-                                    ? '#22C07A'
-                                    : i === selected
-                                    ? '#E84040'
-                                    : 'rgba(255,255,255,0.08)'
-                                }`,
-
-                                backdropFilter: 'blur(14px)',
-
-                                borderRadius: 22,
-
-                                padding: '18px 18px',
-
-                                color,
-
-                                cursor:
-
-                                    answered
-
-                                        ? 'default'
-
-                                        : 'pointer',
-
-                                textAlign: 'left',
-
-                                fontSize: 15,
-
-                                fontWeight: 500,
-
-                                fontFamily: 'inherit',
-
-                                width: '100%',
-
-                                transition: 'all 0.2s ease',
-
-                                minHeight: 72,
+                                            : 'none',
                               }}
                           >
                             <span
