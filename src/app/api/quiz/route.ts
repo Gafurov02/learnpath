@@ -24,6 +24,23 @@ type CustomQuestionRow = {
   difficulty: string | null;
 };
 
+function shuffleQuestion(options: string[], correctIndex: number) {
+  const indexed = options.map((option, index) => ({
+    option,
+    isCorrect: index === correctIndex,
+  }));
+
+  for (let i = indexed.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
+  }
+
+  return {
+    options: indexed.map((item) => item.option),
+    correctIndex: indexed.findIndex((item) => item.isCorrect),
+  };
+}
+
 function normalizeOptions(value: unknown) {
   return Array.isArray(value)
     ? value.filter((option): option is string => typeof option === 'string' && option.trim().length > 0)
@@ -142,13 +159,19 @@ export async function POST(req: NextRequest) {
 
       if (usableQuestions.length > 0) {
         const q = usableQuestions[Math.floor(Math.random() * usableQuestions.length)];
+
+        const shuffled = shuffleQuestion(
+            q.options,
+            q.correct_index
+        );
+
         const question = buildQuestionResponse({
           userId: user.id,
           secret: env.SUPABASE_SERVICE_ROLE_KEY,
           exam,
           question: q.question,
-          options: q.options,
-          correctIndex: q.correct_index,
+          options: shuffled.options,
+          correctIndex: shuffled.correctIndex,
           explanation: q.explanation,
           topic: q.topic,
           difficulty: q.difficulty,
@@ -200,13 +223,15 @@ Return ONLY valid JSON:
       throw new Error('Invalid question generated');
     }
 
+    const shuffled = shuffleQuestion(options, correctIndex);
+
     const question = buildQuestionResponse({
       userId: user.id,
       secret: env.SUPABASE_SERVICE_ROLE_KEY,
       exam,
       question: generated.question,
-      options,
-      correctIndex,
+      options: shuffled.options,
+      correctIndex: shuffled.correctIndex,
       explanation: generated.explanation,
       topic: generated.topic,
       difficulty: generated.difficulty || difficulty,
