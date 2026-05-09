@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
       .eq('user_id', user.id);
     const schoolIds = [...new Set((memberships ?? []).map((membership) => membership.school_id))];
 
-    if (schoolIds.length > 0) {
+    if (mode === 'school' && schoolIds.length > 0) {
       const { data: customQs } = await admin
         .from('custom_questions')
         .select('question, options, correct_index, explanation, topic, difficulty')

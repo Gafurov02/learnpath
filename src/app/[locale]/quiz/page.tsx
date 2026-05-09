@@ -186,17 +186,28 @@ export default function QuizPage() {
       const q = await fetchQuestion();
 
       if (q) {
-        // prefetch next
+          setQuestion(q);
+
+        // prefetch next in background
         fetchQuestion()
             .then((next) => {
                 if (next) setNextQuestion(next);
             })
             .catch(() => {});
+      } else {
+          setQuestion(null)
       }
     } finally {
         setLoading(false);
     }
-  }, [exam, difficulty, locale, initialTopic, nextQuestion, quizMode]);
+  }, [
+      nextQuestion,
+      exam,
+      difficulty,
+      locale,
+      initialTopic,
+      quizMode
+  ]);
 
   useEffect(() => {
     if (!showExamPicker) generateQuestion();
