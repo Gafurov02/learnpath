@@ -45,6 +45,7 @@ export default function QuizPage() {
   const [question, setQuestion] = useState<Question | null>(null);
   const [nextQuestion, setNextQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
   const [prefetching, setPrefetching] = useState(false);
   const [answered, setAnswered] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
@@ -187,6 +188,7 @@ export default function QuizPage() {
 
   const generateQuestion = useCallback(async () => {
     setLoading(true);
+    setTransitioning(true);
     setAnswered(false);
     setSelected(null);
     setLimitError(null);
@@ -200,6 +202,9 @@ export default function QuizPage() {
       });
       setNextQuestion(null);
       setLoading(false);
+      setTimeout(() => {
+          setTransitioning(false);
+      }, 180);
 
       // Prefetch next in background
       fetchQuestion()
@@ -243,7 +248,7 @@ export default function QuizPage() {
   }, [exam, difficulty, showExamPicker]);
 
   async function handleAnswer(i: number) {
-    if (answered || !question) return;
+    if (answered || !question || transitioning) return;
 
     setAnswered(true);
     setSelected(i);
@@ -812,7 +817,7 @@ export default function QuizPage() {
             ) : (
                 <div style={{ textAlign: 'center', color: 'hsl(var(--muted-foreground))', paddingTop: 80 }}>
                   {locale === 'ru' ? 'Что-то пошло не так.' : 'Something went wrong.'}{' '}
-                  <button onClick={generateQuestion} style={{
+                  <button onClick={generateQuestion} disabled={transitioning} style={{
                     background:
                         'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
 
@@ -887,6 +892,8 @@ export default function QuizPage() {
                       backdropFilter: 'blur(16px)',
 
                       transition: 'all 0.2s ease',
+                      opacity: transitioning ? 0.6 : 1,
+                      cursor: transitioning ? 'default' : 'pointer',
                     }}
                 >
                   {locale === 'ru'
