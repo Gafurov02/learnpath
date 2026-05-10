@@ -9,6 +9,10 @@ import { AppNavbar } from '@/components/layout/AppNavbar';
 import { getLevelByXp, LEVELS, ROADMAP } from '@/lib/levels';
 import { StudyPlan } from '@/components/home/StudyPlan';
 import { getSubscriptionTier, hasProAccess, type SubscriptionTier } from '@/lib/subscription';
+import { GlassCard } from "@/components/ui/GlassCard";
+import { PageContainer } from "@/components/ui/PageContainer";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { StatsCard } from "@/components/ui/StatsCard";
 
 export default function HomePage() {
   const locale = useLocale();
@@ -71,54 +75,247 @@ export default function HomePage() {
   return (
       <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
         <AppNavbar />
-        <main style={{ maxWidth: 860, margin: '0 auto', padding: '16px 16px 80px' }}>
+        <PageContainer>
 
-          {/* Hero card */}
-          {isPro ? (
-              <div style={{ background: 'linear-gradient(135deg, #6B5CE7 0%, #9B8DFF 100%)', borderRadius: 20, padding: '24px 28px', marginBottom: 20 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
-                  <div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 6 }}>⭐ {isMax ? 'MAX' : t('proMember')}</div>
-                    <div style={{ fontSize: 22, fontWeight: 500, color: '#fff', marginBottom: 10 }}>{level.icon} {level.name} · {xp} XP</div>
-                    <div style={{ height: 7, background: 'rgba(255,255,255,0.25)', borderRadius: 4, width: 240, maxWidth: '100%' }}>
-                      <div style={{ height: 7, background: '#fff', borderRadius: 4, width: `${progress}%`, transition: 'width 0.8s ease' }} />
-                    </div>
-                    {nextLevel && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', marginTop: 5 }}>{nextLevel.minXp - xp} {t('xpTo')} {nextLevel.name}</div>}
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 36 }}>🔥</div>
-                    <div style={{ fontSize: 22, fontWeight: 600, color: '#fff' }}>{streak}</div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>{t('dayStreak')}</div>
-                  </div>
+          <GlassCard
+            style={{
+              padding: '32px',
+              marginBottom: 24,
+              overflow: 'hidden',
+              position: 'relative',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 24,
+                flexWrap: 'wrap',
+              }}
+            >
+              {/*LEFT*/}
+              <div style={{ flex: 1, minWidth: 280 }}>
+                <div
+                  style={{
+                    fontSize: 14,
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: 10,
+                  }}
+                >
+                  👋🏼 {t('welcomeBack')}, {name}
                 </div>
-                <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 10 }}>
-                  {[
-                    { label: t('questions'), val: isMax ? t('unlimited') : (locale === 'ru' ? '50 / 3 дня' : '50 / 3 days') },
-                    { label: t('aiExplanations'), val: t('detailed') },
-                    { label: t('examsAccess'), val: t('all12') },
-                    { label: t('studyPlan'), val: isMax ? t('personal') : (locale === 'ru' ? 'Max' : 'Max only') },
-                  ].map(f => (
-                      <div key={f.label} style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: '10px 14px' }}>
-                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginBottom: 3 }}>{f.label}</div>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{f.val}</div>
+
+                <h1
+                  style={{
+                    fontSize: 'clamp(36px,5vw,58px)',
+                    lineHeight: 0.95,
+                    letterSpacing: '-0.06em',
+                    fontWeight: 800,
+                    marginBottom: 18,
+                  }}
+                >
+                  Learn
+                  <br />
+                  smarter.
+                </h1>
+
+                <p
+                  style={{
+                    maxWidth: 520,
+                    fontSize: 15,
+                    lineHeight: 1.7,
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: 24,
+                  }}
+                >
+                  Build streaks, earn XP,
+                  complete roadmap topics
+                  and improve every day.
+                </p>
+
+                <Link
+                  href={`/${locale}/quiz`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '14px 22px',
+                    borderRadius: 18,
+                    background:
+                      'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
+                    color: '#fff',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    fontSize: 14,
+                    boxShadow:
+                      '0 12px 30px rgba(107,92,231,0.28)',
+                  }}
+                >
+                  {t('continueBtn')} →
+                </Link>
+              </div>
+
+              {/*RIGHT*/}
+              <div
+
+                  style={{
+
+                    width: '100%',
+
+                    maxWidth: 340,
+
+                  }}
+
+              >
+
+                <GlassCard
+
+                    style={{
+
+                      padding: 20,
+
+                      background: 'rgba(255,255,255,0.04)',
+
+                    }}
+
+                >
+
+                  <div
+
+                      style={{
+
+                        display: 'flex',
+
+                        justifyContent: 'space-between',
+
+                        alignItems: 'center',
+
+                        marginBottom: 16,
+
+                      }}
+
+                  >
+
+                    <div>
+
+                      <div
+
+                          style={{
+
+                            fontSize: 13,
+
+                            color:
+
+                                'hsl(var(--muted-foreground))',
+
+                            marginBottom: 4,
+
+                          }}
+
+                      >
+
+                        Level
+
                       </div>
-                  ))}
-                </div>
-              </div>
-          ) : (
-              <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 20, padding: '24px 28px', marginBottom: 20, display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
-                <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(107,92,231,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>{level.icon}</div>
-                <div style={{ flex: 1, minWidth: 200 }}>
-                  <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginBottom: 2 }}>{t('welcomeBack')}, <strong>{name}</strong></div>
-                  <div style={{ fontSize: 17, fontWeight: 500, marginBottom: 8 }}>{level.name} · {xp} XP {nextLevel && <span style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', fontWeight: 400 }}>→ {nextLevel.minXp} XP</span>}</div>
-                  <div style={{ height: 8, background: 'hsl(var(--border))', borderRadius: 4 }}>
-                    <div style={{ height: 8, background: '#6B5CE7', borderRadius: 4, width: `${progress}%`, transition: 'width 0.8s ease' }} />
+
+                      <div
+
+                          style={{
+
+                            fontSize: 34,
+
+                            fontWeight: 800,
+
+                          }}
+
+                      >
+
+                        {level.name}
+
+                      </div>
+
+                    </div>
+
+                    <div
+
+                        style={{
+
+                          fontSize: 15,
+
+                          color: '#6B5CE7',
+
+                          fontWeight: 700,
+
+                        }}
+
+                    >
+
+                      {xp} XP
+
+                    </div>
+
                   </div>
-                  {nextLevel && <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>{nextLevel.minXp - xp} {t('xpTo')} {nextLevel.name}</div>}
-                </div>
-                <Link href={`/${locale}/quiz`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '10px 20px', fontSize: 14, fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap' }}>{t('continueBtn')}</Link>
-              </div>
-          )}
+
+                  <ProgressBar value={progress} />
+
+                  <div
+
+                      style={{
+
+                        marginTop: 12,
+
+                        fontSize: 13,
+
+                        color:
+
+                            'hsl(var(--muted-foreground))',
+
+                      }}
+
+                  >
+
+                    {nextLevel
+
+                        ? `${nextLevel.minXp - xp} XP to ${nextLevel.name}`
+
+                        : 'Max level reached'}
+
+                  </div>
+
+                  <div
+
+                      style={{
+
+                        marginTop: 20,
+
+                        display: 'grid',
+
+                        gridTemplateColumns: '1fr 1fr',
+
+                        gap: 10,
+
+                      }}
+
+                  >
+
+                    <StatsCard
+
+                        label="Streak"
+
+                        value={`🔥 ${streak}`}
+
+                    />
+
+                    <StatsCard
+
+                        label="Plan"
+
+                        value={isMax ? 'MAX' : tier.toUpperCase()}
+
+                    />
+            </div>
+          </GlassCard>
 
           {/* Upgrade banner */}
           {!isMax && (
@@ -237,7 +434,7 @@ export default function HomePage() {
                 </div>
               </>
           )}
-        </main>
+        </PageContainer>
       </div>
   );
 }
