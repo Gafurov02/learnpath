@@ -1,3 +1,5 @@
+import { GlassCard } from "@/components/ui/GlassCard";
+
 type Props = {
     label: string;
     value: string;
