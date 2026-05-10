@@ -61,6 +61,8 @@ export default function QuizPage() {
   const [quizMode, setQuizMode] = useState<'ai' | 'school'>('ai');
   const [hasSchool, setHasSchool] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
+  const [achievementPopup, setAchievementPopup] =
+      useState<string | null>(null);
   const { theme } = useTheme();
   const [streakData, setStreakData] = useState({
       streak: 0,
@@ -288,6 +290,41 @@ export default function QuizPage() {
       fetch('/api/xp', {
         method: 'POST',
       }).catch(() => {});
+    }
+
+    if (user) {
+        fetch('/api/achievements/check', {
+            method: 'POST',
+
+            headers: {
+                'Content-Type': 'application/json',
+            },
+
+            body: JSON.stringify({
+                userId: user.id,
+
+                correctAnswers:
+                    score.correct + (correct ? 1 : 0),
+
+                streak:
+                    streakData.streak,
+
+                xp:
+                    (score.correct + (correct ? 1 : 0)) * 10,
+            }),
+        })
+            .then(async (res) => {
+                const data = await res.json();
+
+                if (data.unlocked?.length > 0) {
+                    setAchievementPopup(data.unlocked[0]);
+
+                    setTimeout(() => {
+                        setAchievementPopup(null);
+                    }, 4000);
+                }
+            })
+            .catch(() => {});
     }
   }
 
@@ -812,6 +849,68 @@ export default function QuizPage() {
                 </Link>
               </div>
           )}
+
+            {achievementPopup && (
+                <motion.div
+                    initial={{
+                        opacity: 0,
+                        y: 40,
+                        scale: 0.9,
+                    }}
+
+                    animate={{
+                        opacity: 1,
+                        y: 0,
+                        scale: 1,
+                    }}
+
+                    style={{
+                        position: 'fixed',
+
+                        bottom: 110,
+
+                        left: '50%',
+
+                        transform: 'translateX(-50%)',
+
+                        zIndex: 9999,
+
+                        background:
+                            'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
+
+                        color: '#fff',
+
+                        padding: '16px 24px',
+
+                        borderRadius: 20,
+
+                        boxShadow:
+                            '0 18px 50px rgba(107,92,231,0.45)',
+
+                        backdropFilter: 'blur(16px)',
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: 13,
+                            opacity: 0.8,
+                            marginBottom: 4,
+                        }}
+                    >
+                        Achievement unlocked
+                    </div>
+
+                    <div
+                        style={{
+                            fontSize: 16,
+                            fontWeight: 700,
+                        }}
+                    >
+                        🏅 {achievementPopup}
+                    </div>
+                </motion.div>
+            )}
+
         </main>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
