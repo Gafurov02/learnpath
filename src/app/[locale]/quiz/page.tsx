@@ -48,6 +48,9 @@ export default function QuizPage() {
   const [transitioning, setTransitioning] = useState(false);
   const [prefetching, setPrefetching] = useState(false);
   const [answered, setAnswered] = useState(false);
+  const [answerResult, setAnswerResult] = useState<
+      'correct' | 'wrong' | null
+    >(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [streak, setStreak] = useState(0);
@@ -190,6 +193,7 @@ export default function QuizPage() {
     setLoading(true);
     setTransitioning(true);
     setAnswered(false);
+    setAnswerResult(null);
     setSelected(null);
     setLimitError(null);
 
@@ -254,6 +258,7 @@ export default function QuizPage() {
 
     const correct =
         i === question.correctIndex;
+        setAnswerResult(correct ? 'correct' : 'wrong');
 
     setQuestion(current =>
       current
@@ -609,7 +614,47 @@ export default function QuizPage() {
               animate={{
                 opacity: 1,
                 y: 0,
-                scale: 1,
+                x:
+                    answerResult === 'wrong'
+                    ? [0, -4, -4, -2, 2, 0]
+                    : 0,
+                scale:
+                  answerResult === 'correct'
+                    ? [1, 1.01, 1]
+                    : answerResult === 'wrong'
+                    ? [1, 0.995, 1]
+                    : 1,
+
+                boxShadow:
+                    answerResult === 'correct'
+                        ? [
+                            theme === 'dark'
+                                ? '0 20px 60px rgba(0,0,0,0.45)'
+                                : '0 20px 60px rgba(0,0,0,0.08)',
+
+                            '0 0 0 2px rgba(34,192,122,0.35)',
+
+                            theme === 'dark'
+                                ? '0 20px 60px rgba(0,0,0,0.45)'
+                                : '0 20px 60px rgba(0,0,0,0.08)',
+                        ]
+
+                    : answerResult === 'wrong'
+                    ? [
+                        theme === 'dark'
+                            ? '0 20px 60px rgba(0,0,0,0.45)'
+                            : '0 20px 60px rgba(0,0,0,0.08)',
+
+                        '0 0 0 2px rgba(232,64,64,0.35)',
+
+                            theme === 'dark'
+                                ? '0 20px 60px rgba(0,0,0,0.45)'
+                                : '0 20px 60px rgba(0,0,0,0.08)',
+                            ]
+
+                        : theme === 'dark'
+                        ? '0 20px 60px rgba(0,0,0,0.45)'
+                        : '0 20px 60px rgba(0,0,0,0.08)',
               }}
               transition={{
                   type: 'spring',
