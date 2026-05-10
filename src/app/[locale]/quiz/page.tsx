@@ -186,9 +186,7 @@ export default function QuizPage() {
   }
 
   const generateQuestion = useCallback(async () => {
-    if (!nextQuestion) {
-        setLoading(true);
-    }
+    setLoading(true);
     setAnswered(false);
     setSelected(null);
     setLimitError(null);
@@ -608,6 +606,8 @@ export default function QuizPage() {
                   duration: 0.28,
               }}
               style={{
+                position: 'relative',
+                overflow: 'hidden',
                 background:
                   theme === 'dark'
                     ? 'rgba(255,255,255,0.04)'
@@ -628,6 +628,35 @@ export default function QuizPage() {
                   '0 10px 40px rgba(0,0,0,0.22)',
               }}
           >
+
+              {loading && question && (
+                  <div
+                      style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'rgba(10,10,10,0.28)',
+                          backdropFilter: 'blur(8px)',
+                          borderRadius: 28,
+                          zIndex: 20,
+
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                      }}
+                  >
+                      <div
+                          style={{
+                              width: 42,
+                              height: 42,
+                              borderRadius: '50%',
+                              border: '3px solid rgba(255,255,255,0.12)',
+                              borderTopColor: '#6B5CE7',
+                              animation: 'spin 0.8s linear infinite',
+                          }}
+                      />
+                  </div>
+              )}
+
             {authRequired ? (
                 <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                   <div style={{ fontSize: 40, marginBottom: 16 }}>🔐</div>
@@ -653,62 +682,6 @@ export default function QuizPage() {
                   <Link href={`/${locale}/pricing`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '11px 24px', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
                     {locale === 'ru' ? 'Перейти на Max →' : 'Upgrade to Max →'}
                   </Link>
-                </div>
-            ) : loading ? (
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 18,
-                    }}
-                >
-                    <div
-                        style={{
-                            width: 120,
-                            height: 14,
-                            borderRadius: 999,
-                            background: 'rgba(255,255,255,0.08)',
-                        }}
-                    />
-
-                    <div
-                        style={{
-                            width: '92%',
-                            height: 34,
-                            borderRadius: 14,
-                            background: 'rgba(255,255,255,0.06)',
-                        }}
-                    />
-
-                    <div
-                        style={{
-                            width: '74%',
-                            height: 34,
-                            borderRadius: 14,
-                            background: 'rgba(255,255,255,0.06)',
-                        }}
-                    />
-
-                    <div
-                        style={{
-                            marginTop: 18,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 12,
-                        }}
-                    >
-                        {[1,2,3,4].map((i) => (
-                            <div
-                                key={i}
-                                style={{
-                                    height: 68,
-                                    borderRadius: 22,
-                                    background: 'rgba(255,255,255,0.045)',
-                                    border: '1px solid rgba(255,255,255,0.06)',
-                                }}
-                            />
-                        ))}
-                    </div>
                 </div>
             ) : question ? (
                 <>
