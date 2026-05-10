@@ -410,7 +410,7 @@ export default function QuizPage() {
             <button
                 onClick={() => selectedExams.length === 2 ? saveExamSelection(selectedExams) : null}
                 disabled={selectedExams.length !== 2}
-                style={{ width: '100%', background: selectedExams.length === 2 ? '#6B5CE7' : 'hsl(var(--muted))', color: selectedExams.length === 2 ? '#fff' : 'hsl(var(--muted-foreground))', border: 'none', borderRadius: 12, padding: '14px', fontSize: 15, fontWeight: 500, cursor: selectedExams.length === 2 ? 'pointer' : 'default', fontFamily: 'inherit', marginTop: 24 }}>
+                style={{ width: '100%', background: selectedExams.length === 2 ? '#6B5CE7' : 'hsl(var(--muted))', color: selectedExams.length === 2 ? '#fff' : 'hsl(var(--muted-foreground))', border: 'none', borderRadius: 12, padding: '14px', fontSize: 16, lineHeight: 1.5, fontWeight: 500, cursor: selectedExams.length === 2 ? 'pointer' : 'default', fontFamily: 'inherit', marginTop: 24 }}>
               {locale === 'ru' ? `Начать практику (${selectedExams.length}/2)` : `Start practicing (${selectedExams.length}/2)`}
             </button>
 
@@ -432,7 +432,12 @@ export default function QuizPage() {
  hsl(var(--background))
 `, color: 'hsl(var(--foreground))' }}>
         {user ? <AppNavbar /> : <Navbar />}
-        <main style={{ maxWidth: 700, margin: '0 auto', padding: '24px 14px 140px' }}>
+        <main
+            style={{
+                width: '100%',
+                maxWidth: 820,
+                margin: '0 auto',
+                padding: '32px 16px 160px' }}>
 
           <div
               style={{
@@ -446,7 +451,7 @@ export default function QuizPage() {
 
                 padding: '18px 20px',
 
-                backdropFilter: 'blur(16px)',
+                backdropFilter: 'blur(24px)',
               }}
           >
             <div
@@ -607,7 +612,9 @@ export default function QuizPage() {
                 scale: 1,
               }}
               transition={{
-                  duration: 0.28,
+                  type: 'spring',
+                  stiffness: 120,
+                  damping: 18,
               }}
               style={{
                 position: 'relative',
@@ -626,10 +633,12 @@ export default function QuizPage() {
 
                 borderRadius: 28,
 
-                padding: '38px 36px',
+                padding: 'clamp(20px,4vw,42px)',
 
                 boxShadow:
-                  '0 10px 40px rgba(0,0,0,0.22)',
+                    theme === 'dark'
+                        ? '0 20px 60px rgba(0,0,0,0.45)'
+                        : '0 20px 60px rgba(0,0,0,0.08)',
               }}
           >
 
@@ -788,7 +797,7 @@ export default function QuizPage() {
 
                     <p
                         style={{
-                            fontSize: 'clamp(22px,4vw,30px)',
+                            fontSize: 'clamp(24px,4vw,36px)',
                             letterSpacing: '-0.03em',
                             lineHeight: 1.28,
                             marginBottom: 18,
@@ -830,8 +839,12 @@ export default function QuizPage() {
                                         answered
                                             ? {}
                                             : {
-                                                scale: 1.015,
-                                                y: -2,
+                                                scale: 1.012,
+                                                y: -3,
+                                                boxShadow:
+                                                    theme === 'dark'
+                                                        ? '0 10px 30px rgba(107,92,231,0.18)'
+                                                        : '0 10px 30px rgba(107,92,231,0.12)'
                                             }
                                     }
                                     whileTap={
@@ -862,7 +875,8 @@ export default function QuizPage() {
                                         color,
                                         cursor: answered ? 'default' : 'pointer',
                                         textAlign: 'left',
-                                        fontSize: 15,
+                                        fontSize: 16,
+                                        lineHeight: 1.5,
                                         fontWeight: 500,
                                         fontFamily: 'inherit',
                                         backdropFilter: 'blur(14px)',
@@ -939,7 +953,8 @@ export default function QuizPage() {
                             border: 'none',
                             borderRadius: 16,
                             padding: '14px 30px',
-                            fontSize: 15,
+                            fontSize: 16,
+                            lineHeight: 1.5,
                             fontWeight: 650,
                             cursor: 'pointer',
                             fontFamily: 'inherit',
@@ -957,7 +972,8 @@ export default function QuizPage() {
                 <div
                     style={{
                         position: 'sticky',
-                        bottom: 28,
+                        bottom: 20,
+                        paddingBottom: 8,
                         display: 'flex',
                         justifyContent: 'center',
                         marginTop: 26,
@@ -978,10 +994,11 @@ export default function QuizPage() {
                             fontWeight: 600,
                             fontFamily: 'inherit',
                             boxShadow: '0 10px 30px rgba(107,92,231,0.28)',
-                            backdropFilter: 'blur(16px)',
+                            backdropFilter: 'blur(24px)',
                             transition: 'all 0.2s ease',
                             opacity: transitioning ? 0.6 : 1,
                             cursor: transitioning ? 'default' : 'pointer',
+                            minWidth: 220,
                         }}
                     >
                         {locale === 'ru'
@@ -1039,7 +1056,7 @@ export default function QuizPage() {
                         boxShadow:
                             '0 18px 50px rgba(107,92,231,0.45)',
 
-                        backdropFilter: 'blur(16px)',
+                        backdropFilter: 'blur(24px)',
                     }}
                 >
                     <div
@@ -1150,7 +1167,8 @@ export default function QuizPage() {
 
                     <div
                         style={{
-                            fontSize: 15,
+                            fontSize: 16,
+                            lineHeight: 1.5,
                             opacity: 0.9,
                         }}
                     >
@@ -1225,7 +1243,7 @@ function ExamPickerGrid({ selected, onToggle, locale }: { selected: string[]; on
                     transition: 'all 0.2s ease',
                   }}
                   >
-                <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{e}</div>
+                <div style={{ fontSize: 16, lineHeight: 1.5, fontWeight: 600, marginBottom: 4 }}>{e}</div>
                 {isSelected && <div style={{ fontSize: 11, color: '#6B5CE7', fontWeight: 600 }}>✓ {locale === 'ru' ? 'Выбран' : 'Selected'}</div>}
               </motion.button>
           );
