@@ -196,15 +196,13 @@ export default function QuizPage() {
     // instant switch from prefetched question
     if (nextQuestion) {
       setQuestion(nextQuestion);
-      requestAnimationFrame(() => {
-          setAnswered(false);
-          setSelected(null);
-      });
       setNextQuestion(null);
+
+      setAnswered(false);
+      setSelected(null);
+
       setLoading(false);
-      setTimeout(() => {
-          setTransitioning(false);
-      }, 180);
+      setTransitioning(false);
 
       // Prefetch next in background
       fetchQuestion()
@@ -233,6 +231,7 @@ export default function QuizPage() {
       }
     } finally {
         setLoading(false);
+        setTransitioning(false);
     }
   }, [
       nextQuestion,
@@ -688,218 +687,271 @@ export default function QuizPage() {
                     {locale === 'ru' ? 'Перейти на Max →' : 'Upgrade to Max →'}
                   </Link>
                 </div>
+            ) : loading && !question ? (
+                <div>
+                    <div
+                        style={{
+                            height: 14,
+                            width: 180,
+                            borderRadius: 999,
+                            marginBottom: 24,
+                            background: 'rgba(255,255,255,0.08)',
+                        }}
+                    />
+
+                    <div
+                        style={{
+                            height: 42,
+                            width: '92%',
+                            borderRadius: 14,
+                            marginBottom: 14,
+                            background: 'rgba(255,255,255,0.08)',
+                        }}
+                    />
+
+                    <div
+                        style={{
+                            height: 42,
+                            width: '75%',
+                            borderRadius: 14,
+                            marginBottom: 30,
+                            background: 'rgba(255,255,255,0.08)',
+                        }}
+                    />
+
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 12,
+                        }}
+                    >
+                        {[1,2,3,4].map((i) => (
+                            <div
+                                key={i}
+                                style={{
+                                    height: 68,
+                                    borderRadius: 22,
+                                    background: 'rgba(255,255,255,0.06)',
+                                }}
+                            />
+                        ))}
+                    </div>
+                </div>
             ) : question ? (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', color: '#6B5CE7', textTransform: 'uppercase' }}>{exam} · {question.topic}</span>
-                    <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: difficulty === 'easy' ? 'rgba(34,192,122,0.1)' : difficulty === 'hard' ? 'rgba(232,64,64,0.1)' : 'rgba(107,92,231,0.1)', color: difficulty === 'easy' ? '#22C07A' : difficulty === 'hard' ? '#E84040' : '#6B5CE7', fontWeight: 600, textTransform: 'capitalize' }}>{difficulty}</span>
-                  </div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            marginBottom: 20,
+                            flexWrap: 'wrap',
+                            gap: 8,
+                        }}
+                    >
+            <span
+                style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    color: '#6B5CE7',
+                    textTransform: 'uppercase',
+                }}
+            >
+                {exam} · {question.topic}
+            </span>
 
-                  <p style={{ fontSize: 'clamp(22px,4vw,30px)', letterSpacing: '-0.03em', lineHeight: 1.28, marginBottom: 18, fontWeight: 650, color: 'hsl(var(--foreground))' }}>{question.question}</p>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {question.options.map((opt, i) => {
-                      let bg = 'transparent', border = 'hsl(var(--border))', color = 'hsl(var(--foreground))', letterBg = 'hsl(var(--muted))', letterColor = 'hsl(var(--muted-foreground))';
-                      if (answered) {
-                        if (i === question.correctIndex) { bg = 'rgba(34,192,122,0.1)'; border = '#22C07A'; letterBg = '#22C07A'; letterColor = '#fff'; }
-                        else if (i === selected) { bg = 'rgba(232,64,64,0.1)'; border = '#E84040'; letterBg = '#E84040'; letterColor = '#fff'; }
-                        else { color = 'hsl(var(--muted-foreground))'; }
-                      }
-                      return (
-                          <motion.button
-                              key={i}
-                              onClick={() => handleAnswer(i)}
-                              disabled={answered}
-                              whileHover={
-                                answered
-                                    ? {}
-                                    : {
-                                      scale: 1.015,
-                                      y: -2,
-                                    }
-                              }
-                              whileTap={
-                                answered
-                                  ? {}
-                                  : {
-                                    scale: 0.985,
-                                    }
-                                }
-                              transition={{
-                                type: 'spring',
-                                stiffness: 260,
-                                damping: 18,
-                              }}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 14,
-                                width: '100%',
-                                padding: '16px 18px',
-                                borderRadius: 22,
-                                border: `1px solid ${
-                                  answered
-                                    ? border
-                                    : 'rgba(255,255,255,0.09)'
-                                }`,
+                        <span
+                            style={{
+                                fontSize: 11,
+                                padding: '3px 10px',
+                                borderRadius: 20,
                                 background:
-                                  answered
-                                    ? bg
-                                    : theme === 'dark'
-                                      ? 'rgba(255,255,255,0.045)'
-                                      : 'rgba(255,255,255,0.82)',
-                                color,
-                                cursor: answered ? 'default' : 'pointer',
-                                textAlign: 'left',
-                                fontSize: 15,
-                                fontWeight: 500,
-                                fontFamily: 'inherit',
-                                backdropFilter: 'blur(14px)',
-                                transition: 'all 0.2s ease',
-                                boxShadow:
-                                  answered
-                                    ? i === question.correctIndex
-                                        ? '0 0 24px rgba(34,192,122,0.16)'
-                                        : i === selected
-                                        ? '0 0 24px rgba(232,64,64,0.16)'
-                                        : 'none'
-                                    : 'none',
-                              }}
-                          >
-                            <span
-                                style={{
-                                  width: 34,
-                                  height: 34,
-
-                                  borderRadius: 12,
-
-                                  flexShrink: 0,
-
-                                  background:
-                                    answered
-                                      ? i === question.correctIndex
+                                    difficulty === 'easy'
+                                        ? 'rgba(34,192,122,0.1)'
+                                        : difficulty === 'hard'
+                                            ? 'rgba(232,64,64,0.1)'
+                                            : 'rgba(107,92,231,0.1)',
+                                color:
+                                    difficulty === 'easy'
                                         ? '#22C07A'
-                                        : i === selected
-                                        ? '#E84040'
-                                        : 'rgba(255,255,255,0.08)'
-                                      : 'rgba(255,255,255,0.08)',
+                                        : difficulty === 'hard'
+                                            ? '#E84040'
+                                            : '#6B5CE7',
+                                fontWeight: 600,
+                                textTransform: 'capitalize',
+                            }}
+                        >
+                {difficulty}
+            </span>
+                    </div>
 
-                                  color:
+                    <p
+                        style={{
+                            fontSize: 'clamp(22px,4vw,30px)',
+                            letterSpacing: '-0.03em',
+                            lineHeight: 1.28,
+                            marginBottom: 18,
+                            fontWeight: 650,
+                            color: 'hsl(var(--foreground))',
+                        }}
+                    >
+                        {question.question}
+                    </p>
+
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 8,
+                        }}
+                    >
+                        {question.options.map((opt, i) => {
+                            let bg = 'transparent';
+                            let border = 'hsl(var(--border))';
+                            const color = 'hsl(var(--foreground))';
+
+                            if (answered) {
+                                if (i === question.correctIndex) {
+                                    bg = 'rgba(34,192,122,0.1)';
+                                    border = '#22C07A';
+                                } else if (i === selected) {
+                                    bg = 'rgba(232,64,64,0.1)';
+                                    border = '#E84040';
+                                }
+                            }
+
+                            return (
+                                <motion.button
+                                    key={i}
+                                    onClick={() => handleAnswer(i)}
+                                    disabled={answered}
+                                    whileHover={
+                                        answered
+                                            ? {}
+                                            : {
+                                                scale: 1.015,
+                                                y: -2,
+                                            }
+                                    }
+                                    whileTap={
+                                        answered
+                                            ? {}
+                                            : {
+                                                scale: 0.985,
+                                            }
+                                    }
+                                    transition={{
+                                        type: 'spring',
+                                        stiffness: 260,
+                                        damping: 18,
+                                    }}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 14,
+                                        width: '100%',
+                                        padding: '16px 18px',
+                                        borderRadius: 22,
+                                        border: `1px solid ${border}`,
+                                        background:
+                                            bg ||
+                                            (theme === 'dark'
+                                                ? 'rgba(255,255,255,0.045)'
+                                                : 'rgba(255,255,255,0.82)'),
+                                        color,
+                                        cursor: answered ? 'default' : 'pointer',
+                                        textAlign: 'left',
+                                        fontSize: 15,
+                                        fontWeight: 500,
+                                        fontFamily: 'inherit',
+                                        backdropFilter: 'blur(14px)',
+                                        transition: 'all 0.2s ease',
+                                    }}
+                                >
+                        <span
+                            style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 12,
+                                flexShrink: 0,
+                                background:
+                                    answered &&
+                                    i === question.correctIndex
+                                        ? '#22C07A'
+                                        : answered && i === selected
+                                            ? '#E84040'
+                                            : 'rgba(255,255,255,0.08)',
+
+                                color:
                                     answered &&
                                     (i === question.correctIndex ||
                                         i === selected)
-                                          ? '#fff'
-                                          : 'hsl(var(--foreground))',
+                                        ? '#fff'
+                                        : 'hsl(var(--foreground))',
 
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
 
-                                  fontSize: 13,
-                                  fontWeight: 650,
-                                }}
-                            >{letters[i]}</span>
-                            {opt}
-                          </motion.button>
-                      );
-                    })}
-                  </div>
+                                fontSize: 13,
+                                fontWeight: 650,
+                            }}
+                        >
+                            {letters[i]}
+                        </span>
 
-                  {answered && (
-                      <ExplanationBlock
-                          explanation={question.explanation ?? ''}
-                          isPro={isProQuestion}
-                          locale={locale}
-                          locale_link={locale}
-                      />
-                  )}
+                                    {opt}
+                                </motion.button>
+                            );
+                        })}
+                    </div>
+
+                    {answered && (
+                        <ExplanationBlock
+                            explanation={question.explanation ?? ''}
+                            isPro={isProQuestion}
+                            locale={locale}
+                            locale_link={locale}
+                        />
+                    )}
                 </>
             ) : (
-                <div style={{ textAlign: 'center', color: 'hsl(var(--muted-foreground))', paddingTop: 80 }}>
-                  {locale === 'ru' ? 'Что-то пошло не так.' : 'Something went wrong.'}{' '}
-                  <button onClick={generateQuestion} disabled={transitioning} style={{
-                    background:
-                        'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
+                <div
+                    style={{
+                        textAlign: 'center',
+                        color: 'hsl(var(--muted-foreground))',
+                        paddingTop: 80,
+                    }}
+                >
+                    {locale === 'ru'
+                        ? 'Что-то пошло не так.'
+                        : 'Something went wrong.'}
 
-                    color: '#fff',
-
-                    border: 'none',
-
-                    borderRadius: 16,
-
-                    padding: '14px 30px',
-
-                    fontSize: 15,
-
-                    fontWeight: 650,
-
-                    cursor: 'pointer',
-
-                    fontFamily: 'inherit',
-
-                    boxShadow:
-                        '0 10px 30px rgba(107,92,231,0.32)',
-
-                    transition: 'all 0.2s ease',
-                  }}>{locale === 'ru' ? 'Попробовать снова' : 'Try again'}</button>
+                    <button
+                        onClick={generateQuestion}
+                        disabled={transitioning}
+                        style={{
+                            marginLeft: 12,
+                            background:
+                                'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 16,
+                            padding: '14px 30px',
+                            fontSize: 15,
+                            fontWeight: 650,
+                            cursor: 'pointer',
+                            fontFamily: 'inherit',
+                        }}
+                    >
+                        {locale === 'ru'
+                            ? 'Попробовать снова'
+                            : 'Try again'}
+                    </button>
                 </div>
             )}
           </motion.div>
-
-          {answered && !limitError && (
-              <div
-                  style={{
-                    position: 'sticky',
-                    bottom: 28,
-
-                    display: 'flex',
-                    justifyContent: 'center',
-
-                    marginTop: 26,
-
-                    zIndex: 40,
-
-                    pointerEvents: 'none',
-                  }}
-              >
-                <button
-                    onClick={generateQuestion}
-                    style={{
-                      pointerEvents: 'auto',
-
-                      background:
-                        'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
-
-                      color: '#fff',
-
-                      border: '1px solid rgba(255,255,255,0.12)',
-
-                      borderRadius: 16,
-
-                      padding: '14px 28px',
-
-                      fontSize: 14,
-
-                      fontWeight: 600,
-
-                      fontFamily: 'inherit',
-
-                      boxShadow:
-                          '0 10px 30px rgba(107,92,231,0.28)',
-
-                      backdropFilter: 'blur(16px)',
-
-                      transition: 'all 0.2s ease',
-                      opacity: transitioning ? 0.6 : 1,
-                      cursor: transitioning ? 'default' : 'pointer',
-                    }}
-                >
-                  {locale === 'ru'
-                      ? 'Следующий вопрос →'
-                      : 'Next question →'}
-                </button>
-              </div>
-          )}
 
           {!user && (
               <div style={{ marginTop: 24, background: 'rgba(107,92,231,0.06)', border: '1px solid rgba(107,92,231,0.15)', borderRadius: 12, padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
