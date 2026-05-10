@@ -953,6 +953,44 @@ export default function QuizPage() {
             )}
           </motion.div>
 
+            {answered && !limitError && (
+                <div
+                    style={{
+                        position: 'sticky',
+                        bottom: 28,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        marginTop: 26,
+                        zIndex: 40,
+                        pointerEvents: 'none',
+                    }}
+                >
+                    <button
+                        onClick={generateQuestion}
+                        style={{
+                            pointerEvents: 'auto',
+                            background: 'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
+                            color: '#fff',
+                            border: '1px solid rgba(255,255,255,0.12)',
+                            borderRadius: 16,
+                            padding: '14px 28px',
+                            fontSize: 14,
+                            fontWeight: 600,
+                            fontFamily: 'inherit',
+                            boxShadow: '0 10px 30px rgba(107,92,231,0.28)',
+                            backdropFilter: 'blur(16px)',
+                            transition: 'all 0.2s ease',
+                            opacity: transitioning ? 0.6 : 1,
+                            cursor: transitioning ? 'default' : 'pointer',
+                        }}
+                    >
+                        {locale === 'ru'
+                            ? 'Следующий вопрос →'
+                            : 'Next question →'}
+                    </button>
+                </div>
+            )}
+
           {!user && (
               <div style={{ marginTop: 24, background: 'rgba(107,92,231,0.06)', border: '1px solid rgba(107,92,231,0.15)', borderRadius: 12, padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <span style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))' }}>
