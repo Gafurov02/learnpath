@@ -201,6 +201,7 @@ export default function QuizPage() {
     if (nextQuestion) {
       setQuestion(nextQuestion);
       setNextQuestion(null);
+      setAnswerResult(null);
 
       setAnswered(false);
       setSelected(null);
@@ -616,7 +617,7 @@ export default function QuizPage() {
                 y: 0,
                 x:
                     answerResult === 'wrong'
-                    ? [0, -4, -4, -2, 2, 0]
+                    ? [0, -4, 4, -2, 2, 0]
                     : 0,
                 scale:
                   answerResult === 'correct'
@@ -657,9 +658,7 @@ export default function QuizPage() {
                         : '0 20px 60px rgba(0,0,0,0.08)',
               }}
               transition={{
-                  type: 'spring',
-                  stiffness: 120,
-                  damping: 18,
+                  duration: 0.38,
               }}
               style={{
                 position: 'relative',
@@ -896,7 +895,8 @@ export default function QuizPage() {
                                         answered
                                             ? {}
                                             : {
-                                                scale: 0.985,
+                                                scale: 0.982,
+                                                y: 1,
                                             }
                                     }
                                     transition={{
@@ -1019,7 +1019,7 @@ export default function QuizPage() {
                     style={{
                         position: 'sticky',
                         marginBottom: 12,
-                        bottom: 'calc(88px + env(safe-area-bottom))',
+                        bottom: 'calc(88px + env(safe-area-inset-bottom))',
                         paddingInline: 16,
                         paddingBottom: 8,
                         display: 'flex',
