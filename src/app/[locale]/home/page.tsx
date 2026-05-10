@@ -13,6 +13,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { PageContainer } from "@/components/ui/PageContainer";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { StatsCard } from "@/components/ui/StatsCard";
+import { motion } from "framer-motion";
 
 export default function HomePage() {
   const locale = useLocale();
@@ -75,7 +76,11 @@ export default function HomePage() {
   return (
       <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
         <AppNavbar />
-        <PageContainer>
+        <PageContainer
+            style={{
+                maxWidth: 1200,
+            }}
+        >
 
           <GlassCard
             style={{
@@ -83,6 +88,22 @@ export default function HomePage() {
               marginBottom: 24,
               overflow: 'hidden',
               position: 'relative',
+
+                background: `
+
+radial-gradient(
+
+circle at top right,
+
+rgba(107,92,231,0.18),
+
+transparent 35%
+
+),
+
+rgba(255,255,255,0.03)
+
+`,
             }}
           >
             <div
@@ -397,7 +418,20 @@ export default function HomePage() {
                     const isLocked = !isComplete && !isActive;
                     const isLast = i === roadmap.length - 1;
                     return (
-                        <div key={node.topic} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                        <motion.div
+                            key={node.topic}
+                            initial={{
+                                opacity: 0,
+                                y: 12,
+                            }}
+                            animate={{
+                                opacity: 1,
+                                y: 0,
+                            }}
+                            transition={{
+                                delay: i * 0.05,
+                            }}
+                            style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
                             <div style={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, background: isComplete ? '#1D9E75' : isActive ? '#6B5CE7' : 'hsl(var(--muted))', color: (isComplete || isActive) ? '#fff' : 'hsl(var(--muted-foreground))', boxShadow: isActive ? '0 0 0 4px rgba(107,92,231,0.2)' : 'none', zIndex: 1 }}>
                               {isComplete ? '✓' : isLocked ? '🔒' : i + 1}
@@ -405,7 +439,7 @@ export default function HomePage() {
                             {!isLast && <div style={{ width: 2, height: 32, background: isComplete ? '#1D9E75' : 'hsl(var(--border))', marginTop: 2 }} />}
                           </div>
                           <div style={{ flex: 1, paddingBottom: isLast ? 0 : 12, paddingTop: 8, opacity: isLocked ? 0.5 : 1 }}>
-                            <div style={{ background: 'hsl(var(--card))', border: `1px solid ${isActive ? '#6B5CE7' : 'hsl(var(--border))'}`, borderRadius: 14, padding: '14px 18px' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(18px)', boxShadow: isActive ? '0 10px 30px rgba(107,92,231,0.18)' : 'none', border: `1px solid ${isActive ? '#6B5CE7' : 'hsl(var(--border))'}`, borderRadius: 14, padding: '18px 20px' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isLocked ? 0 : 8 }}>
                                 <div>
                                   <div style={{ fontSize: 14, fontWeight: 500 }}>{node.topic}</div>
@@ -417,7 +451,7 @@ export default function HomePage() {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                       <span style={{ fontSize: 13, fontWeight: 600, color: isComplete ? '#1D9E75' : '#6B5CE7' }}>{pct}%</span>
                                       {!isComplete && (
-                                          <Link href={`/${locale}/quiz?exam=${selectedExam}&topic=${encodeURIComponent(node.topic)}`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 7, padding: '5px 12px', fontSize: 12, fontWeight: 500, textDecoration: 'none' }}>
+                                          <Link href={`/${locale}/quiz?exam=${selectedExam}&topic=${encodeURIComponent(node.topic)}`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '8px 14px', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>
                                             {done > 0 ? t('continueLabel') : t('startLabel')}
                                           </Link>
                                       )}
@@ -431,7 +465,7 @@ export default function HomePage() {
                               )}
                             </div>
                           </div>
-                        </div>
+                        </motion.div>
                     );
                   })}
                 </div>
