@@ -55,6 +55,8 @@ export default function QuizPage() {
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [streak, setStreak] = useState(0);
   const [xpPopup, setXpPopup] = useState<number | null>(null);
+  const [xp, setXp] = useState(0);
+  const [level, setLevel] = useState(1);
 
   const [levelUpPopup, setLevelUpPopup] = useState<{
       level: number;
@@ -107,6 +109,21 @@ export default function QuizPage() {
                 streak: streak.streak_count,
                 best: streak.best_streak,
             });
+        }
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('xp')
+            .eq('id', session.user.id)
+            .single();
+
+        if (profile?.xp) {
+            setXp(profile.xp);
+
+            const calculatedLevel =
+                Math.floor(profile.xp / 100) + 1;
+
+            setLevel(calculatedLevel);
         }
 
       // Get count in the active billing window: 1 day for free, 3 days for Pro.
@@ -277,6 +294,16 @@ export default function QuizPage() {
     }));
 
     if (correct) {
+        setXp(prev => prev + 10);
+
+        const newXp = xp + 10;
+        const newLevel =
+            Math.floor(newXp / 100) +1;
+
+        if (newLevel > level) {
+            setLevel(newLevel);
+        }
+
       setStreak(p => p + 1);
 
       setXpPopup(10);
@@ -379,6 +406,18 @@ export default function QuizPage() {
 
   const letters = ['A', 'B', 'C', 'D'];
   const accuracy = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
+  const currentLevelXp = (level -1) * 100;
+  const nextLevelXp = level * 100;
+
+  const progressXp =
+      xp - currentLevelXp;
+
+  const xpNeeded =
+      nextLevelXp - currentLevelXp;
+
+  const xpPercent =
+      (progressXp / xpNeeded) * 100;
+
   const activeLimit = tier === 'pro' ? PRO_LIMITS.questionsPerWindow : FREE_LIMITS.questionsPerDay;
   const activeWindowDays = tier === 'pro' ? PRO_LIMITS.windowDays : FREE_LIMITS.windowDays;
   const questionsLeft = tier === 'max' ? null : Math.max(activeLimit - dailyCount, 0);
@@ -837,6 +876,95 @@ export default function QuizPage() {
                         >
                 {difficulty}
             </span>
+                    </div>
+
+                    {/*XP Card*/}
+                    <div
+                        style={{
+                            marginBottom: 20,
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: 22,
+                            padding: '18px 20px',
+                            backdropFilter: 'blur(24px)',
+                        }}
+                    >
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: 12,
+                            }}
+                        >
+                            <div>
+                                <div
+                                    style={{
+                                        fontSize: 13,
+                                        color: 'hsl(var(--muted-foreground))',
+                                        marginBottom: 4,
+                                    }}
+                                >
+                                    {locale === 'ru'
+                                        ? 'Уровень'
+                                        : 'Level'}
+                                </div>
+
+                                <div
+                                    style={{
+                                        fontSize: 24,
+                                        fontWeight: 700,
+                                    }}
+                                >
+                                    {level}
+                                </div>
+                            </div>
+
+                            <div
+                                style={{
+                                    fontSize: 13,
+                                    color: '#6B5CE7',
+                                    fontWeight: 600,
+                                }}
+                            >
+                                {xp} XP
+                            </div>
+                        </div>
+
+                        <div
+                            style={{
+                                height: 10,
+                                background: 'rgba(255,255,255,0.06)',
+                                borderRadius: 999,
+                                overflow: 'hidden',
+                                marginBottom: 8,
+                            }}
+                        >
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{
+                                    width: `${xpPercent}%`,
+                                }}
+                                transition={{
+                                    duration: 0.5,
+                                }}
+                                style={{
+                                    height: '100%',
+                                    borderRadius: 999,
+                                    background:
+                                        'linear-gradient(90deg,#6B5CE7,#8B7CFF)',
+                                }}
+                            />
+                        </div>
+
+                        <div
+                            style={{
+                                fontSize: 12,
+                                color: 'hsl(var(--muted-foreground))',
+                            }}
+                        >
+                            {progressXp} / {xpNeeded} XP
+                        </div>
                     </div>
 
                     <p
