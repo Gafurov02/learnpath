@@ -316,6 +316,9 @@ export default function HomePage() {
                     />
             </div>
           </GlassCard>
+              </div>
+            </div>
+          </GlassCard>
 
           {/* Upgrade banner */}
           {!isMax && (
