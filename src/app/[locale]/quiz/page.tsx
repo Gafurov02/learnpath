@@ -50,6 +50,12 @@ export default function QuizPage() {
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [streak, setStreak] = useState(0);
+  const [xpPopup, setXpPopup] = useState<number | null>(null);
+
+  const [levelUpPopup, setLevelUpPopup] = useState<{
+      level: number;
+      title: string;
+  } | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isPro, setIsPro] = useState(false);
   const [tier, setTier] = useState<SubscriptionTier>('free');
@@ -258,8 +264,28 @@ export default function QuizPage() {
 
     if (correct) {
       setStreak(p => p + 1);
-    } else {
-      setStreak(0);
+
+      setXpPopup(10);
+
+      setTimeout(() => {
+          setXpPopup(null);
+      }, 1800);
+
+      if ((score.correct + 1) % 10 === 0) {
+          const level = Math.floor((score.correct + 1) / 10);
+
+          setLevelUpPopup({
+              level,
+              title:
+                locale === 'ru'
+                    ? `Уровень ${level}`
+                    : `Level ${level}`,
+          });
+
+          setTimeout(() => {
+              setLevelUpPopup(null);
+          }, 3200);
+      }
     }
 
     setDailyCount(p => p + 1);
@@ -907,6 +933,102 @@ export default function QuizPage() {
                         }}
                     >
                         🏅 {achievementPopup}
+                    </div>
+                </motion.div>
+            )}
+
+            {xpPopup && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{
+                        position: 'fixed',
+                        top: 90,
+                        right: 24,
+                        zIndex: 9999,
+
+                        background: 'rgba(34,192,122,0.16)',
+
+                        border: '1px solid rgba(34,192,122,0.3)',
+
+                        backdropFilter: 'blur(18px)',
+
+                        borderRadius: 18,
+
+                        padding: '14px 18px',
+
+                        color: '#22C07A',
+
+                        fontWeight: 700,
+
+                        fontSize: 16,
+
+                        boxShadow: '0 10px 30px rgba(34,192,122,0.2)',
+                    }}
+                >
+                    +{xpPopup} XP
+                </motion.div>
+            )}
+
+            {levelUpPopup && (
+                <motion.div
+                    initial={{ opacity: 0, y: 30, scale: 0.92 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{
+                        position: 'fixed',
+                        top: 150,
+                        left: '50%',
+                        transform: 'translateY(-50%)',
+
+                        zIndex: 9999,
+
+                        background:
+                            'linear-gradient(135deg,#6B5CE7,#8B7CFF)',
+
+                        color: '#fff',
+
+                        borderRadius: 26,
+
+                        padding: '24px 34px',
+
+                        boxShadow:
+                            '0 18px 60px rgba(107,92,231,0.35)',
+
+                        textAlign: 'center',
+
+                        backdropFilter: 'blur(20px)',
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: 42,
+                            marginBottom: 10,
+                        }}
+                    >
+                        🎉
+                    </div>
+
+                    <div
+                        style={{
+                            fontSize: 22,
+                            fontWeight: 700,
+                            marginBottom: 4,
+                        }}
+                    >
+                        {locale === 'ru'
+                            ? 'Новый уровень!'
+                            : 'Level Up!'}
+                    </div>
+
+                    <div
+                        style={{
+                            fontSize: 15,
+                            opacity: 0.9,
+                        }}
+                    >
+                        {levelUpPopup.title}
                     </div>
                 </motion.div>
             )}
