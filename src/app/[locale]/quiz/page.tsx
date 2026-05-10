@@ -437,7 +437,7 @@ export default function QuizPage() {
                 width: '100%',
                 maxWidth: 820,
                 margin: '0 auto',
-                paddingBottom: 220 }}>
+                padding: '32px 16px 220px' }}>
 
           <div
               style={{
@@ -867,6 +867,7 @@ export default function QuizPage() {
                                         padding: '16px 18px',
                                         borderRadius: 22,
                                         border: `1px solid ${border}`,
+                                        minHeight: 74,
                                         background:
                                             bg ||
                                             (theme === 'dark'
@@ -972,7 +973,8 @@ export default function QuizPage() {
                 <div
                     style={{
                         position: 'sticky',
-                        bottom: 'calc(88px + env(sfe-area-bottom))',
+                        marginBottom: 12,
+                        bottom: 'calc(88px + env(safe-area-bottom))',
                         paddingInline: 16,
                         paddingBottom: 8,
                         display: 'flex',
@@ -1000,6 +1002,8 @@ export default function QuizPage() {
                             opacity: transitioning ? 0.6 : 1,
                             cursor: transitioning ? 'default' : 'pointer',
                             minWidth: 220,
+                            width: '100%',
+                            maxWidth: 340,
                         }}
                     >
                         {locale === 'ru'
