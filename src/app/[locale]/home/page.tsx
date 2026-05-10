@@ -400,19 +400,27 @@ rgba(255,255,255,0.03)
                     position: 'relative',
                     overflow: 'hidden',
                     borderRadius: 28,
-                    background: isActive
-                        ? `
-                            linear-gradient(
-                                180deg,
-                                rgba(107,92,231,0.12),
-                                rgba(255,255,255,0.03)
-                                )
-                       `
-                        : 'rgba(255,255,255,0.3)',
+                    background: 'rgba(255,255,255,0.03)',
                     backdropFilter: 'blur(24px)',
                     border: '1px solid rgba(255,255,255,0.06)',
                 }}
             >
+
+                <div
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: `
+            radial-gradient(
+                circle at bottom left,
+                rgba(107,92,231,0.14),
+                transparent 35%
+            )
+        `,
+                        pointerEvents: 'none',
+                    }}
+                />
+
                 <div
                     style={{
                         display: 'flex',
@@ -470,7 +478,7 @@ rgba(255,255,255,0.03)
                   {t('roadmap')} · {selectedExam}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {roadmap.map((node, i) => {
                     const done = topicProgress[node.topic] || 0;
                     const pct = Math.min(Math.round((done / node.total) * 100), 100);
@@ -498,13 +506,13 @@ rgba(255,255,255,0.03)
                             }}
                             style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-                            <div style={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, background: isComplete ? '#1D9E75' : isActive ? '#6B5CE7' : 'hsl(var(--muted))', color: (isComplete || isActive) ? '#fff' : 'hsl(var(--muted-foreground))', boxShadow: isActive ? '0 0 0 6px rgba(107,92,231,0.16), 0 0 30px rgba(107,92,231,0.45)' : 'none', transform: isActive ? 'scale(1.08)' : 'scale(1)', transition: 'all 0.25s ease', zIndex: 1 }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, background: isComplete ? '#1D9E75' : isActive ? '#6B5CE7' : 'hsl(var(--muted))', color: (isComplete || isActive) ? '#fff' : 'hsl(var(--muted-foreground))', boxShadow: isActive ? '0 10px 30px rgba(107,92,231,0.18), 0 0 0 1px rgba(107,92,231,0.22)' : '0 4px 18px rgba(0,0,0,0.18)', transform: isActive ? 'scale(1.08)' : 'scale(1)', transition: 'all 0.25s ease', cursor: isLocked ? 'default' : 'pointer', zIndex: 1 }}>
                               {isComplete ? '✓' : isLocked ? '🔒' : i + 1}
                             </div>
                             {!isLast && <div style={{ width: 2, height: 32, background: isComplete ? '#1D9E75' : 'hsl(var(--border))', marginTop: 2 }} />}
                           </div>
                           <div style={{ flex: 1, paddingBottom: isLast ? 0 : 12, paddingTop: 8, opacity: isLocked ? 0.5 : 1 }}>
-                            <div style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(18px)', boxShadow: isActive ? '0 10px 30px rgba(107,92,231,0.18)' : 'none', border: `1px solid ${isActive ? '#6B5CE7' : 'hsl(var(--border))'}`, borderRadius: 14, padding: '18px 20px' }}>
+                            <div style={{ background: isActive ? `linear-gradient(180def, rgba(107,92,231,0.12), rgba(255,255,255,0.03))` : 'rgba(255,255,255,0.03)', backdropFilter: 'blur(18px)', boxShadow: isActive ? '0 10px 30px rgba(107,92,231,0.18)' : 'none', border: `1px solid ${isActive ? '#6B5CE7' : 'hsl(var(--border))'}`, borderRadius: 14, padding: '18px 20px' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isLocked ? 0 : 8 }}>
                                 <div>
                                   <div style={{ fontSize: 14, fontWeight: 500 }}>{node.topic}</div>
