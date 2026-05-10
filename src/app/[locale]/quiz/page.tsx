@@ -643,6 +643,100 @@ export default function QuizPage() {
             ))}
           </div>
 
+            {/*XP Card*/}
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+
+                style={{
+                    marginBottom: 20,
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 22,
+                    padding: '18px 20px',
+                    backdropFilter: 'blur(24px)',
+                }}
+            >
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 12,
+                    }}
+                >
+                    <div>
+                        <div
+                            style={{
+                                fontSize: 13,
+                                color: 'hsl(var(--muted-foreground))',
+                                marginBottom: 4,
+                            }}
+                        >
+                            {locale === 'ru'
+                                ? 'Уровень'
+                                : 'Level'}
+                        </div>
+
+                        <div
+                            style={{
+                                fontSize: 24,
+                                fontWeight: 700,
+                            }}
+                        >
+                            {level}
+                        </div>
+                    </div>
+
+                    <div
+                        style={{
+                            fontSize: 13,
+                            color: '#6B5CE7',
+                            fontWeight: 600,
+                        }}
+                    >
+                        {xp} XP
+                    </div>
+                </div>
+
+                <div
+                    style={{
+                        height: 10,
+                        background: 'rgba(255,255,255,0.06)',
+                        borderRadius: 999,
+                        overflow: 'hidden',
+                        marginBottom: 8,
+                    }}
+                >
+                    <motion.div
+                        initial={{ width: 0 }}
+                        animate={{
+                            width: `${xpPercent}%`,
+                        }}
+                        transition={{
+                            duration: 0.5,
+                        }}
+                        style={{
+                            height: '100%',
+                            borderRadius: 999,
+                            background:
+                                'linear-gradient(90deg,#6B5CE7,#8B7CFF)',
+                        }}
+                    />
+                </div>
+
+                <div
+                    style={{
+                        fontSize: 12,
+                        color: 'hsl(var(--muted-foreground))',
+                    }}
+                >
+                    {locale === 'ru'
+                        ? `${xpNeeded - progressXp} XP до следующего уровня`
+                        : `${xpNeeded - progressXp} XP to next level`}
+                </div>
+            </motion.div>
+
           {/* Question card */}
           <motion.div
               key={question?.question || 'loading' }
@@ -876,95 +970,6 @@ export default function QuizPage() {
                         >
                 {difficulty}
             </span>
-                    </div>
-
-                    {/*XP Card*/}
-                    <div
-                        style={{
-                            marginBottom: 20,
-                            background: 'rgba(255,255,255,0.04)',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: 22,
-                            padding: '18px 20px',
-                            backdropFilter: 'blur(24px)',
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                marginBottom: 12,
-                            }}
-                        >
-                            <div>
-                                <div
-                                    style={{
-                                        fontSize: 13,
-                                        color: 'hsl(var(--muted-foreground))',
-                                        marginBottom: 4,
-                                    }}
-                                >
-                                    {locale === 'ru'
-                                        ? 'Уровень'
-                                        : 'Level'}
-                                </div>
-
-                                <div
-                                    style={{
-                                        fontSize: 24,
-                                        fontWeight: 700,
-                                    }}
-                                >
-                                    {level}
-                                </div>
-                            </div>
-
-                            <div
-                                style={{
-                                    fontSize: 13,
-                                    color: '#6B5CE7',
-                                    fontWeight: 600,
-                                }}
-                            >
-                                {xp} XP
-                            </div>
-                        </div>
-
-                        <div
-                            style={{
-                                height: 10,
-                                background: 'rgba(255,255,255,0.06)',
-                                borderRadius: 999,
-                                overflow: 'hidden',
-                                marginBottom: 8,
-                            }}
-                        >
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{
-                                    width: `${xpPercent}%`,
-                                }}
-                                transition={{
-                                    duration: 0.5,
-                                }}
-                                style={{
-                                    height: '100%',
-                                    borderRadius: 999,
-                                    background:
-                                        'linear-gradient(90deg,#6B5CE7,#8B7CFF)',
-                                }}
-                            />
-                        </div>
-
-                        <div
-                            style={{
-                                fontSize: 12,
-                                color: 'hsl(var(--muted-foreground))',
-                            }}
-                        >
-                            {progressXp} / {xpNeeded} XP
-                        </div>
                     </div>
 
                     <p
