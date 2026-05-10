@@ -62,6 +62,10 @@ export default function QuizPage() {
   const [hasSchool, setHasSchool] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
   const { theme } = useTheme();
+  const [streakData, setStreakData] = useState({
+      streak: 0,
+      best: 0,
+  });
 
   useEffect(() => {
     const supabase = createClient();
@@ -79,6 +83,19 @@ export default function QuizPage() {
 
       const { data: membership } = await supabase.from('school_members').select('school_id').eq('user_id', session.user.id).limit(1).single();
       if (membership?.school_id) setHasSchool(true);
+
+        const { data: streak } = await supabase
+            .from('user_streaks')
+            .select('streak_count, best_streak')
+            .eq('user_id', session.user.id)
+            .single();
+
+        if (streak) {
+            setStreakData({
+                streak: streak.streak_count,
+                best: streak.best_streak,
+            });
+        }
 
       // Get count in the active billing window: 1 day for free, 3 days for Pro.
       const today = new Date();
@@ -245,6 +262,13 @@ export default function QuizPage() {
 
     setDailyCount(p => p + 1);
 
+    // streak update
+      if (user) {
+          fetch('/api/streak', {
+              method: 'POST',
+          }).catch(() => {});
+      }
+
     // save in background
     if (user) {
       fetch('/api/progress', {
@@ -399,11 +423,18 @@ export default function QuizPage() {
                   <strong>{accuracy}%</strong>
       </span>
 
-                {streak >= 3 && (
-                    <span style={{ color: '#EF9F27' }}>
-          🔥 {streak}
-        </span>
-                )}
+                <span
+                    style={{
+                        color:
+                            streakData.streak >= 7
+                                ? '#FF7A00'
+                                : '#EF9F27',
+
+                        fontWeight: 700,
+                    }}
+                >
+                    🔥 {streakData.streak}
+                </span>
               </div>
             </div>
 
