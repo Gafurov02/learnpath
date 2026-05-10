@@ -186,7 +186,9 @@ export default function QuizPage() {
   }
 
   const generateQuestion = useCallback(async () => {
-    setLoading(true);
+    if (!nextQuestion) {
+        setLoading(true);
+    }
     setAnswered(false);
     setSelected(null);
     setLimitError(null);
@@ -194,6 +196,10 @@ export default function QuizPage() {
     // instant switch from prefetched question
     if (nextQuestion) {
       setQuestion(nextQuestion);
+      requestAnimationFrame(() => {
+          setAnswered(false);
+          setSelected(null);
+      });
       setNextQuestion(null);
       setLoading(false);
 
