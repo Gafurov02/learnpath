@@ -45,7 +45,6 @@ export default function Providers({
                         }}
                     />
 
-                    <CommandMenu />
                 </TonConnectUIProvider>
             </ThemeProvider>
         </NextIntlClientProvider>

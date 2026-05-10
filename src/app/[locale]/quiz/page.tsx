@@ -437,7 +437,7 @@ export default function QuizPage() {
                 width: '100%',
                 maxWidth: 820,
                 margin: '0 auto',
-                padding: '32px 16px 160px' }}>
+                paddingBottom: 220 }}>
 
           <div
               style={{
@@ -972,7 +972,8 @@ export default function QuizPage() {
                 <div
                     style={{
                         position: 'sticky',
-                        bottom: 20,
+                        bottom: 'calc(88px + env(sfe-area-bottom))',
+                        paddingInline: 16,
                         paddingBottom: 8,
                         display: 'flex',
                         justifyContent: 'center',
