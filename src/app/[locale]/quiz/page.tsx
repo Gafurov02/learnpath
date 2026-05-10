@@ -882,8 +882,6 @@ export default function QuizPage() {
 
                       fontWeight: 600,
 
-                      cursor: 'pointer',
-
                       fontFamily: 'inherit',
 
                       boxShadow:
