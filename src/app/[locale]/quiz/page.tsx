@@ -587,16 +587,19 @@ export default function QuizPage() {
 
           {/* Question card */}
           <motion.div
+              key={question?.question || 'loading' }
               initial={{
                 opacity: 0,
-                y: 16
+                y: 14,
+                scale: 0.985,
               }}
               animate={{
                 opacity: 1,
                 y: 0,
+                scale: 1,
               }}
               transition={{
-                duration: 0.35,
+                  duration: 0.28,
               }}
               style={{
                 background:
@@ -646,11 +649,60 @@ export default function QuizPage() {
                   </Link>
                 </div>
             ) : loading ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 280, gap: 16 }}>
-                  <div style={{ width: 40, height: 40, border: '3px solid hsl(var(--border))', borderTopColor: '#6B5CE7', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                  <span style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))' }}>
-                {locale === 'ru' ? 'Генерирую вопрос с AI...' : 'Generating question with AI...'}
-              </span>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 18,
+                    }}
+                >
+                    <div
+                        style={{
+                            width: 120,
+                            height: 14,
+                            borderRadius: 999,
+                            background: 'rgba(255,255,255,0.08)',
+                        }}
+                    />
+
+                    <div
+                        style={{
+                            width: '92%',
+                            height: 34,
+                            borderRadius: 14,
+                            background: 'rgba(255,255,255,0.06)',
+                        }}
+                    />
+
+                    <div
+                        style={{
+                            width: '74%',
+                            height: 34,
+                            borderRadius: 14,
+                            background: 'rgba(255,255,255,0.06)',
+                        }}
+                    />
+
+                    <div
+                        style={{
+                            marginTop: 18,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 12,
+                        }}
+                    >
+                        {[1,2,3,4].map((i) => (
+                            <div
+                                key={i}
+                                style={{
+                                    height: 68,
+                                    borderRadius: 22,
+                                    background: 'rgba(255,255,255,0.045)',
+                                    border: '1px solid rgba(255,255,255,0.06)',
+                                }}
+                            />
+                        ))}
+                    </div>
                 </div>
             ) : question ? (
                 <>
