@@ -173,7 +173,7 @@ rgba(255,255,255,0.03)
                       '0 12px 30px rgba(107,92,231,0.28)',
                   }}
                 >
-                  {t('continueBtn')} →
+                  {t('continueBtn')}
                 </Link>
               </div>
 
@@ -394,12 +394,73 @@ rgba(255,255,255,0.03)
           )}
 
           {/* Roadmap tab */}
+            <GlassCard
+                style={{
+                    padding: 28,
+                    position: 'relative',
+                    overflow: 'hidden',
+                    borderRadius: 28,
+                    background: isActive
+                        ? `
+                            linear-gradient(
+                                180deg,
+                                rgba(107,92,231,0.12),
+                                rgba(255,255,255,0.03)
+                                )
+                       `
+                        : 'rgba(255,255,255,0.3)',
+                    backdropFilter: 'blur(24px)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                }}
+            >
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 24,
+                        flexWrap: 'wrap',
+                        gap: 12,
+                    }}
+                >
+                    <div>
+                        <div
+                            style={{
+                                fontSize: 13,
+                                color: 'hsl(var(--muted-foreground))',
+                                marginBottom: 6,
+                            }}
+                        >
+                            Progress roadmap
+                        </div>
+
+                        <h2
+                            style={{
+                                fontSize: 28,
+                                fontWeight: 700,
+                                letterSpacing: '-0.04em',
+                            }}
+                        >
+                            Your learning path
+                        </h2>
+                    </div>
+
+                    <div
+                        style={{
+                            fontSize: 13,
+                            color: '#6B5CE7',
+                            fontWeight: 600,
+                        }}
+                    >
+                        {selectedExam}
+                    </div>
+                </div>
           {activeTab === 'roadmap' && (
               <>
                 {/* Exam tabs */}
                 <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
                   {Object.keys(ROADMAP).map(e => (
-                      <button key={e} onClick={() => setSelectedExam(e)} style={{ padding: '6px 16px', borderRadius: 20, fontSize: 13, fontWeight: 500, border: `1px solid ${selectedExam === e ? '#6B5CE7' : 'hsl(var(--border))'}`, background: selectedExam === e ? '#6B5CE7' : 'transparent', color: selectedExam === e ? '#fff' : 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+                      <button key={e} onClick={() => setSelectedExam(e)} style={{ padding: '6px 16px', borderRadius: 20, fontSize: 13, fontWeight: 500, border: `1px solid ${selectedExam === e ? '#6B5CE7' : 'hsl(var(--border))'}`, background: selectedExam === e ? '#6B5CE7' : 'transparent', color: selectedExam === e ? '#fff' : 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s', backdropFilter: 'blur(10px)', }}>
                         {e}
                       </button>
                   ))}
@@ -419,6 +480,10 @@ rgba(255,255,255,0.03)
                     const isLast = i === roadmap.length - 1;
                     return (
                         <motion.div
+                            whileHover={{
+                                scale: 1.01,
+                                y: -2,
+                            }}
                             key={node.topic}
                             initial={{
                                 opacity: 0,
@@ -433,7 +498,7 @@ rgba(255,255,255,0.03)
                             }}
                             style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-                            <div style={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, background: isComplete ? '#1D9E75' : isActive ? '#6B5CE7' : 'hsl(var(--muted))', color: (isComplete || isActive) ? '#fff' : 'hsl(var(--muted-foreground))', boxShadow: isActive ? '0 0 0 4px rgba(107,92,231,0.2)' : 'none', zIndex: 1 }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, background: isComplete ? '#1D9E75' : isActive ? '#6B5CE7' : 'hsl(var(--muted))', color: (isComplete || isActive) ? '#fff' : 'hsl(var(--muted-foreground))', boxShadow: isActive ? '0 0 0 6px rgba(107,92,231,0.16), 0 0 30px rgba(107,92,231,0.45)' : 'none', transform: isActive ? 'scale(1.08)' : 'scale(1)', transition: 'all 0.25s ease', zIndex: 1 }}>
                               {isComplete ? '✓' : isLocked ? '🔒' : i + 1}
                             </div>
                             {!isLast && <div style={{ width: 2, height: 32, background: isComplete ? '#1D9E75' : 'hsl(var(--border))', marginTop: 2 }} />}
@@ -451,7 +516,7 @@ rgba(255,255,255,0.03)
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                       <span style={{ fontSize: 13, fontWeight: 600, color: isComplete ? '#1D9E75' : '#6B5CE7' }}>{pct}%</span>
                                       {!isComplete && (
-                                          <Link href={`/${locale}/quiz?exam=${selectedExam}&topic=${encodeURIComponent(node.topic)}`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '8px 14px', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>
+                                          <Link href={`/${locale}/quiz?exam=${selectedExam}&topic=${encodeURIComponent(node.topic)}`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 10, padding: '10px 16px', fontSize: 12, fontWeight: 600, textDecoration: 'none', boxShadow: '0 8px 24px rgba(107,92,231,0.28)', }}>
                                             {done > 0 ? t('continueLabel') : t('startLabel')}
                                           </Link>
                                       )}
@@ -459,8 +524,8 @@ rgba(255,255,255,0.03)
                                 )}
                               </div>
                               {!isLocked && (
-                                  <div style={{ height: 4, background: 'hsl(var(--border))', borderRadius: 2 }}>
-                                    <div style={{ height: 4, background: isComplete ? '#1D9E75' : '#6B5CE7', borderRadius: 2, width: `${pct}%`, transition: 'width 0.6s ease' }} />
+                                  <div style={{ height: 6, background: 'hsl(var(--border))', borderRadius: 999, overflow: 'hidden', }}>
+                                    <div style={{ height: 6, background: isComplete ? '#1D9E75' : '#6B5CE7', borderRadius: 999, width: `${pct}%`, transition: 'width 0.6s ease', boxShadow: pct > 0 ? '0 0 18px rgba(107,92,231,0.45)' : 'none', }} />
                                   </div>
                               )}
                             </div>
@@ -471,6 +536,7 @@ rgba(255,255,255,0.03)
                 </div>
               </>
           )}
+            </GlassCard>
         </PageContainer>
       </div>
   );
