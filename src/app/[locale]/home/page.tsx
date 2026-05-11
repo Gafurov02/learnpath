@@ -114,7 +114,6 @@ export default function HomePage() {
 
   return (
       <AppShell>
-        <AppShell>
 
           <GlassCard
             style={{
@@ -576,7 +575,6 @@ rgba(255,255,255,0.03)
               </>
           )}
             </GlassCard>
-        </AppShell>
       </AppShell>
   );
 }
