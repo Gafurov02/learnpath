@@ -454,35 +454,11 @@ rgba(255,255,255,0.03)
                     }}
                 />
 
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: 24,
-                        flexWrap: 'wrap',
-                        gap: 12,
-                    }}
-                >
-                    <PageHeader
-                      eyebrow="Progress roadmap"
-                      title="Your learning path"
-                      description="Complete roadmap topics and improe your skills step by step."
-                      right={
-                        <div
-                          style={{
-                            fontSize: 13,
-                            color: '#6B5CE7',
-                            fontWeight: 600, 
-                          }}
-                        >
-                          {selectedExam}
-                        </div>
-                      }
-                    >
-                        
-                    </PageHeader>
-
+                <PageHeader
+                    eyebrow="Progress roadmap"
+                    title="Your learning path"
+                    description="Complete roadmap topics and improve your skills step by step."
+                />
                     <div
                         style={{
                             fontSize: 13,
@@ -492,7 +468,6 @@ rgba(255,255,255,0.03)
                     >
                         {selectedExam}
                     </div>
-                </div>
           {activeTab === 'roadmap' && (
               <>
                 {/* Exam tabs */}
