@@ -458,8 +458,8 @@ rgba(255,255,255,0.03)
                     eyebrow="Progress roadmap"
                     title="Your learning path"
                     description="Complete roadmap topics and improve your skills step by step."
-                />
-                    <div
+                    right={
+                      <div
                         style={{
                             fontSize: 13,
                             color: '#6B5CE7',
@@ -468,6 +468,8 @@ rgba(255,255,255,0.03)
                     >
                         {selectedExam}
                     </div>
+                    }
+                />
           {activeTab === 'roadmap' && (
               <>
                 {/* Exam tabs */}

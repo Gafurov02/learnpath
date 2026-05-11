@@ -5,7 +5,7 @@ import { AppNavbar } from './AppNavbar';
 import { PageContainer } from '@/components/ui/PageContainer';
 
 type Props = {
-  children: ReactNode;
+  children: React.ReactNode;
 };
 
 export function AppShell({ children }: Props) {
@@ -14,21 +14,11 @@ export function AppShell({ children }: Props) {
       style={{
         minHeight: '100vh',
         background:
-          'radial-gradient(circle at top,#171717 0%,#0A0A0A 45%)',
+          'radial-gradient(circle at top,rgba(107,92,231,0.12),transparent 30%), hsl(var(--background))',
         color: 'hsl(var(--foreground))',
       }}
     >
-      <AppNavbar />
-
-      <PageContainer
-        style={{
-          maxWidth: 1200,
-          paddingTop: 32,
-          paddingBottom: 120,
-        }}
-      >
         {children}
-      </PageContainer>
     </div>
   );
 }
