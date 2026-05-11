@@ -51,11 +51,50 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!user) return;
+
     const supabase = createClient();
-    supabase.from('quiz_attempts').select('topic, correct').eq('user_id', user.id).eq('exam', selectedExam).then(({ data }) => {
-      const prog: Record<string, number> = {};
-      data?.forEach((a: any) => { prog[a.topic] = (prog[a.topic] || 0) + 1; });
-      setTopicProgress(prog);
+
+    supabase
+        .from('quiz_attempts')
+        .select('topic, correct')
+        .eq('user_id', user.id)
+        .eq('exam', selectedExam)
+        .then(({ data }) => {
+
+            const stats: Record<
+                string,
+                {
+                    total: number;
+                    correct: number;
+                }
+                > = {};
+
+      data?.forEach((a: any) => {
+          if(!stats[a.topic]) {
+              stats[a.topic] = {
+                  total: 0,
+                  correct: 0,
+              };
+          }
+
+          stats[a.topic].total += 1;
+
+          if (a.correct) {
+              stats[a.topic].correct += 1;
+          }
+      });
+
+      const progressMap: Record<string, number> = {};
+
+      Object.keys(stats).forEach(topic => {
+          const item = stats[topic];
+
+          progressMap[topic] = Math.round(
+              (item.correct / item.total) * 100
+          );
+      });
+
+      setTopicProgress(progressMap);
     });
   }, [selectedExam, user]);
 
@@ -480,9 +519,9 @@ rgba(255,255,255,0.03)
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {roadmap.map((node, i) => {
-                    const done = topicProgress[node.topic] || 0;
-                    const pct = Math.min(Math.round((done / node.total) * 100), 100);
-                    const isComplete = pct >= 80;
+                    const pct = topicProgress[node.topic] || 0;
+                    const done = Math.round((pct / 100) * node.total);
+                    const isComplete = pct >= 70;
                     const isActive = !isComplete && (i === 0 || Math.min(Math.round(((topicProgress[roadmap[i-1]?.topic] || 0) / roadmap[i-1]?.total) * 100), 100) >= 80);
                     const isLocked = !isComplete && !isActive;
                     const isLast = i === roadmap.length - 1;
