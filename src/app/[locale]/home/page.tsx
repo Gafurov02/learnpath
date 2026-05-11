@@ -14,6 +14,7 @@ import { PageContainer } from "@/components/ui/PageContainer";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { StatsCard } from "@/components/ui/StatsCard";
 import { motion } from "framer-motion";
+import { AppShell } from '@/components/layout/AppShell';
 
 export default function HomePage() {
   const locale = useLocale();
@@ -115,11 +116,7 @@ export default function HomePage() {
   return (
       <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
         <AppNavbar />
-        <PageContainer
-            style={{
-                maxWidth: 1200,
-            }}
-        >
+        <AppShell>
 
           <GlassCard
             style={{
@@ -584,7 +581,7 @@ rgba(255,255,255,0.03)
               </>
           )}
             </GlassCard>
-        </PageContainer>
+        </AppShell>
       </div>
   );
 }
