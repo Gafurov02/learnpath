@@ -44,8 +44,19 @@ export function ProfileHero({
                 style={{
                     position: 'absolute',
                     inset: 0,
-                    background:
-                        'radial-gradient(circle at top right, rgba(107,92,231,0.25), transparent 35%)',
+                    background: `
+                        linear-gradient(
+                        180deg,
+                        rgba(255,255,255,0.03),
+                        rgba(255,255,255,0.01)
+                ),
+                radial-gradient(
+                circle at top right,
+                rgba(107,92,231,0.22),
+                transparent 35%
+                ),
+                rgba(17,17,20,0.72)
+                `,
                     pointerEvents: 'none',
                 }}
             />

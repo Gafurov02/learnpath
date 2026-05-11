@@ -21,19 +21,12 @@ export function TopLoader() {
     }, [pathname, searchParams]);
 
     useEffect(() => {
-        const handleStart = () => {
-            NProgress.start();
-        };
-
-        window.addEventListener('beforeunload', handleStart);
+        NProgress.start();
 
         return () => {
-            window.removeEventListener(
-                'beforeunload',
-                handleStart
-            );
+            NProgress.done();
         };
-    }, []);
+    }, [pathname]);
 
     return null;
 }

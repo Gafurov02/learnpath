@@ -393,7 +393,7 @@ rgba(17,17,20,0.72)
           )}
 
           {/* Tab switcher */}
-          <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'hsl(var(--muted))', borderRadius: 10, padding: 4 }}>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: 'rgba(17,17,20,0.72)', borderRadius: 16, padding: 6, border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
             <button
                 onClick={() => setActiveTab('roadmap')}
                 style={{ flex: 1, padding: '8px 16px', borderRadius: 7, fontSize: 13, fontWeight: 500, border: 'none', background: activeTab === 'roadmap' ? 'hsl(var(--background))' : 'transparent', color: activeTab === 'roadmap' ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))', cursor: 'pointer', fontFamily: 'inherit', boxShadow: activeTab === 'roadmap' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s' }}
@@ -428,6 +428,7 @@ rgba(17,17,20,0.72)
           )}
 
           {/* Roadmap tab */}
+          {activeTab === 'roadmap' && (
             <GlassCard
                 style={{
                     padding: 28,
@@ -471,7 +472,6 @@ rgba(17,17,20,0.72)
                     </div>
                     }
                 />
-          {activeTab === 'roadmap' && (
               <>
                 {/* Exam tabs */}
                 <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -551,8 +551,8 @@ rgba(17,17,20,0.72)
                   })}
                 </div>
               </>
-          )}
             </GlassCard>
+          )}
       </AppShell>
   );
 }
