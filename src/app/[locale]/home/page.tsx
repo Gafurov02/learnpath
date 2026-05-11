@@ -121,6 +121,7 @@ export default function HomePage() {
               marginBottom: 24,
               overflow: 'hidden',
               position: 'relative',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
 
                 background: `
 
