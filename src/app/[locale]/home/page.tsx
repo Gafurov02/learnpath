@@ -5,16 +5,15 @@ import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { AppNavbar } from '@/components/layout/AppNavbar';
 import { getLevelByXp, LEVELS, ROADMAP } from '@/lib/levels';
 import { StudyPlan } from '@/components/home/StudyPlan';
 import { getSubscriptionTier, hasProAccess, type SubscriptionTier } from '@/lib/subscription';
 import { GlassCard } from "@/components/ui/GlassCard";
-import { PageContainer } from "@/components/ui/PageContainer";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { StatsCard } from "@/components/ui/StatsCard";
 import { motion } from "framer-motion";
 import { AppShell } from '@/components/layout/AppShell';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function HomePage() {
   const locale = useLocale();
@@ -114,8 +113,7 @@ export default function HomePage() {
   const isMax = tier === 'max';
 
   return (
-      <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
-        <AppNavbar />
+      <AppShell>
         <AppShell>
 
           <GlassCard
@@ -467,27 +465,24 @@ rgba(255,255,255,0.03)
                         gap: 12,
                     }}
                 >
-                    <div>
+                    <PageHeader
+                      eyebrow="Progress roadmap"
+                      title="Your learning path"
+                      description="Complete roadmap topics and improe your skills step by step."
+                      right={
                         <div
-                            style={{
-                                fontSize: 13,
-                                color: 'hsl(var(--muted-foreground))',
-                                marginBottom: 6,
-                            }}
+                          style={{
+                            fontSize: 13,
+                            color: '#6B5CE7',
+                            fontWeight: 600, 
+                          }}
                         >
-                            Progress roadmap
+                          {selectedExam}
                         </div>
-
-                        <h2
-                            style={{
-                                fontSize: 28,
-                                fontWeight: 700,
-                                letterSpacing: '-0.04em',
-                            }}
-                        >
-                            Your learning path
-                        </h2>
-                    </div>
+                      }
+                    >
+                        
+                    </PageHeader>
 
                     <div
                         style={{
@@ -548,7 +543,7 @@ rgba(255,255,255,0.03)
                             {!isLast && <div style={{ width: 2, height: 32, background: isComplete ? '#1D9E75' : 'hsl(var(--border))', marginTop: 2 }} />}
                           </div>
                           <div style={{ flex: 1, paddingBottom: isLast ? 0 : 12, paddingTop: 8, opacity: isLocked ? 0.5 : 1 }}>
-                            <div style={{ background: isActive ? `linear-gradient(180def, rgba(107,92,231,0.12), rgba(255,255,255,0.03))` : 'rgba(255,255,255,0.03)', backdropFilter: 'blur(18px)', boxShadow: isActive ? '0 10px 30px rgba(107,92,231,0.18)' : 'none', border: `1px solid ${isActive ? '#6B5CE7' : 'hsl(var(--border))'}`, borderRadius: 14, padding: '18px 20px' }}>
+                            <div style={{ background: isActive ? `linear-gradient(180deg, rgba(107,92,231,0.12), rgba(255,255,255,0.03))` : 'rgba(255,255,255,0.03)', backdropFilter: 'blur(18px)', boxShadow: isActive ? '0 10px 30px rgba(107,92,231,0.18)' : 'none', border: `1px solid ${isActive ? '#6B5CE7' : 'hsl(var(--border))'}`, borderRadius: 14, padding: '18px 20px' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isLocked ? 0 : 8 }}>
                                 <div>
                                   <div style={{ fontSize: 14, fontWeight: 500 }}>{node.topic}</div>
@@ -582,6 +577,6 @@ rgba(255,255,255,0.03)
           )}
             </GlassCard>
         </AppShell>
-      </div>
+      </AppShell>
   );
 }
