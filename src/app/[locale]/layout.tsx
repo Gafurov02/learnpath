@@ -5,6 +5,8 @@ import Providers from '@/components/layout/Providers';
 import { ServiceWorkerRegister } from '@/components/layout/ServiceWorkerRegister';
 import '../globals.css';
 import { PageTransition } from "@/components/layout/PageTransition";
+import { TopLoader } from "@/components/layout/TopLoader";
+import '../nprogress.css';
 
 export const metadata: Metadata = {
     title: 'LearnPath — AI Exam Prep',
@@ -41,6 +43,7 @@ export default async function LocaleLayout({
     return (
         <html lang={locale} suppressHydrationWarning data-scroll-behavior="smooth">
         <body style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', margin: 0 }}>
+            <TopLoader />
         <Providers
             locale={locale}
             messages={messages}
