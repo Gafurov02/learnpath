@@ -1,6 +1,5 @@
 'use client';
 
-import { ReactNode } from 'react';
 import { AppNavbar } from './AppNavbar';
 import { PageContainer } from '@/components/ui/PageContainer';
 
@@ -13,12 +12,27 @@ export function AppShell({ children }: Props) {
     <div
       style={{
         minHeight: '100vh',
-        background:
-          'radial-gradient(circle at top,rgba(107,92,231,0.12),transparent 30%), hsl(var(--background))',
-        color: 'hsl(var(--foreground))',
+        background:`
+        radial-gradirnt(
+          circle at top,
+          rgba(107,92,231,0.12),
+          transparent 30%
+          ),
+          #07070A
+          `,
+        color: '#fff',
       }}
     >
+        <AppNavbar />
+
+        <PageContainer
+            style={{
+                paddingTop: 32,
+                paddingBottom: 48,
+            }}
+        >
         {children}
+        </PageContainer>
     </div>
   );
 }

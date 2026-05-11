@@ -1,8 +1,8 @@
 import { ReactNode, CSSProperties } from "react";
 
 type Props = {
-    children: ReactNode;
-    style?: CSSProperties;
+    children: React.ReactNode;
+    style?: React.CSSProperties;
 };
 
 export function PageContainer({
@@ -19,6 +19,7 @@ export function PageContainer({
                 ...style,
             }}
         >
+            <div style={style}></div>
             {children}
         </main>
     );

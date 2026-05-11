@@ -8,27 +8,18 @@
 
 @layer base {
   :root {
-    --background: 40 20% 98%;
-    --foreground: 260 40% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 260 40% 8%;
-    --muted: 240 10% 94%;
-    --muted-foreground: 260 20% 50%;
-    --border: 240 10% 88%;
-    --input: 240 10% 88%;
-    --ring: 252 79% 64%;
-  }
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
 
-  .dark {
-    --background: 260 40% 6%;
-    --foreground: 40 20% 96%;
-    --card: 260 35% 9%;
-    --card-foreground: 40 20% 96%;
-    --muted: 260 30% 12%;
-    --muted-foreground: 260 15% 55%;
-    --border: 260 25% 16%;
-    --input: 260 25% 16%;
-    --ring: 252 79% 64%;
+    --card: 240 10% 7%;
+    --card-foreground: 0 0% 98%;
+
+    --muted: 240 5% 12%;
+    --muted-foreground: 240 5% 70%;
+
+    --border: 240 5% 18%;
+
+    --primary: 252 83% 67%;
   }
 
   * {
@@ -37,8 +28,8 @@
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background: #07070A;
+    color: white;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
