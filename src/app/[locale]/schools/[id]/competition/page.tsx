@@ -44,7 +44,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
 
     async function loadLeaderboard(week: string) {
         setLoading(true);
-        const res = await fetch(`/api/school/competition?school_id=${schoolId}&week=${week}`);
+        const res = await fetch(`/api/schools/competition?school_id=${schoolId}&week=${week}`);
         const data = await res.json();
         setLeaderboard(data.leaderboard ?? []);
         setHistory(data.history ?? []);
@@ -89,7 +89,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
             <main style={{ maxWidth: 860, margin: '0 auto', padding: '24px 16px 80px' }}>
 
                 {/* Header */}
-                <Link href={`/${locale}/school/${schoolId}`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 16 }}>
+                <Link href={`/${locale}/schools/${schoolId}`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 16 }}>
                     ← {locale === 'ru' ? 'Панель' : 'Dashboard'}
                 </Link>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>

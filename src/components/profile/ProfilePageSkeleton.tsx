@@ -122,7 +122,7 @@ export function ProfilePageSkeleton() {
                         <Skeleton
                             key={i}
                             width="100%"
-                            height={Math.random() * 80 + 30}
+                            height={[40, 50, 60, 70, 80, 90, 100][i - 1]}
                             radius={10}
                         />
                     ))}

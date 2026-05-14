@@ -35,7 +35,7 @@ export default function SchoolDashboardPage({ params }: { params: Promise<{ id: 
     let active = true;
 
     async function loadSchool() {
-      const response = await fetch(`/api/school/${schoolId}/members`, { cache: 'no-store' });
+      const response = await fetch(`/api/schools/${schoolId}/members`, { cache: 'no-store' });
 
       if (response.status === 401) {
         router.push(`/${locale}/auth/login`);
@@ -43,7 +43,7 @@ export default function SchoolDashboardPage({ params }: { params: Promise<{ id: 
       }
 
       if (response.status === 403 || response.status === 404) {
-        router.push(`/${locale}/school`);
+        router.push(`/${locale}/schools`);
         return;
       }
 
@@ -92,7 +92,7 @@ export default function SchoolDashboardPage({ params }: { params: Promise<{ id: 
 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <Link href={`/${locale}/school`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 8 }}>
+              <Link href={`/${locale}/schools`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 8 }}>
                 ← {locale === 'ru' ? 'Все школы' : 'All schools'}
               </Link>
               <h1 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 28, fontWeight: 400, letterSpacing: '-0.5px', marginBottom: 8 }}>{school.name}</h1>
@@ -112,19 +112,19 @@ export default function SchoolDashboardPage({ params }: { params: Promise<{ id: 
             </div>
             {isTeacher && (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <Link href={`/${locale}/school/${schoolId}/competition`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>
+                  <Link href={`/${locale}/schools/${schoolId}/competition`} style={{ background: '#6B5CE7', color: '#fff', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>
                     🏆 {locale === 'ru' ? 'Соревнование' : 'Competition'}
                   </Link>
-                  <Link href={`/${locale}/school/${schoolId}/questions`} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
+                  <Link href={`/${locale}/schools/${schoolId}/questions`} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
                     📝 {locale === 'ru' ? 'Вопросы' : 'Questions'}
                   </Link>
-                  <Link href={`/${locale}/school/${schoolId}/import`} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
+                  <Link href={`/${locale}/schools/${schoolId}/import`} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
                     📂 {locale === 'ru' ? 'Импорт' : 'Import'}
                   </Link>
-                  <Link href={`/${locale}/school/${schoolId}/api`} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
+                  <Link href={`/${locale}/schools/${schoolId}/api`} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
                     🔑 API
                   </Link>
-                  <Link href={`/${locale}/school/${schoolId}/support`} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
+                  <Link href={`/${locale}/schools/${schoolId}/support`} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'hsl(var(--foreground))', textDecoration: 'none' }}>
                     🎯 {locale === 'ru' ? 'Поддержка' : 'Support'}
                   </Link>
                 </div>

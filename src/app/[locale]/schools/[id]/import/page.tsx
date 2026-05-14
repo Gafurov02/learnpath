@@ -270,7 +270,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
     setDone(0);
 
     try {
-      const response = await fetch(`/api/school/${schoolId}/questions/import`, {
+      const response = await fetch(`/api/schools/${schoolId}/questions/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questions: valid }),
@@ -285,7 +285,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
       setMessage(locale === 'ru'
         ? `Импортировано: ${data.imported ?? valid.length}. Пропущено: ${data.skipped ?? 0}.`
         : `Imported: ${data.imported ?? valid.length}. Skipped: ${data.skipped ?? 0}.`);
-      setTimeout(() => router.push(`/${locale}/school/${schoolId}/questions`), 900);
+      setTimeout(() => router.push(`/${locale}/schools/${schoolId}/questions`), 900);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : (locale === 'ru' ? 'Не удалось импортировать' : 'Import failed'));
     } finally {
@@ -300,7 +300,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
     <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
       <AppNavbar />
       <main style={{ maxWidth: 760, margin: '0 auto', padding: '24px 16px 80px' }}>
-        <Link href={`/${locale}/school/${schoolId}/questions`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 20 }}>
+        <Link href={`/${locale}/schools/${schoolId}/questions`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 20 }}>
           ← {locale === 'ru' ? 'Назад к вопросам' : 'Back to questions'}
         </Link>
         <h1 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 28, fontWeight: 400, letterSpacing: '-0.5px', marginBottom: 6 }}>

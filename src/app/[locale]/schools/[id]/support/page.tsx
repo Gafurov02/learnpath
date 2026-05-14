@@ -48,7 +48,7 @@ export default function SupportPage({ params }: { params: Promise<{ id: string }
         <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
             <AppNavbar />
             <main style={{ maxWidth: 760, margin: '0 auto', padding: '24px 16px 80px' }}>
-                <Link href={`/${locale}/school/${schoolId}`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 20 }}>
+                <Link href={`/${locale}/schools/${schoolId}`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 20 }}>
                     ← {locale === 'ru' ? 'Панель' : 'Dashboard'}
                 </Link>
 

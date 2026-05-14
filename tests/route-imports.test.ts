@@ -14,7 +14,7 @@ describe('route modules', () => {
       delete process.env.ANTHROPIC_API_KEY;
 
       await expect(import('../src/app/api/cache-questions/route')).resolves.toBeTruthy();
-      await expect(import('../src/app/api/school/competition/route')).resolves.toBeTruthy();
+      await expect(import('../src/app/api/schools/competition/route')).resolves.toBeTruthy();
       await expect(import('../src/app/api/stripe/webhook/route')).resolves.toBeTruthy();
     } finally {
       process.env = savedEnv;

@@ -44,7 +44,7 @@ export default function StudentsPage({ params }: { params: Promise<{ id: string 
     }
 
     try {
-      const response = await fetch(`/api/school/${schoolId}/members`, { cache: 'no-store' });
+      const response = await fetch(`/api/schools/${schoolId}/members`, { cache: 'no-store' });
 
       if (response.status === 401) {
         router.push(`/${locale}/auth/login`);
@@ -52,7 +52,7 @@ export default function StudentsPage({ params }: { params: Promise<{ id: string 
       }
 
       if (response.status === 403 || response.status === 404) {
-        router.push(`/${locale}/school`);
+        router.push(`/${locale}/schools`);
         return;
       }
 
@@ -81,7 +81,7 @@ export default function StudentsPage({ params }: { params: Promise<{ id: string 
   // });
 
   async function removeStudent(userId: string) {
-    const response = await fetch(`/api/school/${schoolId}/members`, {
+    const response = await fetch(`/api/schools/${schoolId}/members`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId }),
@@ -109,7 +109,7 @@ export default function StudentsPage({ params }: { params: Promise<{ id: string 
         <main style={{ maxWidth: 860, margin: '0 auto', padding: '32px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
             <div>
-              <Link href={`/${locale}/school/${schoolId}`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 8 }}>
+              <Link href={`/${locale}/schools/${schoolId}`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 8 }}>
                 ← {locale === 'ru' ? 'Панель' : 'Dashboard'}
               </Link>
               <h1 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 28, fontWeight: 400, letterSpacing: '-0.5px', marginBottom: 6 }}>

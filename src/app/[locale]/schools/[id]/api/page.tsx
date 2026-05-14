@@ -23,7 +23,7 @@ export default function ApiAccessPage({ params }: { params: Promise<{ id: string
     useEffect(() => { params.then(p => setSchoolId(p.id)); }, [params]);
 
     async function loadKeys() {
-        const res = await fetch(`/api/school/api-keys?school_id=${schoolId}`);
+        const res = await fetch(`/api/schools/api-keys?school_id=${schoolId}`);
         const data = await res.json();
         setKeys(data.keys ?? []);
     }
@@ -40,7 +40,7 @@ export default function ApiAccessPage({ params }: { params: Promise<{ id: string
 
     async function createKey() {
         setCreating(true);
-        const res = await fetch('/api/school/api-keys', {
+        const res = await fetch('/api/schools/api-keys', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ school_id: schoolId, name: newKeyName || 'Default key' }),
@@ -53,7 +53,7 @@ export default function ApiAccessPage({ params }: { params: Promise<{ id: string
     }
 
     async function deleteKey(id: string) {
-        await fetch('/api/school/api-keys', {
+        await fetch('/api/schools/api-keys', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id }),
@@ -73,7 +73,7 @@ export default function ApiAccessPage({ params }: { params: Promise<{ id: string
         <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
             <AppNavbar />
             <main style={{ maxWidth: 860, margin: '0 auto', padding: '24px 16px 80px' }}>
-                <Link href={`/${locale}/school/${schoolId}`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 20 }}>
+                <Link href={`/${locale}/schools/${schoolId}`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 20 }}>
                     ← {locale === 'ru' ? 'Панель' : 'Dashboard'}
                 </Link>
 

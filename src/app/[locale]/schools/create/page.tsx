@@ -36,7 +36,7 @@ export default function CreateSchoolPage() {
 
         // Add owner as teacher
         await supabase.from('school_members').insert({ school_id: data.id, user_id: user.id, role: 'teacher' });
-        router.push(`/${locale}/school/${data.id}`);
+        router.push(`/${locale}/schools/${data.id}`);
     }
 
     const inputStyle: React.CSSProperties = {
@@ -48,7 +48,7 @@ export default function CreateSchoolPage() {
         <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>
             <AppNavbar />
             <main style={{ maxWidth: 560, margin: '0 auto', padding: '48px 24px' }}>
-                <Link href={`/${locale}/school`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 28 }}>← {locale === 'ru' ? 'Назад' : 'Back'}</Link>
+                <Link href={`/${locale}/schools`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 28 }}>← {locale === 'ru' ? 'Назад' : 'Back'}</Link>
                 <h1 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 32, fontWeight: 400, letterSpacing: '-1px', marginBottom: 8 }}>
                     {locale === 'ru' ? 'Создать школу' : 'Create a school'}
                 </h1>

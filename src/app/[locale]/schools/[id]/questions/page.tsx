@@ -68,7 +68,7 @@ export default function QuestionsPage({ params }: { params: Promise<{ id: string
             <main style={{ maxWidth: 860, margin: '0 auto', padding: '32px 24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
                     <div>
-                        <Link href={`/${locale}/school/${schoolId}`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 8 }}>← {locale === 'ru' ? 'Панель' : 'Dashboard'}</Link>
+                        <Link href={`/${locale}/schools/${schoolId}`} style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', textDecoration: 'none', display: 'block', marginBottom: 8 }}>← {locale === 'ru' ? 'Панель' : 'Dashboard'}</Link>
                         <h1 style={{ fontFamily: 'var(--font-serif), Georgia, serif', fontSize: 28, fontWeight: 400, letterSpacing: '-0.5px' }}>
                             {locale === 'ru' ? 'Кастомные вопросы' : 'Custom questions'}
                         </h1>
