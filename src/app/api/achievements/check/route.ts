@@ -1,57 +1,58 @@
 import { NextResponse } from 'next/server';
-import { createServiceRoleClient } from '@/lib/server-supabase';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/server-supabase';
+import { awardUserAchievements } from '@/lib/achievements';
 
+/**
+ * POST /api/achievements/check
+ *
+ * Called from the quiz page after each answer for real-time unlock feedback.
+ *
+ * FIXED:
+ * - Was using `achievement_id` — DB column is `achievement`
+ * - Was using wrong codes: `first_correct`, `xp_1000` — now uses real codes
+ * - Was accepting `userId` from body with no auth — now uses session
+ * - Was not using `awardUserAchievements` utility — now does
+ */
 export async function POST(req: Request) {
     try {
-        const body = await req.json();
-
+        // Always authenticate via session — never trust userId from the body
+        const supabase = await createServerSupabaseClient();
         const {
-            userId,
-            correctAnswers,
-            streak,
-            xp,
-        } = body;
+            data: { user },
+        } = await supabase.auth.getUser();
 
-        const supabase = createServiceRoleClient();
-
-        const unlocked: string[] = [];
-
-        async function unlock(id: string) {
-            const { error } = await supabase
-                .from('user_achievements')
-                .insert({
-                    user_id: userId,
-                    achievement_id: id,
-                });
-
-            if (!error) unlocked.push(id);
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        if (correctAnswers >= 1) {
-            await unlock('first_correct');
-        }
+        const body = await req.json();
+        const correctAnswers: number = Number(body.correctAnswers ?? 0);
+        const streak: number = Number(body.streak ?? 0);
+        const xp: number = Number(body.xp ?? 0);
 
-        if (correctAnswers >= 100) {
-            await unlock('correct_100');
-        }
+        // Build the list of conditions using the real achievement codes from lib/achievements.ts
+        const checks: [string, boolean][] = [
+            ['first_answer',    correctAnswers >= 1],
+            ['streak_3',        streak >= 3],
+            ['streak_7',        streak >= 7],
+            ['streak_30',       streak >= 30],
+            ['correct_100',     correctAnswers >= 100],
+            ['xp_500',          xp >= 500],
+            ['xp_1500',         xp >= 1500],
+            ['xp_3000',         xp >= 3000],
+        ];
 
-        if (streak >= 7) {
-            await unlock('streak_7');
-        }
+        const eligibleCodes = checks
+            .filter(([, condition]) => condition)
+            .map(([code]) => code);
 
-        if (xp >= 1000) {
-            await unlock('xp_1000');
-        }
+        const admin = createServiceRoleClient();
 
-        return NextResponse.json({
-            unlocked,
-        });
+        const unlocked = await awardUserAchievements(admin, user.id, eligibleCodes);
+
+        return NextResponse.json({ unlocked });
     } catch (err) {
-        console.error(err);
-
-        return NextResponse.json(
-            { error: 'Failed' },
-            { status: 500 }
-        );
+        console.error('[achievements/check]', err);
+        return NextResponse.json({ error: 'Failed to check achievements' }, { status: 500 });
     }
 }

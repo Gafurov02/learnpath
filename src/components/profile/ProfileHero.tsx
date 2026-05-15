@@ -1,7 +1,7 @@
 'use client';
 
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { AnimatedXP } from "@/components/profile/AnimatedXP";
+import { AnimatedXP } from '@/components/profile/AnimatedXP';
 
 type Props = {
     name: string;
@@ -30,33 +30,27 @@ export function ProfileHero({
                 position: 'relative',
                 overflow: 'hidden',
                 borderRadius: 32,
-                padding: 28,
-                marginBottom: 20,
-                background:
-                    'radial-gradient(circle at top left, rgba(107,92,231,0.24), transparent 40%),',
-                animation:
-                    'pulseGlow 6s ease-in out infinite',
+                padding: 'clamp(20px, 4vw, 32px)',
                 border: '1px solid rgba(107,92,231,0.18)',
                 backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                // Fixed: removed trailing comma that made the gradient invalid
+                background:
+                    'radial-gradient(circle at top left, rgba(107,92,231,0.24), transparent 40%)',
+                // Fixed: was 'ease-in out' — now 'ease-in-out'
+                animation: 'pulseGlow 6s ease-in-out infinite',
             }}
         >
+            {/* Overlay gradient */}
             <div
                 style={{
                     position: 'absolute',
                     inset: 0,
                     background: `
-                        linear-gradient(
-                        180deg,
-                        rgba(255,255,255,0.03),
-                        rgba(255,255,255,0.01)
-                ),
-                radial-gradient(
-                circle at top right,
-                rgba(107,92,231,0.22),
-                transparent 35%
-                ),
-                rgba(17,17,20,0.72)
-                `,
+            linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
+            radial-gradient(circle at top right, rgba(107,92,231,0.22), transparent 35%),
+            rgba(17,17,20,0.72)
+          `,
                     pointerEvents: 'none',
                 }}
             />
@@ -69,15 +63,11 @@ export function ProfileHero({
                     justifyContent: 'space-between',
                     gap: 24,
                     flexWrap: 'wrap',
+                    alignItems: 'center',
                 }}
             >
-                <div
-                    style={{
-                        display: 'flex',
-                        gap: 18,
-                        alignItems: 'center',
-                    }}
-                >
+                {/* Left: avatar + info */}
+                <div style={{ display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
                     <UserAvatar
                         avatarUrl={avatarUrl}
                         name={name}
@@ -98,9 +88,9 @@ export function ProfileHero({
                         >
                             <div
                                 style={{
-                                    fontSize: 28,
+                                    fontSize: 'clamp(20px, 4vw, 28px)',
                                     fontWeight: 700,
-                                    letterSpacing: '-1px',
+                                    letterSpacing: '-0.5px',
                                 }}
                             >
                                 {name}
@@ -109,13 +99,13 @@ export function ProfileHero({
                             {isPro && (
                                 <div
                                     style={{
-                                        background:
-                                            'linear-gradient(135deg,#6B5CE7,#9B8DFF)',
+                                        background: 'linear-gradient(135deg,#6B5CE7,#9B8DFF)',
                                         color: '#fff',
                                         borderRadius: 999,
                                         padding: '4px 10px',
                                         fontSize: 11,
                                         fontWeight: 700,
+                                        flexShrink: 0,
                                     }}
                                 >
                                     PRO
@@ -123,70 +113,46 @@ export function ProfileHero({
                             )}
                         </div>
 
-                        <div
-                            style={{
-                                color: 'hsl(var(--muted-foreground))',
-                                fontSize: 14,
-                                marginBottom: 12,
-                            }}
-                        >
-                            {email}
-                        </div>
-
-                        <div
-                            style={{
-                                display: 'flex',
-                                gap: 10,
-                                flexWrap: 'wrap',
-                            }}
-                        >
+                        {email && (
                             <div
                                 style={{
-                                    background: 'rgba(255,255,255,0.08)',
-                                    borderRadius: 999,
-                                    padding: '6px 12px',
-                                    fontSize: 12,
-                                    fontWeight: 600,
+                                    color: 'hsl(var(--muted-foreground))',
+                                    fontSize: 13,
+                                    marginBottom: 12,
                                 }}
                             >
-                                ⚡ <AnimatedXP value={xp} /> XP
+                                {email}
                             </div>
+                        )}
 
-                            <div
-                                style={{
-                                    background: 'rgba(255,255,255,0.08)',
-                                    borderRadius: 999,
-                                    padding: '6px 12px',
-                                    fontSize: 12,
-                                    fontWeight: 600,
-                                }}
-                            >
-                                🔥 {streak} day streak
-                            </div>
-
-                            <div
-                                style={{
-                                    background: 'rgba(255,255,255,0.08)',
-                                    borderRadius: 999,
-                                    padding: '6px 12px',
-                                    fontSize: 12,
-                                    fontWeight: 600,
-                                }}
-                            >
-                                🏆 {level}
-                            </div>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            {(
+                                [
+                                    { icon: '⚡', label: <><AnimatedXP value={xp} /> XP</> },
+                                    { icon: '🔥', label: `${streak} day streak` },
+                                    { icon: '🏆', label: level },
+                                ] as const
+                            ).map(({ icon, label }, i) => (
+                                <div
+                                    key={i}
+                                    style={{
+                                        background: 'rgba(255,255,255,0.08)',
+                                        borderRadius: 999,
+                                        padding: '5px 11px',
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        whiteSpace: 'nowrap',
+                                    }}
+                                >
+                                    {icon} {label}
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
 
-                <div
-                    style={{
-                        minWidth: 140,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                    }}
-                >
+                {/* Right: progress bar */}
+                <div style={{ minWidth: 140, flex: '0 1 200px' }}>
                     <div
                         style={{
                             fontSize: 12,
@@ -210,8 +176,8 @@ export function ProfileHero({
                                 height: '100%',
                                 width: `${progress}%`,
                                 borderRadius: 999,
-                                background:
-                                    'linear-gradient(90deg,#6B5CE7,#9B8DFF)',
+                                background: 'linear-gradient(90deg,#6B5CE7,#9B8DFF)',
+                                transition: 'width 0.5s ease',
                             }}
                         />
                     </div>

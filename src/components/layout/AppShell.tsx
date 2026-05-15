@@ -4,35 +4,31 @@ import { AppNavbar } from './AppNavbar';
 import { PageContainer } from '@/components/ui/PageContainer';
 
 type Props = {
-  children: React.ReactNode;
+    children: React.ReactNode;
 };
 
 export function AppShell({ children }: Props) {
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background:`
-        radial-gradirnt(
-          circle at top,
-          rgba(107,92,231,0.12),
-          transparent 30%
-          ),
-          #07070A
-          `,
-        color: '#fff',
-      }}
-    >
-        <AppNavbar />
-
-        <PageContainer
+    return (
+        <div
             style={{
-                paddingTop: 32,
-                paddingBottom: 48,
+                minHeight: '100vh',
+                background: `
+          radial-gradient(circle at top, rgba(107,92,231,0.12), transparent 30%),
+          #07070A
+        `,
+                color: '#fff',
             }}
         >
-        {children}
-        </PageContainer>
-    </div>
-  );
+            <AppNavbar />
+
+            <PageContainer
+                style={{
+                    paddingTop: 32,
+                    paddingBottom: 48,
+                }}
+            >
+                {children}
+            </PageContainer>
+        </div>
+    );
 }
