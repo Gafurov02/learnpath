@@ -18,11 +18,14 @@ export default function Providers({
 }) {
     return (
         <NextIntlClientProvider locale={locale} messages={messages}>
-            <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+            {/*
+        forcedTheme="dark" — always dark, no system override, no toggle needed.
+        Keeps next-themes so CSS vars still resolve correctly.
+      */}
+            <ThemeProvider attribute="class" forcedTheme="dark">
                 <TonConnectUIProvider manifestUrl="https://gafurov.cc/tonconnect-manifest.json">
                     {children}
 
-                    {/* Global command palette — was imported but never rendered */}
                     <CommandMenu />
 
                     <Toaster
@@ -32,9 +35,10 @@ export default function Providers({
                         toastOptions={{
                             style: {
                                 borderRadius: 16,
-                                border: '1px solid hsl(var(--border))', // was '1xp' — typo fixed
-                                background: 'hsl(var(--card))',
-                                color: 'hsl(var(--foreground))',
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                background: 'rgba(20,20,28,0.95)',
+                                color: '#fff',
+                                backdropFilter: 'blur(16px)',
                             },
                         }}
                     />
