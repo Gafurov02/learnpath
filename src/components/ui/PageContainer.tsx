@@ -1,14 +1,12 @@
-import { ReactNode, CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from 'react';
 
 type Props = {
-    children: React.ReactNode;
-    style?: React.CSSProperties;
+    children: ReactNode;
+    style?: CSSProperties;
 };
 
-export function PageContainer({
-                                  children,
-    style,
-                              }: Props) {
+// FIX: was rendering a duplicate empty <div style={style}></div> before children.
+export function PageContainer({ children, style }: Props) {
     return (
         <main
             style={{
@@ -19,7 +17,6 @@ export function PageContainer({
                 ...style,
             }}
         >
-            <div style={style}></div>
             {children}
         </main>
     );

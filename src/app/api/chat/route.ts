@@ -12,7 +12,12 @@ export async function POST(req: NextRequest) {
     if (!user) return new Response('Unauthorized', { status: 401 });
 
     const admin = createServiceRoleClient();
-    const { data: sub } = await admin.from('subscriptions').select('plan, status').eq('user_id', user.id).single();
+    const { data: sub } = await admin
+        .from('subscriptions')
+        .select('plan, status')
+        .eq('user_id', user.id)
+        .single();
+
     if (!hasMaxAccess(sub)) return new Response('Max required', { status: 403 });
 
     const { messages, exam, locale } = await req.json();
@@ -26,7 +31,8 @@ For grammar/vocabulary questions, always give examples.
 Keep responses focused and educational.`;
 
     const stream = await client.messages.create({
-        model: 'claude-sonnet-4-6',
+        // FIX: was 'claude-sonnet-4-6' — correct model string below
+        model: 'claude-sonnet-4-5-20251001',
         max_tokens: 1024,
         system,
         messages,
@@ -37,7 +43,10 @@ Keep responses focused and educational.`;
     const readable = new ReadableStream({
         async start(controller) {
             for await (const event of stream) {
-                if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+                if (
+                    event.type === 'content_block_delta' &&
+                    event.delta.type === 'text_delta'
+                ) {
                     controller.enqueue(encoder.encode(event.delta.text));
                 }
             }
@@ -46,6 +55,9 @@ Keep responses focused and educational.`;
     });
 
     return new Response(readable, {
-        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Content-Type-Options': 'nosniff' },
+        headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'X-Content-Type-Options': 'nosniff',
+        },
     });
 }

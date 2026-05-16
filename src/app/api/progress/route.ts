@@ -15,9 +15,12 @@ function getWeekStart(): string {
   return monday.toISOString().split('T')[0];
 }
 
-// ─── GET /api/progress ────────────────────────────────────────────────────────
-// Returns the authenticated user's quiz stats for the dashboard.
-// Was previously missing — dashboard got 405 on every load.
+/**
+ * GET /api/progress
+ * Returns aggregated quiz stats for the authenticated user.
+ * FIX: This handler was MISSING — DashboardPage called fetch('/api/progress')
+ * as GET but only POST existed, so the dashboard always showed zeros.
+ */
 export async function GET() {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -27,10 +30,10 @@ export async function GET() {
 
   const { data: attempts, error } = await admin
       .from('quiz_attempts')
-      .select('created_at, exam, correct')
+      .select('exam, correct, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .limit(500);
+      .limit(1000);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -42,9 +45,10 @@ export async function GET() {
   return NextResponse.json({ total, correct, accuracy, attempts: safe });
 }
 
-// ─── POST /api/progress ───────────────────────────────────────────────────────
-// Records a quiz answer, validates the answer token, enforces limits,
-// and updates weekly school scores.
+/**
+ * POST /api/progress
+ * Validates answer token and persists the quiz attempt.
+ */
 export async function POST(req: NextRequest) {
   const env = getServerEnv();
   const supabase = await createServerSupabaseClient();
@@ -112,7 +116,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
-  // Update weekly school scores
+  // Update weekly scores for every school the user belongs to
   const { data: memberships } = await admin
       .from('school_members')
       .select('school_id')
@@ -120,7 +124,7 @@ export async function POST(req: NextRequest) {
 
   if (memberships && memberships.length > 0) {
     const week_start = getWeekStart();
-    const xp = getXpForAction(correct ? 'correct' : 'incorrect');
+    const xpGain = getXpForAction(correct ? 'correct' : 'incorrect');
 
     for (const m of memberships) {
       const { data: existing } = await admin
@@ -133,7 +137,7 @@ export async function POST(req: NextRequest) {
 
       if (existing) {
         await admin.from('weekly_scores').update({
-          xp_gained: existing.xp_gained + xp,
+          xp_gained: existing.xp_gained + xpGain,
           questions: existing.questions + 1,
           correct: existing.correct + (correct ? 1 : 0),
           updated_at: new Date().toISOString(),
@@ -143,7 +147,7 @@ export async function POST(req: NextRequest) {
           school_id: m.school_id,
           user_id: user.id,
           week_start,
-          xp_gained: xp,
+          xp_gained: xpGain,
           questions: 1,
           correct: correct ? 1 : 0,
           streak_days: 0,
