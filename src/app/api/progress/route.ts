@@ -15,6 +15,36 @@ function getWeekStart(): string {
   return monday.toISOString().split('T')[0];
 }
 
+// ─── GET /api/progress ────────────────────────────────────────────────────────
+// Returns the authenticated user's quiz stats for the dashboard.
+// Was previously missing — dashboard got 405 on every load.
+export async function GET() {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const admin = createServiceRoleClient();
+
+  const { data: attempts, error } = await admin
+      .from('quiz_attempts')
+      .select('created_at, exam, correct')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(500);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const safe = attempts ?? [];
+  const total = safe.length;
+  const correct = safe.filter((a) => a.correct).length;
+  const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+  return NextResponse.json({ total, correct, accuracy, attempts: safe });
+}
+
+// ─── POST /api/progress ───────────────────────────────────────────────────────
+// Records a quiz answer, validates the answer token, enforces limits,
+// and updates weekly school scores.
 export async function POST(req: NextRequest) {
   const env = getServerEnv();
   const supabase = await createServerSupabaseClient();
@@ -30,13 +60,12 @@ export async function POST(req: NextRequest) {
   }
 
   let payload: ReturnType<typeof openAnswerToken>;
-
   try {
     payload = openAnswerToken(env.SUPABASE_SERVICE_ROLE_KEY, answerToken);
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'invalid_answer_token' },
-      { status: 400 }
+        { error: error instanceof Error ? error.message : 'invalid_answer_token' },
+        { status: 400 }
     );
   }
 
@@ -46,19 +75,21 @@ export async function POST(req: NextRequest) {
 
   const admin = createServiceRoleClient();
   const { data: sub } = await admin
-    .from('subscriptions')
-    .select('plan, status')
-    .eq('user_id', user.id)
-    .maybeSingle();
+      .from('subscriptions')
+      .select('plan, status')
+      .eq('user_id', user.id)
+      .maybeSingle();
   const tier = getSubscriptionTier(sub);
 
   if (tier !== 'max') {
     const limit = tier === 'pro' ? PRO_LIMITS.questionsPerWindow : FREE_LIMITS.questionsPerDay;
     const windowDays = tier === 'pro' ? PRO_LIMITS.windowDays : FREE_LIMITS.windowDays;
     const windowCount = await getWindowCount(admin, user.id, windowDays);
-
     if (windowCount >= limit) {
-      return NextResponse.json({ error: 'question_limit_reached', limit, used: windowCount, windowDays }, { status: 403 });
+      return NextResponse.json(
+          { error: 'question_limit_reached', limit, used: windowCount, windowDays },
+          { status: 403 }
+      );
     }
   }
 
@@ -77,12 +108,11 @@ export async function POST(req: NextRequest) {
   if (insertError?.code === '23505') {
     return NextResponse.json({ error: 'answer_already_recorded' }, { status: 409 });
   }
-
   if (insertError) {
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
-  // Update weekly scores for all schools user is in
+  // Update weekly school scores
   const { data: memberships } = await admin
       .from('school_members')
       .select('school_id')
@@ -110,9 +140,13 @@ export async function POST(req: NextRequest) {
         }).eq('id', existing.id);
       } else {
         await admin.from('weekly_scores').insert({
-          school_id: m.school_id, user_id: user.id, week_start,
-          xp_gained: xp, questions: 1,
-          correct: correct ? 1 : 0, streak_days: 0,
+          school_id: m.school_id,
+          user_id: user.id,
+          week_start,
+          xp_gained: xp,
+          questions: 1,
+          correct: correct ? 1 : 0,
+          streak_days: 0,
         });
       }
     }
